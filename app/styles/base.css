@@ -1,0 +1,29 @@
+body {
+    padding: 0px;
+    margin: 0px;
+    font-family: 'Roboto', sans-serif;
+    background-color: #eaeaea;
+}
+
+a {
+    color: #999;
+}
+
+.intro {
+    margin-top: 100px;
+    padding-left: 30px;
+    padding-right: 30px;
+    text-align: center;
+}
+
+.todoContainer {
+    max-width: 400px;
+    text-align: left;
+    margin: 60px auto;
+}
+
+.footnote {
+    font-size: 12;
+    font-weight: 300;
+    margin-top: 100px;
+}
