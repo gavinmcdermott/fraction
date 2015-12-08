@@ -32,8 +32,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "babel-node server/server.js --presets es2015,stage-2",
-    "start": "npm run dev"
+    "client_dev": "babel-node server/server.js --presets es2015,stage-2",
+    "server_dev": "nodemon --exec babel-node server/server.js --presets es2015,stage-2",
+    "start": "npm run server_dev"
   },
   "author": {
     "name": "Gavin McDermott",
