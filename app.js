@@ -48,7 +48,6 @@ app.use(webpackHotMiddleware(webpackCompiler, {
 
 
 
-
 // Static directories
 app.use(express.static(PUBLIC_PATH));
 app.use('/dist', express.static(DIST_PATH));
