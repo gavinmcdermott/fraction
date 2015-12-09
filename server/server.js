@@ -1,10 +1,7 @@
 'use strict';
 
-// Dependencies
+// Import dependencies
 import app from '../app';
-
-
-console.log('asdfsad');
 
 let server = app.listen(app.get('port'), function() {
   // server is an http.Server, which extends a net.Server
@@ -13,4 +10,3 @@ let server = app.listen(app.get('port'), function() {
   // provide access to server via exported app for querying and adding listeners
   app.set('server', server);
 });
-

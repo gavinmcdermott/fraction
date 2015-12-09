@@ -86,8 +86,3 @@ module.exports = {
     new webpack.NoErrorsPlugin()
   ]
 };
-
-
-
-
-// "dev": "nodemon --exec babel-node server/server.js --presets es2015,stage-2",
