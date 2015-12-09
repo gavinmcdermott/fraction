@@ -1,11 +1,11 @@
 'use strict';
 
 // Dependencies
-import path from 'path';
 import bodyParser from 'body-parser';
-import express from 'express';
 import config from './server/config/config'
-
+import express from 'express';
+import path from 'path';
+import routeloader from './server/utils/routeloader';
 import webpack from 'webpack';
 import webpackConfig from './webpack.config';
 import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -13,12 +13,22 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpackMiddlewareConfig from './webpackMiddleware.config';
 
 
+// Route normalization
+let DIST_PATH = path.join(__dirname + '/dist');
+let PUBLIC_PATH = path.join(__dirname + '/app');
+let ROUTES_PATH = path.join(__dirname + '/server/routes');
+
+
 // Instantiate the App
 let appConfig = config.init();
 let app = express();
 
 
-// Middlewares
+// Load routes
+routeloader.loadAPI(app, ROUTES_PATH);
+
+
+// Add Middlewares
 // Build webpack comiler based on webpack config
 let webpackCompiler = webpack(webpackConfig);
 // Attach webpack-dev-middleware and webpack-hot-middleware
@@ -29,31 +39,25 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
-// Route normalization
-let PUBLIC_PATH = path.join(__dirname + '/app');
-let DIST_PATH = path.join(__dirname + '/dist');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Static directories
+// Handle static files
 app.use(express.static(PUBLIC_PATH));
 app.use('/dist', express.static(DIST_PATH));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // 
@@ -74,8 +78,8 @@ app.get('/', (req, res) => {
 //  TEST STUFF BELOW HERE!!!
 app.set('port', process.env.PORT || 3000);
 
-// import routeloader from './lib/routeloader';
-// let routesDir = path.join(__dirname, 'routes');
+
+
 
 // Export the app to start it up in a different location (useful for testing)
 module.exports = app;

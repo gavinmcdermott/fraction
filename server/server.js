@@ -3,7 +3,7 @@
 // Import dependencies
 import app from '../app';
 
-let server = app.listen(app.get('port'), function() {
+let server = app.listen(app.get('port'), () => {
   // server is an http.Server, which extends a net.Server
   console.log('server started on port %s', server.address().port);
 
