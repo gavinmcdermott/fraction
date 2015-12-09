@@ -24,6 +24,10 @@ let appConfig = config.init();
 let app = express();
 
 
+// Expose props on our app
+app.set('express_port', process.env.EXPRESS_PORT);
+
+
 // Load routes
 routeloader.loadAPI(app, ROUTES_PATH);
 
@@ -43,43 +47,11 @@ app.use(bodyParser.json());
 app.use(express.static(PUBLIC_PATH));
 app.use('/dist', express.static(DIST_PATH));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 
+// Handle client routes
 app.get('/', (req, res) => { 
   res.sendFile(path.join(PUBLIC_PATH + '/index.html')); 
 });
 
 
-
-
-
-
-
-
-
-
-
-//  TEST STUFF BELOW HERE!!!
-app.set('port', process.env.PORT || 3000);
-
-
-
-
-// Export the app to start it up in a different location (useful for testing)
+// Export our app instance
 module.exports = app;
