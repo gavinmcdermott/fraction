@@ -1,6 +1,8 @@
+'use strict'
 
-// Import dependencies
+// Dependencies
 import webpackConfig from './webpack.config';
+
 
 // Configs for Webpack middleware
 // Further reading: https://github.com/glenjamin/webpack-hot-middleware 

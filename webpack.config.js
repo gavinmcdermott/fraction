@@ -1,11 +1,13 @@
 'use strict'
 
  // Import components
-let autoprefixer = require('autoprefixer');
-let webpack = require('webpack');
-let path = require('path');
+import autoprefixer from 'autoprefixer';
+import webpack from 'webpack';
+import path from 'path';
 
-// Export only the config to be consumed by the
+
+// Only export the config to be consumed by webpack
+// It builds an instance of a webpack compiler based on this
 module.exports = {
   // Entry points into the build process
   entry: [
@@ -74,7 +76,7 @@ module.exports = {
   },
 
   // Handle all vendor prefixes
-  postcss: function() {
+  postcss: () => {
     return [autoprefixer];
   },
 

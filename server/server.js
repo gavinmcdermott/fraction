@@ -3,7 +3,10 @@
 // Dependencies
 import app from '../app';
 
+
+// Local setup
 let port = app.get('express_port');
+
 
 /**
  * Run the node the server
