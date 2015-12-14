@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import sinon from 'sinon';
-import serviceDispatch from'./../../middleware/serviceDispatch';
+import serviceDispatch from'./../serviceDispatch';
 import serviceRegistry from './../../services/serviceRegistry';
 
 describe('Service Dispatch', function() {
