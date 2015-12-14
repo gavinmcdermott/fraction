@@ -7,7 +7,6 @@ import path from 'path';
 import url from 'url';
 
 // Local Deps
-import userModule from './user/userServiceRegistration'
 import serviceRegistry from './serviceRegistry'
 
 
@@ -19,10 +18,10 @@ import serviceRegistry from './serviceRegistry'
  */
 module.exports.load = (app) => {
   _.forEach(serviceRegistry.services, (svc) => {
+    let module = require('./user/userService');
+
     let urlBase = serviceRegistry.SERVICE_API_BASE_V1 + svc.url;
     app.use(urlBase, svc.router);
     console.log(svc.name.toUpperCase() + ' SERVICE STATUS: Loaded');
   });
 };
-
-
