@@ -1,12 +1,18 @@
 'use strict';
 
-// Dependencies
+// System Dependencies
 import bodyParser from 'body-parser';
-import config from './server/config/config'
 import express from 'express';
 import path from 'path';
-import routeloader from './server/utils/routeloader';
 import webpack from 'webpack';
+import winston from 'winston';
+import url from 'url';
+
+// Local Dependencies
+import config from './server/config/config';
+import errorHandler from './server/middleware/errorHandler';
+import serviceDispatch from './server/middleware/serviceDispatch';
+import serviceLoader from './server/services/serviceLoader';
 import webpackConfig from './webpack.config';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
@@ -14,22 +20,18 @@ import webpackMiddlewareConfig from './webpackMiddleware.config';
 
 
 // Route normalization
-let DIST_PATH = path.join(__dirname + '/dist');
-let PUBLIC_PATH = path.join(__dirname + '/app');
-let ROUTES_PATH = path.join(__dirname + '/server/routes');
+const DIST_PATH = path.join(__dirname + '/dist');
+const PUBLIC_PATH = path.join(__dirname + '/app');
+const SERVICES_PATH = path.join(__dirname + '/server/services');
 
 
-// Instantiate the App
-let appConfig = config.init();
+// Get an App instance and config
+let appConfig = config.load();
 let app = express();
 
 
-// Expose props on our app
+// Set up app properties
 app.set('express_port', process.env.EXPRESS_PORT);
-
-
-// Load routes
-routeloader.loadAPI(app, ROUTES_PATH);
 
 
 // Add Middlewares
@@ -42,10 +44,17 @@ app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use(serviceDispatch.verify);
+
 
 // Handle static files
 app.use(express.static(PUBLIC_PATH));
 app.use('/dist', express.static(DIST_PATH));
+
+
+// Load services
+serviceLoader.load(app);
+
 
 // Handle client routes
 app.get('/', (req, res) => { 
@@ -53,5 +62,5 @@ app.get('/', (req, res) => {
 });
 
 
-// Export our app instance
+// Export our app instance to start from the appropriate point
 module.exports = app;

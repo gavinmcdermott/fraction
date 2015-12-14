@@ -1,6 +1,6 @@
 'use strict'
 
- // Import components
+ // System Deps
 import autoprefixer from 'autoprefixer';
 import webpack from 'webpack';
 import path from 'path';

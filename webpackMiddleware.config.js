@@ -1,6 +1,6 @@
 'use strict'
 
-// Dependencies
+// Local Dependencies
 import webpackConfig from './webpack.config';
 
 
