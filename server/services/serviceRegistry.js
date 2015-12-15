@@ -48,7 +48,7 @@ class ServiceRegistry {
     assert(typeof newService.name === 'string');
     assert(typeof newService.url === 'string');
     assert(_.startsWith(newService.url, '/'));
-    assert(typeof newService.router === 'object');
+    assert(typeof newService.router === 'function');
     assert(typeof newService.endpoints === 'object');
 
     if (_.has(services, newService.name)) {
@@ -97,7 +97,7 @@ registry = new ServiceRegistry();
  */
 let loadServices = (app) => {
   _.forIn(services, (service) => {
-    app.use(API_BASE_V1 + service.url, service.router);
+    app.use(service.url, service.router);
   });
 };
 

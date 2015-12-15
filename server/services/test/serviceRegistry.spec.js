@@ -11,18 +11,20 @@ let registry = serviceRegistry.registry;
 // Service registry test suite
 describe('Service Registry', function() {
 
-  let missingNameModule = { url: '/test', router: {}, endpoints: [] };
+  let fakeRouter = () => {};
 
-  let missingUrlModule = { name: 'test', router: {}, endpoints: [] };
-  let invalidUrlModule = { name: 'test',url: 'some bad url', router: {}, endpoints: [] };
+  let missingNameModule = { url: '/test', router: fakeRouter, endpoints: [] };
+
+  let missingUrlModule = { name: 'test', router: fakeRouter, endpoints: [] };
+  let invalidUrlModule = { name: 'test',url: 'some bad url', router: fakeRouter, endpoints: [] };
   
   let missingRouterModule = { url: '/', name: 'test', endpoints: [] };
-  let missingEndpointsModule = { name: 'test', router: {} };
+  let missingEndpointsModule = { name: 'test', router: fakeRouter };
   
   let invalidObjectsModule = { url: 132, name: 132, router: ';', endpoints: 123 };
   
-  let validModule1 = { url: '/test1', name: 'test1', router: {}, endpoints: [] };
-  let validModule2 = { url: '/test2', name: 'test2', router: {}, endpoints: [] };
+  let validModule1 = { url: '/test1', name: 'test1', router: fakeRouter, endpoints: [] };
+  let validModule2 = { url: '/test2', name: 'test2', router: fakeRouter, endpoints: [] };
 
   afterEach(() => {
     registry.clearServices(true);

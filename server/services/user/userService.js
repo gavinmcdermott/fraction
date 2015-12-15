@@ -6,12 +6,14 @@ import express from 'express'
 import url from 'url';
 
 // Locals
-import serviceRegistry from '../serviceRegistry';
+import { registry }  from './../serviceRegistry';
+import { wrapError } from './../../middleware/errorHandler';
+import { verify } from './../../middleware/serviceDispatch';
 
 
 // Constants
 const SVC_NAME = 'user';
-const SVC_BASE_URL = '/user';
+const SVC_BASE_URL = registry.apis.baseV1 + '/user';
 
 const ROUTE_CREATE_USER = '/';
 const ROUTE_GET_USER = '/:userId';
@@ -25,13 +27,13 @@ let router = express.Router();
 
 
 // Service API
-router.get(ROUTE_CREATE_USER, function(req, res) {
+router.get(ROUTE_CREATE_USER, verify(registry), (req, res) => {
   console.log('in CREATE');
   res.json({ greeting: 'CREATE!' });
 });
 
 
-router.get(ROUTE_GET_USER, function(req, res) {
+router.get(ROUTE_GET_USER, verify(registry), (req, res) => {
   console.log('in get');
   res.json({ greeting: 'GET!' });
 });
@@ -49,4 +51,4 @@ module.exports = {
 };
 
 // Register with the app service registry
-serviceRegistry.register(module.exports);
+registry.register(module.exports);

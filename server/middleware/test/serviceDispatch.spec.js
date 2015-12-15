@@ -1,12 +1,12 @@
 'use strict';
 
+// Locals
 import serviceDispatch from'./../serviceDispatch';
 import serviceRegistry from './../../services/serviceRegistry';
 
-
 let registry = serviceRegistry.registry;
 
-
+// Service dispatch middleware testing
 describe('Service Dispatch', function() {
 
   // Mock request data
@@ -22,7 +22,7 @@ describe('Service Dispatch', function() {
     registry.register({
       name: 'testService',
       url: '/testService',
-      router: {},
+      router: () => {},
       endpoints: []
     })    
   });
@@ -34,18 +34,18 @@ describe('Service Dispatch', function() {
 
   it('should throw if trying to dispatch to an unregistered service', () => {
     let thrower = () => {
-      serviceDispatch.verify(badSvcReq, {}, next);
+      serviceDispatch.verify(registry)(badSvcReq, {}, next);
     }
     expect(thrower).toThrow();
   });
 
   it('should call next if there is no service involvement', () => {
-    serviceDispatch.verify(noSvcReq, {}, next);
+    serviceDispatch.verify(registry)(noSvcReq, {}, next);
     expect(next).toHaveBeenCalled();
   });
 
   it('should call next if dispatching to a valid service', () => {
-    serviceDispatch.verify(goodSvcReq, {}, next);
+    serviceDispatch.verify(registry)(goodSvcReq, {}, next);
     expect(next).toHaveBeenCalled();
   });
 
