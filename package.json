@@ -43,9 +43,9 @@
     "webpack-hot-middleware": "^2.4.1"
   },
   "scripts": {
-    "test": "jasmine JASMINE_CONFIG_PATH=spec/support/jasmine.json",
-    "client_dev": "babel-node server/server.js",
-    "server_dev": "nodemon --exec babel-node server/server.js",
+    "test": "NODE_ENV=test jasmine JASMINE_CONFIG_PATH=spec/support/jasmine.json",
+    "client_dev": "NODE_ENV=development babel-node server/server.js",
+    "server_dev": "NODE_ENV=development nodemon --exec babel-node server/server.js",
     "start": "npm run server_dev"
   },
   "author": {

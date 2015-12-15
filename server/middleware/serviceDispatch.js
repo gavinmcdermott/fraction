@@ -1,26 +1,41 @@
 'use strict';
 
+// Globals
 import _ from 'lodash';
 import url from 'url';
 
+// Locals
 import serviceRegistry from './../services/serviceRegistry';
 
+let registry = serviceRegistry.registry;
 
 
+/**
+ * Verify that if a url is calling a Fraction service, the
+ * service is a valid one
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @param {next} obj Express next object
+ */
 module.exports.verify = (req, res, next) => {
   let parsedUrl = url.parse(req.url);
   let path = parsedUrl.pathname;
+  let pathParams = parsedUrl.pathname.split('/');
 
-  if (!_.contains(path, serviceRegistry.SERVICE_API_BASE_V1)) {
+  // if the request is not for any of our apis / services, bail out
+  if (!_.contains(path, registry.apis.baseV1)) {
     return next();
   }
   
-  let possibleServices = _.filter(serviceRegistry.services, (svc) => {
-    let params = _.trim(path, serviceRegistry.SERVICE_API_BASE_V1).split('/');
-    return _.indexOf(params, svc.name) !== -1;
-  });
-  if (possibleServices.length !== 1) {
+  // check to make sure the path has a valid service
+  let invalidService = _.filter(pathParams, (param) => {
+    return _.has(registry.services, param);
+  }).length !== 1;
+
+  if (invalidService) {
     throw new Error('Attempting to call an unregistered service: ' + path);
   }
+
   next();
 };

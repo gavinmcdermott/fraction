@@ -12,11 +12,8 @@ import url from 'url';
 import config from './server/config/config';
 import errorHandler from './server/middleware/errorHandler';
 
-
-console.log('LOADING THE APP');
 import serviceDispatch from './server/middleware/serviceDispatch';
-import serviceLoader from './server/services/serviceLoader';
-
+import serviceRegistry from './server/services/serviceRegistry';
 
 import webpackConfig from './webpack.config';
 import webpackDevMiddleware from 'webpack-dev-middleware';
@@ -58,7 +55,7 @@ app.use('/dist', express.static(DIST_PATH));
 
 
 // Load services
-serviceLoader.load(app);
+serviceRegistry.loadServices(app);
 
 
 // Handle client routes

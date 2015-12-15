@@ -3,27 +3,33 @@
 import serviceDispatch from'./../serviceDispatch';
 import serviceRegistry from './../../services/serviceRegistry';
 
+
+let registry = serviceRegistry.registry;
+
+
 describe('Service Dispatch', function() {
 
   // Mock request data
   let noSvcReq = { url: '/some/non/service/resource' };
-  let badSvcReq = { url: serviceRegistry.SERVICE_API_BASE_V1 + '/badService' };
-  let goodSvcReq = { url: serviceRegistry.SERVICE_API_BASE_V1 + '/testService' };
+  let badSvcReq = { url: registry.apis.baseV1 + '/badService/and/some/more' };
+  let goodSvcReq = { url: registry.apis.baseV1 + '/testService' };
   
   // ensure next was called when we desire
   let next = jasmine.createSpy();
 
   beforeEach(() => {
     // Set up any dependencies
-    serviceRegistry.register({
+    registry.register({
       name: 'testService',
-      url: '/testService'
+      url: '/testService',
+      router: {},
+      endpoints: []
     })    
   });
 
   afterEach(() => {
     // Set up any dependencies
-    serviceRegistry.clearServices(true);
+    registry.clearServices(true);
   });
 
   it('should throw if trying to dispatch to an unregistered service', () => {
