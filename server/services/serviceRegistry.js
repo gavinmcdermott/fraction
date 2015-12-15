@@ -26,10 +26,10 @@ let registry;
 
 
 /**
- * Service Registry class - handles in-memory registration of app services
- * (Will be abstracted into a service)
- *
- * @param {newService} obj service object to register
+ * Class: Service Registry
+ * 
+ * Handles in-memory registration of app services
+ * (to be extracted out to a service when moving to containers)
  */
 class ServiceRegistry {
 
