@@ -1,5 +1,6 @@
 'use strict'
 
+
 let Error = (msg, status) => {
   msg = msg || "base_error";
   let error = new Error(msg);

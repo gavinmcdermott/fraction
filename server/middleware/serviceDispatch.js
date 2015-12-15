@@ -20,7 +20,7 @@ module.exports.verify = (req, res, next) => {
     return _.indexOf(params, svc.name) !== -1;
   });
   if (possibleServices.length !== 1) {
-    throw new Error('Attempting to call an unregistered service: ', path);
+    throw new Error('Attempting to call an unregistered service: ' + path);
   }
   next();
 };

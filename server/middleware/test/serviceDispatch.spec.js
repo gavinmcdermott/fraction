@@ -1,7 +1,5 @@
 'use strict';
 
-import assert from 'assert';
-import sinon from 'sinon';
 import serviceDispatch from'./../serviceDispatch';
 import serviceRegistry from './../../services/serviceRegistry';
 
@@ -13,9 +11,9 @@ describe('Service Dispatch', function() {
   let goodSvcReq = { url: serviceRegistry.SERVICE_API_BASE_V1 + '/testService' };
   
   // ensure next was called when we desire
-  let next = sinon.spy();
+  let next = jasmine.createSpy();
 
-  before(() => {
+  beforeEach(() => {
     // Set up any dependencies
     serviceRegistry.register({
       name: 'testService',
@@ -23,21 +21,26 @@ describe('Service Dispatch', function() {
     })    
   });
 
+  afterEach(() => {
+    // Set up any dependencies
+    serviceRegistry.clearServices(true);
+  });
+
   it('should throw if trying to dispatch to an unregistered service', () => {
     let thrower = () => {
       serviceDispatch.verify(badSvcReq, {}, next);
     }
-    assert.throws(thrower);
+    expect(thrower).toThrow();
   });
 
   it('should call next if there is no service involvement', () => {
     serviceDispatch.verify(noSvcReq, {}, next);
-    assert(next.called);
+    expect(next).toHaveBeenCalled();
   });
 
   it('should call next if dispatching to a valid service', () => {
     serviceDispatch.verify(goodSvcReq, {}, next);
-    assert(next.called);
+    expect(next).toHaveBeenCalled();
   });
 
 });

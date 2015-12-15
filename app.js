@@ -11,8 +11,13 @@ import url from 'url';
 // Local Dependencies
 import config from './server/config/config';
 import errorHandler from './server/middleware/errorHandler';
+
+
+console.log('LOADING THE APP');
 import serviceDispatch from './server/middleware/serviceDispatch';
 import serviceLoader from './server/services/serviceLoader';
+
+
 import webpackConfig from './webpack.config';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';

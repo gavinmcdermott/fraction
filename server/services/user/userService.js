@@ -34,7 +34,7 @@ router.get(GET_USER_ROUTE, function(req, res) {
 
 
 
-
+console.log('WAAAAT');
 serviceRegistry.register({
   name: SVC_NAME, 
   url: SVC_BASE_URL,
