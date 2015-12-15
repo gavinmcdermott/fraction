@@ -1,78 +1,68 @@
 'use strict';
 
-
-// Dependencies
-import path from 'path';
+// System Dependencies
 import bodyParser from 'body-parser';
 import express from 'express';
-
+import path from 'path';
 import webpack from 'webpack';
+import winston from 'winston';
+import url from 'url';
+
+// Local Dependencies
+import config from './server/config/config';
+import errorHandler from './server/middleware/errorHandler';
+
+import serviceDispatch from './server/middleware/serviceDispatch';
+import serviceRegistry from './server/services/serviceRegistry';
+
 import webpackConfig from './webpack.config';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
+import webpackMiddlewareConfig from './webpackMiddleware.config';
 
 
 // Route normalization
-let PUBLIC_PATH = path.join(__dirname + '/app');
-let DIST_PATH = path.join(__dirname + '/dist');
+const DIST_PATH = path.join(__dirname + '/dist');
+const PUBLIC_PATH = path.join(__dirname + '/app');
+const SERVICES_PATH = path.join(__dirname + '/server/services');
 
 
-// Instantiate the App
+// Get an App instance and config
+let appConfig = config.load();
 let app = express();
 
 
-// 3rd-party middlewares
-// app.use(bodyParser.urlencoded());
-// app.use(bodyParser.json());
+// Set up app properties
+app.set('express_port', process.env.EXPRESS_PORT);
 
 
-// Webpack build
-// Build webpack comiler based on our config
+// Add Middlewares
+// Build webpack comiler based on webpack config
 let webpackCompiler = webpack(webpackConfig);
-
-// Webpack middleware
 // Attach webpack-dev-middleware and webpack-hot-middleware
-// Further reading: https://github.com/glenjamin/webpack-hot-middleware 
-app.use(webpackDevMiddleware(webpackCompiler, {
-  noInfo: true,
-  historyApiFallback: true,
-  publicPath: webpackConfig.output.publicPath,
-  stats: {colors: true},
-  watchOptions: { aggregateTimeout: 1000, poll: 1000 }
-}));
-app.use(webpackHotMiddleware(webpackCompiler, {
-    log: console.log
-}));
+app.use(webpackDevMiddleware(webpackCompiler, webpackMiddlewareConfig.DEV));
+app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(serviceDispatch.verify);
 
 
-
-
-
-// Static directories
+// Handle static files
 app.use(express.static(PUBLIC_PATH));
 app.use('/dist', express.static(DIST_PATH));
+
+
+// Load services
+serviceRegistry.loadServices(app);
+
+
+// Handle client routes
 app.get('/', (req, res) => { 
-  console.log('This is <G></G>');
   res.sendFile(path.join(PUBLIC_PATH + '/index.html')); 
 });
 
 
-//  TEST STUFF BELOW HERE!!!
-app.set('port', process.env.PORT || 3000);
-
-// import routeloader from './lib/routeloader';
-// let routesDir = path.join(__dirname, 'routes');
-
-// Export the app to start it up in a different location (useful for testing)
+// Export our app instance to start from the appropriate point
 module.exports = app;
-
-
-
-
-
-
-
-
-
-
-// "start": "babel-node server/server.js --presets es2015,stage-2"
