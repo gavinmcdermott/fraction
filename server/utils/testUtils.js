@@ -13,7 +13,8 @@ let afterResponse = (err) => {
     process.exit(-1);
   }
 };
-let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, afterResponse);
+
+let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, {});
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbInstance;
 

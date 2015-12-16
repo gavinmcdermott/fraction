@@ -49,7 +49,7 @@ class ServiceRegistry {
       throw new Error('Invalid service newService: ' + newService.name + ' service');
     }
     
-    // sanity checks
+    // TODO: better sanity checks with validator!
     assert(typeof newService.name === 'string');
     assert(typeof newService.url === 'string');
     assert(_.startsWith(newService.url, '/'));

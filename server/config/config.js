@@ -29,14 +29,14 @@ function AppConfig(config) {
   config.development.protocol = 'http';
   config.development.domain = 'localhost:3000';
   config.development.apiServer = 'http://localhost:3000';
-  config.development.serviceDb = 'mongodb://fraction_development';
+  config.development.serviceDb = 'mongodb://localhost/fraction_development';
 
   config.test = _.cloneDeep(configDefaults);
   config.test.port = process.env.PORT || 3000;
   config.test.protocol = 'http';
   config.test.domain = 'localhost:3000';
   config.test.apiServer = 'http://localhost:3000';
-  config.test.serviceDb = 'mongodb://fraction_test';
+  config.test.serviceDb = 'mongodb://localhost/fraction_test';
 
   // todo fill in production
   config.production = _.cloneDeep(configDefaults);
