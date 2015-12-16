@@ -1,5 +1,6 @@
 'use strict';
 
+// Globals
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
@@ -28,14 +29,14 @@ function AppConfig(config) {
   config.development.protocol = 'http';
   config.development.domain = 'localhost:3000';
   config.development.apiServer = 'http://localhost:3000';
-  config.development.serviceDb = 'mongodb://fraction/development';
+  config.development.serviceDb = 'mongodb://fraction_development';
 
   config.test = _.cloneDeep(configDefaults);
   config.test.port = process.env.PORT || 3000;
   config.test.protocol = 'http';
   config.test.domain = 'localhost:3000';
   config.test.apiServer = 'http://localhost:3000';
-  config.test.serviceDb = 'mongodb://fraction/test';
+  config.test.serviceDb = 'mongodb://fraction_test';
 
   // todo fill in production
   config.production = _.cloneDeep(configDefaults);

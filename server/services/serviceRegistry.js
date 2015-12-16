@@ -5,6 +5,7 @@ import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
+import validator from 'validator';
 
 // Locals
 import serviceDispatch from './../middleware/serviceDispatch';
@@ -48,10 +49,10 @@ class ServiceRegistry {
       throw new Error('Invalid service newService: ' + newService.name + ' service');
     }
     
-    // sanity checks
+    // TODO: better sanity checks with validator
     assert(typeof newService.name === 'string');
     assert(typeof newService.url === 'string');
-    assert(_.startsWith(newService.url, '/'));
+    assert(newService.url === '/' + newService.name);
     assert(typeof newService.router === 'function');
     assert(typeof newService.endpoints === 'object');
 
@@ -89,6 +90,7 @@ class ServiceRegistry {
   };
 }
 registry = new ServiceRegistry();
+
 
 /**
  * Dynamically load all services for the express app

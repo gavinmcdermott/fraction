@@ -4,6 +4,7 @@
 import _ from 'lodash';
 import express from 'express';
 import url from 'url';
+import validator from 'validator';
 
 // Locals
 import User from './userModel';
