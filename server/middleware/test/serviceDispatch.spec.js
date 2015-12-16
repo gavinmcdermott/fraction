@@ -11,14 +11,6 @@ import serviceRegistry from './../../services/serviceRegistry';
 let app = express();
 let registry = serviceRegistry.registry;
 
-// Register a fake service
-registry.register({
-  name: 'testService',
-  url: '/testService',
-  router: () => {},
-  endpoints: []
-});
-
 
 // Service dispatch middleware testing
 describe('Service Dispatch as Plain Object', function() {
@@ -28,6 +20,20 @@ describe('Service Dispatch as Plain Object', function() {
   let badSvcReq = { url: registry.apis.baseV1 + '/badService/and/some/more' };
   let goodSvcReq = { url: registry.apis.baseV1 + '/testService' };
   
+  beforeEach(() => {
+    // Register a fake service
+    registry.register({
+      name: 'testService',
+      url: '/testService',
+      router: () => {},
+      endpoints: []
+    });
+  });
+
+  afterEach(() => {
+    registry.clearServices(true);
+  });
+
   it('should throw if trying to dispatch to an unregistered service', () => {
     let next = jasmine.createSpy();
     let thrower = () => {

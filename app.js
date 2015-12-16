@@ -13,8 +13,6 @@ import url from 'url';
 // Note: always bring the config in first
 import config from './server/config/config';
 import errorHandler from './server/middleware/errorHandler';
-
-import serviceDispatch from './server/middleware/serviceDispatch';
 import serviceRegistry from './server/services/serviceRegistry';
 
 import webpackConfig from './webpack.config';
@@ -57,12 +55,6 @@ app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-// Verify any api service being called is valid
-app.use(serviceDispatch.verify(serviceRegistry));
-
-
-
 
 
 

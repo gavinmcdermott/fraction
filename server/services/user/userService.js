@@ -1,11 +1,12 @@
 'use strict'
 
 // Globals
-import _ from 'lodash'
-import express from 'express'
+import _ from 'lodash';
+import express from 'express';
 import url from 'url';
 
 // Locals
+import User from './userModel';
 import { registry }  from './../serviceRegistry';
 import { wrapError } from './../../middleware/errorHandler';
 import { verify } from './../../middleware/serviceDispatch';
@@ -27,7 +28,7 @@ let router = express.Router();
 
 
 // Service API
-router.get(ROUTE_CREATE_USER, (req, res) => {
+router.post(ROUTE_CREATE_USER, (req, res) => {
   console.log('in CREATE');
   res.json({ greeting: 'CREATE!' });
 });

@@ -2,7 +2,12 @@
 
 // Globals
 import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 import assert from 'assert';
+
+// Locals
+import serviceDispatch from './../middleware/serviceDispatch';
 
 
 // Constants
@@ -21,7 +26,6 @@ let apis = { baseV1: API_BASE_V1 };
 // Hols all currently registered services in memory
 let services = {};
 
-// An in-memory registry instance
 let registry;
 
 
@@ -84,21 +88,34 @@ class ServiceRegistry {
     throw new Error('Attempt to clear services in non-test environment');
   };
 }
-
-// Instantiate a new registry
 registry = new ServiceRegistry();
 
-
 /**
- * Load all services for the express app
+ * Dynamically load all services for the express app
  * (to be extracted out to a service when moving to containers)
  *
  * @param {app} obj Current instance of the running express app
  */
 let loadServices = (app) => {
-  _.forIn(services, (service) => {
-    app.use(service.url, service.router);
+  let allItems = fs.readdirSync(__dirname);
+  let allFolders = _.filter(allItems, (item) => { return !_.endsWith(item, '.js'); })
+  let moduleFolders = _.filter(allFolders, (folder) => { 
+    return (fs.lstatSync(__dirname + '/' + folder).isDirectory()) &&
+           (folder !== 'test');
   });
+
+  _.forEach(moduleFolders, (moduleName) => {
+    let moduleFolderPath = path.join(__dirname, moduleName);
+    let loadPath = moduleFolderPath + '/' + moduleName + 'Service';
+    let newModule = require(loadPath);
+    app.use(newModule.url, newModule.router);
+    // Let user know module status
+    console.log(moduleName.toUpperCase() + ' SERVICE STATUS: LOADED'); 
+  });
+
+  app.use(serviceDispatch.verify(registry));
+
+
 };
 
 

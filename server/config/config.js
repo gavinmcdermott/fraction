@@ -9,7 +9,6 @@ let env = process.env.NODE_ENV || 'development';
 let rootPath = path.normalize(path.join(__dirname, './../'));
 
 
-
 let configDefaults = {
   root: rootPath,
   app: {
@@ -29,14 +28,14 @@ function AppConfig(config) {
   config.development.protocol = 'http';
   config.development.domain = 'localhost:3000';
   config.development.apiServer = 'http://localhost:3000';
-  config.development.serviceDb = 'mongodb://localhost';
+  config.development.serviceDb = 'mongodb://fraction/development';
 
   config.test = _.cloneDeep(configDefaults);
-  config.development.port = process.env.PORT || 3000;
+  config.test.port = process.env.PORT || 3000;
   config.test.protocol = 'http';
   config.test.domain = 'localhost:3000';
   config.test.apiServer = 'http://localhost:3000';
-  config.test.serviceDb = 'mongodb://localhost';
+  config.test.serviceDb = 'mongodb://fraction/test';
 
   // todo fill in production
   config.production = _.cloneDeep(configDefaults);

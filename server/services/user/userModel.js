@@ -40,8 +40,12 @@ let userSchema = new mongoose.Schema({
 });
 
 
-userSchema.index({ 'email.email': 1 }, { unique: true });
+userSchema.methods = {
 
+};
+
+userSchema.index({ 'email.email': 1 }, { unique: true });
+userSchema.index({ 'local.id': 1 }, { unique: true });
 
 let User = mongoose.serviceDb.model('User', userSchema);
 
