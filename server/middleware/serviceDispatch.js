@@ -4,7 +4,6 @@
 import _ from 'lodash';
 import url from 'url';
 
-
 /**
  * Verify that if a url is calling a Fraction service, the
  * service is a valid one

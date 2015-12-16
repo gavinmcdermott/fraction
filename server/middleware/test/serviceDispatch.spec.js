@@ -1,38 +1,35 @@
 'use strict';
 
+// Globals
+import express from 'express';
+import request from 'supertest';
+
 // Locals
 import serviceDispatch from'./../serviceDispatch';
 import serviceRegistry from './../../services/serviceRegistry';
 
+let app = express();
 let registry = serviceRegistry.registry;
 
+// Register a fake service
+registry.register({
+  name: 'testService',
+  url: '/testService',
+  router: () => {},
+  endpoints: []
+});
+
+
 // Service dispatch middleware testing
-describe('Service Dispatch', function() {
+describe('Service Dispatch as Plain Object', function() {
 
   // Mock request data
   let noSvcReq = { url: '/some/non/service/resource' };
   let badSvcReq = { url: registry.apis.baseV1 + '/badService/and/some/more' };
   let goodSvcReq = { url: registry.apis.baseV1 + '/testService' };
   
-  // ensure next was called when we desire
-  let next = jasmine.createSpy();
-
-  beforeEach(() => {
-    // Set up any dependencies
-    registry.register({
-      name: 'testService',
-      url: '/testService',
-      router: () => {},
-      endpoints: []
-    })    
-  });
-
-  afterEach(() => {
-    // Set up any dependencies
-    registry.clearServices(true);
-  });
-
   it('should throw if trying to dispatch to an unregistered service', () => {
+    let next = jasmine.createSpy();
     let thrower = () => {
       serviceDispatch.verify(registry)(badSvcReq, {}, next);
     }
@@ -40,11 +37,13 @@ describe('Service Dispatch', function() {
   });
 
   it('should call next if there is no service involvement', () => {
+    let next = jasmine.createSpy();
     serviceDispatch.verify(registry)(noSvcReq, {}, next);
     expect(next).toHaveBeenCalled();
   });
 
   it('should call next if dispatching to a valid service', () => {
+    let next = jasmine.createSpy();
     serviceDispatch.verify(registry)(goodSvcReq, {}, next);
     expect(next).toHaveBeenCalled();
   });

@@ -16,23 +16,24 @@ app.use(userService.url, userService.router);
 
 describe('Create User', () => {
   
-  let getUrl = userService.url + '/12345';
+  let postUrl = userService.url + '/';
 
-  beforeEach(()=> {
+  // beforeEach(()=> {
 
-  });
+  // });
 
-  afterEach(() => {
+  // afterEach(() => {
 
-  });
+  // });
 
   it('demo with request', (done) => {
+    
     request(app)
-      .get(getUrl)
+      .post(postUrl)
       .expect(200)
+      .expect('Content-Type', /json/)
       .end((err, res) => {
         
-        console.log(res.body);
         done();
       });
   });

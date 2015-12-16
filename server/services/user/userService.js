@@ -27,13 +27,13 @@ let router = express.Router();
 
 
 // Service API
-router.get(ROUTE_CREATE_USER, verify(registry), (req, res) => {
+router.get(ROUTE_CREATE_USER, (req, res) => {
   console.log('in CREATE');
   res.json({ greeting: 'CREATE!' });
 });
 
 
-router.get(ROUTE_GET_USER, verify(registry), (req, res) => {
+router.get(ROUTE_GET_USER, (req, res) => {
   console.log('in get');
   res.json({ greeting: 'GET!' });
 });
@@ -45,8 +45,8 @@ module.exports = {
   url: SVC_BASE_URL,
   router: router,
   endpoints: [
-    { protocol: 'HTTP', method: 'POST', url: ROUTE_CREATE_USER },
-    { protocol: 'HTTP', method: 'GET', url: ROUTE_GET_USER }
+    { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER },
+    { protocol: 'HTTP', method: 'GET', name: 'GET_USER', url: ROUTE_GET_USER }
   ]
 };
 
