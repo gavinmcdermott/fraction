@@ -20,13 +20,25 @@ const API_BASE_V1 = '/api/v1';
 const VALID_KEYS = ['name', 'url', 'router', 'endpoints'];
 
 
+const VALID_SERVICES = {
+  // Used for testing service registration and loading
+  __testA: { loadPath: './__testA/__testAService' },
+  __testB: { loadPath: './__testB/__testBService' },
+
+  // Used in Production
+  user: { loadPath: './user/userService' }
+};
+
+
 // Locals
 // Lets service consumers know valid service version urls
 let apis = { baseV1: API_BASE_V1 };
 
-// Hols all currently registered services in memory
-let services = {};
+// Our in-memory registry of services
+// NOTE: anything registered will have to be in VALID_SERVICES to be registered
+let currentServices = {};
 
+// The service registry instance for the app
 let registry;
 
 
@@ -44,9 +56,14 @@ class ServiceRegistry {
    * @param {newService} obj service object to register
    */
   register(newService) {
+    // Ensure
+    if (!_.has(VALID_SERVICES, newService.name)) {
+      throw new Error('[INVALID SERVICE NAME] Attempted to register: ' + newService.name + ' service.');
+    }
+
     // Ensure only/all expected keys exist
     if (_.xor(_.keys(newService), VALID_KEYS).length) {
-      throw new Error('Invalid service newService: ' + newService.name + ' service');
+      throw new Error('[INVALID SERVICE PROPERTIES] Invalid properties found when registering ' + newService.name + ' service.');
     }
     
     // TODO: better sanity checks with validator!
@@ -56,17 +73,17 @@ class ServiceRegistry {
     assert(typeof newService.router === 'function');
     assert(typeof newService.endpoints === 'object');
 
-    if (_.has(services, newService.name)) {
-      throw new Error('Attempting to overwrite an existing service. [' + newService.name + '] already exists.');
+    if (_.has(currentServices, newService.name)) {
+      throw new Error('[SERVICE EXISTS] Attempting to overwrite ' + newService.name + ' service.');
     }
-    return services[newService.name] = newService;
+    return currentServices[newService.name] = newService;
   };
 
   /**
    * Return all currently registered services
    */
   get services() {
-    return services;
+    return currentServices;
   };
 
   /**
@@ -83,7 +100,7 @@ class ServiceRegistry {
    */
   clearServices(confirm) {
     if ((process.env.NODE_ENV === 'test') && confirm) {
-      services = {};
+      currentServices = {};
       return true;
     }
     throw new Error('Attempt to clear services in non-test environment');
@@ -99,27 +116,26 @@ registry = new ServiceRegistry();
  * @param {app} obj Current instance of the running express app
  */
 let loadServices = (app) => {
-  let allItems = fs.readdirSync(__dirname);
-  let allFolders = _.filter(allItems, (item) => { return !_.endsWith(item, '.js'); })
-  let moduleFolders = _.filter(allFolders, (folder) => { 
-    return (fs.lstatSync(__dirname + '/' + folder).isDirectory()) &&
-           (folder !== 'test');
+  // Loop through the valid services and attempt to load
+  _.forIn(VALID_SERVICES, (service, name) => {
+    // never require and load fake test paths
+    if (_.contains(name, '__test')) {
+      return;
+    }
+    // Attempt to load the service; provide a nice error in failure
+    try {
+      let serviceModule = require(service.loadPath);
+      app.use(serviceModule.url, serviceModule.router);
+      console.log(name.toUpperCase() + ' SERVICE: LOADED'); 
+    } catch (err) {
+      throw new Error('[NO SERVICE LOAD PATH] Could not register service ' + name);
+    }
   });
 
-  _.forEach(moduleFolders, (moduleName) => {
-    let moduleFolderPath = path.join(__dirname, moduleName);
-    let loadPath = moduleFolderPath + '/' + moduleName + 'Service';
-    let newModule = require(loadPath);
-    app.use(newModule.url, newModule.router);
-    // Let user know module status
-    console.log(moduleName.toUpperCase() + ' SERVICE STATUS: LOADED'); 
-  });
-
+  // Attach the service dispatch middleware - it ensures we call a valid service
+  // when an incoming request is looking for a Fraction service
   app.use(serviceDispatch.verify(registry));
-
-
 };
-
 
 module.exports = {
   registry: registry,

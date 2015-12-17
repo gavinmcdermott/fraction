@@ -30,13 +30,13 @@ let router = express.Router();
 
 // Service API
 router.post(ROUTE_CREATE_USER, (req, res) => {
-  console.log('in CREATE');
+  // console.log('in CREATE');
   res.json({ greeting: 'CREATE!' });
 });
 
 
 router.get(ROUTE_GET_USER, (req, res) => {
-  console.log('in get');
+  // console.log('in get');
   res.json({ greeting: 'GET!' });
 });
 

@@ -23,8 +23,8 @@ describe('Service Registry', function() {
   
   let invalidObjectsModule = { url: 132, name: 132, router: ';', endpoints: 123 };
   
-  let validModule1 = { url: '/test1', name: 'test1', router: fakeRouter, endpoints: [] };
-  let validModule2 = { url: '/test2', name: 'test2', router: fakeRouter, endpoints: [] };
+  let validModule1 = { url: '/__testA', name: '__testA', router: fakeRouter, endpoints: [] };
+  let validModule2 = { url: '/__testB', name: '__testB', router: fakeRouter, endpoints: [] };
 
   afterEach(() => {
     registry.clearServices(true);

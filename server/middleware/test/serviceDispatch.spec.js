@@ -18,13 +18,13 @@ describe('Service Dispatch as Plain Object', function() {
   // Mock request data
   let noSvcReq = { url: '/some/non/service/resource' };
   let badSvcReq = { url: registry.apis.baseV1 + '/badService/and/some/more' };
-  let goodSvcReq = { url: registry.apis.baseV1 + '/testService' };
+  let goodSvcReq = { url: registry.apis.baseV1 + '/__testA' };
   
   beforeEach(() => {
     // Register a fake service
     registry.register({
-      name: 'testService',
-      url: '/testService',
+      name: '__testA',
+      url: '/__testA',
       router: () => {},
       endpoints: []
     });

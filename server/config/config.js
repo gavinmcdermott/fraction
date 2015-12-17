@@ -5,11 +5,11 @@ import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 
-
+// Locals
 let env = process.env.NODE_ENV || 'development';
 let rootPath = path.normalize(path.join(__dirname, './../'));
 
-
+// Defaults used in all configs regardless of env
 let configDefaults = {
   root: rootPath,
   app: {
@@ -19,7 +19,6 @@ let configDefaults = {
     fromFraction: 'Fraction <some_email_we_want@fraction.com>'
   }
 };
-
 
 
 function AppConfig(config) {

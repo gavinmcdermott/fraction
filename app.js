@@ -12,6 +12,7 @@ import url from 'url';
 // Local Dependencies
 // Note: always bring the config in first
 import config from './server/config/config';
+import dbUtils from './server/utils/dbUtils';
 import errorHandler from './server/middleware/errorHandler';
 import serviceRegistry from './server/services/serviceRegistry';
 
@@ -28,16 +29,7 @@ const SERVICES_PATH = path.join(__dirname + '/server/services');
 
 
 // Create DB Connections
-
-// possibly put in db utils?
-let afterResponse = (err) => {
-  if (err) {
-    console.error('Database connect error: ', err);
-    process.exit(-1);
-  }
-};
-
-let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, afterResponse);
+let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, dbUtils.connectCallback);
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbInstance;
 
@@ -55,8 +47,6 @@ app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-
 
 
 // Handle static files

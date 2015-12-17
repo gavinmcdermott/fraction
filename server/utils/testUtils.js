@@ -5,16 +5,10 @@ import mongoose from 'mongoose';
 
 // Locals
 import config from './../config/config';
+import dbUtils from './../utils/dbUtils';
 
 
-let afterResponse = (err) => {
-  if (err) {
-    console.error('Database connect error: ', err);
-    process.exit(-1);
-  }
-};
-
-let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, {});
+let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, dbUtils.connectCallback);
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbInstance;
 
