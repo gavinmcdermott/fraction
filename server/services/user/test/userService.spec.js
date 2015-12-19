@@ -30,7 +30,6 @@ describe('Create User', () => {
   });
 
   it('demo with request', (done) => {
-
     requester
       .post(postUrl)
       .expect(200)

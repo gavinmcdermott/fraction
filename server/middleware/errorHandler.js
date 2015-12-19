@@ -8,35 +8,66 @@
  * calling the Fraction service API
  */
 class FractionError {
+  constructor(msg, status) {
+    msg = msg || "base_error_message";
+    this.error = new Error(msg);
+    this.error.status = status;
+  };
+};
 
-  _baseError (msg, status) {
-    msg = msg || "base_error";
-    let error = new Error(msg);
-    error.status = status;
-    return error;
-  }
-  
-  Invalid(msg) {
+
+// Handlers for if someone throw raw objects, native errors, or strings
+class NativeJsErrorHandler extends FractionError {
+  constructor(msg) {
+    let status = 500;
+    super(msg, status);
+  };
+};
+
+class GenericStringError extends FractionError {
+  constructor(msg) {
+    let status = 500;
+    super(msg, status);
+  };
+};
+
+class GenericObjectError extends FractionError {
+  constructor(msg) {
+    let status = 500;
+    // console.log('in GOE: ', super)
+    super(msg, status);
+  };
+};
+
+
+// Proper Fraction Errors to throw in the app
+class Invalid extends FractionError {
+  constructor(msg) {
     let status = 400;
-    return this._baseError(msg, status)
+    super(msg, status);
   };
+};
 
-  Unauthorized(msg) {
+class Unauthorized extends FractionError {
+  constructor(msg) {
     let status = 401;
-    return this._baseError(msg, status);
+    super(msg, status);
   };
+};
 
-  Forbidden(msg) {
+class Forbidden extends FractionError {
+  constructor(msg) {
     let status = 403;
-    return this._baseError(msg, status);
+    super(msg, status);
   };
+};
 
-  NotFound(msg) {
+class NotFound extends FractionError {
+  constructor(msg) {
     let status = 404;
-    return this._baseError(msg, status);
+    super(msg, status);
   };
-
-}
+};
 
 
 /**
@@ -49,10 +80,15 @@ class FractionError {
 let coerceToError = (err) => {
   if (err instanceof FractionError) {
     return err;
+  } else if (err instanceof Error) {
+    // Handle existing Error class instances
+    return new NativeJsErrorHandler(err.message);
   } else if (typeof err === 'string') {
-    return new Error('[string_error] ' + err);
+    // Handle raw strings that were thrown
+    return new GenericStringError('[string_error] ' + JSON.stringify(err));
   } else if (typeof err === 'object') {
-    return new Error('[object_error] ' + JSON.stringify(err) + err.message);
+    // Handle objects that were thrown
+    return new GenericObjectError('[object_error] ' + JSON.stringify(err));
   }
 };
 
@@ -77,16 +113,24 @@ let errorWrap = (func) => {
   return (req, res) => {
     wrappedFunc
     .then((result) => {
-      res.send(result);
+      return res.send(result);
     })
     .catch((err) => {
-      res.send(coerceToError(err));
-    })
+      let instance = coerceToError(err);
+      res.status(instance.error.status);
+      return res.json({ 
+        status: instance.error.status,
+        message: instance.error.message
+      });
+    });
   };
 };
 
 
 module.exports = {
-  errorWrap: errorWrap,
-  FractionError: FractionError
+  wrap: errorWrap,
+  Invalid: Invalid,
+  Unauthorized: Unauthorized,
+  Forbidden: Forbidden,
+  NotFound: NotFound
 };
