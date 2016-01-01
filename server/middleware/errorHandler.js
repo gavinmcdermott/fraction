@@ -97,21 +97,18 @@ let coerceToError = (err) => {
  * Express middleware for wrapping Fraction Service/API calls
  *
  * @param {func} function A Fraction service/api function
- * @returns {promise} 
  */
 let errorWrap = (func) => {
-  // Create a promise version of the function to use later
-  let wrappedFunc = new Promise(func);
-
   /**
    * Return function for express middleware
    *
    * @param {req} obj Express request object
    * @param {res} obj Express response object
-   * @param {next} obj Express next object
    */
   return (req, res) => {
-    wrappedFunc
+    new Promise(() => {
+      return func(req, res);
+    })
     .then((result) => {
       return res.send(result);
     })
@@ -127,6 +124,7 @@ let errorWrap = (func) => {
 };
 
 
+// Exports
 module.exports = {
   wrap: errorWrap,
   Invalid: Invalid,

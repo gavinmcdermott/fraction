@@ -1,8 +1,9 @@
 'use strict';
 
 // System Dependencies
-import bodyParser from 'body-parser';
+// import bodyParser from 'body-parser';
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import path from 'path';
 import webpack from 'webpack';
@@ -45,8 +46,13 @@ let webpackCompiler = webpack(webpackConfig);
 app.use(webpackDevMiddleware(webpackCompiler, webpackMiddlewareConfig.DEV));
 app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+
+
+// // Attach the body parser before any of the services
+// app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+
+
 
 
 // Handle static files

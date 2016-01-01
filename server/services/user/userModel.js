@@ -7,8 +7,7 @@ let userSchema = new mongoose.Schema({
   
   name: {
     first: { type: String, default: '' },
-    last: { type: String, default: '' },
-    full: { type: String, default: '' }
+    last: { type: String, default: '' }
   },
   
   email: {

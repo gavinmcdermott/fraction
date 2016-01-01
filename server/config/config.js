@@ -17,6 +17,11 @@ let configDefaults = {
   },
   email: {
     fromFraction: 'Fraction <some_email_we_want@fraction.com>'
+  },
+  fraction: {
+    clientId: 'fraction',
+    // https://www.grc.com/passwords.htm
+    clientSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1'
   }
 };
 

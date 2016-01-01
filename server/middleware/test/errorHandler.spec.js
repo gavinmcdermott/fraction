@@ -5,6 +5,8 @@ import _ from 'lodash';
 import request from 'supertest';
 import express from 'express';
 
+import bodyParser from 'body-parser';
+
 
 // Locals
 import testUtils from './../../utils/testUtils';
@@ -15,6 +17,12 @@ import fractionErrors from './../errorHandler';
 
 // init a basic test app for url hits
 let app = express();
+
+// Make sure we use the bodyparser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+// Attach supertest
 let requester = request(app);
 
 
