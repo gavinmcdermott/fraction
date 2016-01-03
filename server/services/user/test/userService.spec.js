@@ -12,13 +12,12 @@ import { registry, loadServices } from './../../serviceRegistry';
 import userService from './../userService';
 import User from './../userModel';
 
-
 let app = express();
 let requester = request(app);
-
 loadServices(app);
 
 
+// Service Tests
 describe('User Service', function() {
 
   // http://bitwiseshiftleft.github.io/sjcl/demo/
@@ -33,6 +32,7 @@ describe('User Service', function() {
 
   let firstName = 'Alan';
   let lastName = 'Kay';
+
 
   describe('Create New User', () => {
     

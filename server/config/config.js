@@ -40,8 +40,8 @@ function AppConfig(config) {
   config.test.protocol = 'http';
   config.test.domain = 'localhost:3000';
   config.test.apiServer = 'http://localhost:3000';
-  // Ensure the test DB has the word 'test' in it
-  // Used for safety checks when wiping the test db's during test runs
+  // IMPORTANT: Ensure the test DB has the word 'test' in it
+  // Used for safety checks when wiping the test db during testing
   config.test.serviceDb = 'mongodb://localhost/fraction_test';
 
   // todo fill in production
