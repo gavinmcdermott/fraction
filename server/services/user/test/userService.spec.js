@@ -10,14 +10,13 @@ import { registry, loadServices } from './../../serviceRegistry';
 // Note: Import the one service we want to explicitly test 
 // We don't need to load the whole app
 import userService from './../userService';
+import User from './../userModel';
 
 
 let app = express();
 let requester = request(app);
 
 loadServices(app);
-
-
 
 
 describe('User Service', function() {
@@ -29,30 +28,28 @@ describe('User Service', function() {
   let invalidPassword = 'some_crappy_password';
 
   let validEmail = 'testUser@foo.com';
+  let normalizedValidEmail = validEmail.toLowerCase();
   let invalidEmail = 'testUser@foo';
 
-  beforeAll((done) => {
-    testUtils
-    .clearLocalTestDatabase()
-    .then(() => {
-      done();
-    });
-  });
-
-
-
-
+  let firstName = 'Alan';
+  let lastName = 'Kay';
 
   describe('Create', () => {
     
     let postUrl = userService.url + '/';
 
-    beforeEach(()=> {
-      
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+      .then(() => {
+        done();
+      });
     });
 
-    afterEach(() => {
-
+    afterAll((done) => {
+      testUtils.clearLocalTestDatabase()
+      .then(() => {
+        done();
+      });
     });
 
     it('fails without an email', (done) => {
@@ -108,10 +105,46 @@ describe('User Service', function() {
         });
     });
 
+    it('fails without a last name', (done) => {
+      requester
+        .post(postUrl)
+        .send({ email: validEmail, password: validPassword, firstName: firstName })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid last name');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
 
+    it('succeeds', (done) => {
+      requester
+        .post(postUrl)
+        .send({ email: validEmail, password: validPassword, firstName: firstName, lastName: lastName  })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.user).toBeDefined();
+          let newUser = res.body.user;
+          
+          // Ensure we're returning the new normalized user
+          expect(newUser.name).toBeDefined();
+          expect(newUser.name.first).toEqual(firstName);
+          expect(newUser.name.last).toEqual(lastName);
+          
+          expect(newUser.email).toBeDefined();
+          expect(newUser.email.email).toEqual(normalizedValidEmail);
+          expect(newUser.email.verified).toBe(true);
 
+          expect(newUser.local).toBeDefined();
+          expect(newUser.local.id).toEqual(normalizedValidEmail);
 
-
+          expect(newUser.notifications).toBeDefined();
+          expect(newUser.notifications.viaEmail).toBe(true);
+          done();
+        });
+    });
   });
 
 

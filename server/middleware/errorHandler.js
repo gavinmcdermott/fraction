@@ -1,6 +1,5 @@
 'use strict'
 
-
 /**
  * Class: Fraction Error
  * 
@@ -34,7 +33,6 @@ class GenericStringError extends FractionError {
 class GenericObjectError extends FractionError {
   constructor(msg) {
     let status = 500;
-    // console.log('in GOE: ', super)
     super(msg, status);
   };
 };
@@ -96,7 +94,8 @@ let coerceToError = (err) => {
 /**
  * Express middleware for wrapping Fraction Service/API calls
  *
- * @param {func} function A Fraction service/api function
+ * @param {func} function A Fraction service/api function (can be regular or Promise)
+ * @returns {promise} object
  */
 let errorWrap = (func) => {
   /**
@@ -106,8 +105,15 @@ let errorWrap = (func) => {
    * @param {res} obj Express response object
    */
   return (req, res) => {
-    new Promise(() => {
-      return func(req, res);
+    // Convert all passed funcs into promises
+    return new Promise((resolve, reject) => {
+      let result;
+      try { 
+        result = func(req, res);
+      } catch (e) {
+        return reject(e);
+      }
+      return resolve(result);
     })
     .then((result) => {
       return res.send(result);
@@ -132,3 +138,21 @@ module.exports = {
   Forbidden: Forbidden,
   NotFound: NotFound
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

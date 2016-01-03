@@ -11,7 +11,7 @@ let userSchema = new mongoose.Schema({
   },
   
   email: {
-    email: { type: String, default: '' },
+    email: { type: String, default: '', unique: true, lowercase: true, trim: true },
     verified: { type: Boolean, default: false },
     verifyCode: { type: String },
     verifySentAt: { type: Date },
@@ -19,7 +19,7 @@ let userSchema = new mongoose.Schema({
   },
   
   local: {
-    id: { type: String }, // user's email
+    id: { type: String, unique: true, lowercase: true, trim: true }, // user's email
     password: { type: String },
     verifyCode: { type: String },
     verifySentAt: { type: Date }
@@ -40,6 +40,25 @@ let userSchema = new mongoose.Schema({
 
 
 userSchema.methods = {
+  
+  toPublicObject: function() {
+    return {
+      name: { 
+        first: this.name.first, 
+        last: this.name.last
+      },
+      email: {
+        email: this.email.email,
+        verified: this.email.verified
+      },
+      local: {
+        id: this.local.id
+      },
+      notifications: {
+        viaEmail: this.notifications.viaEmail
+      }
+    }
+  }
 
 };
 

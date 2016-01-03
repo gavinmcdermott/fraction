@@ -15,6 +15,11 @@ import { registry }  from './../serviceRegistry';
 import { verify } from './../../middleware/serviceDispatch';
 
 
+// import q from 'q';
+// mongoose.Promise = q.Promise;
+
+
+
 // Constants
 const SVC_NAME = 'user';
 const SVC_BASE_URL = registry.apis.baseV1 + '/user';
@@ -25,15 +30,20 @@ const ROUTE_GET_USER = '/:userId';
 
 // Service setup
 
+
+// Service Router
+
 // Expose a router to plug into the main express app
 // The router serves as the interface for this service to the outside world
 let router = express.Router();
+
+
+// Service middleware
 
 // parse application/x-www-form-urlencoded
 router.use(bodyParser.urlencoded({ extended: true }));
 // parse application/json
 router.use(bodyParser.json());
-
 
 
 // Service API
@@ -43,15 +53,16 @@ router.use(bodyParser.json());
  *
  * @param {req} obj Express request object
  * @param {res} obj Express response object
- * @returns {result} obj Contains new user and a valid JWT
+ * @returns {promise}
  */
-router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
+router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {  
 
+  // New user info to be saved
   let email;
   let hashedPassword;
   let firstName;
   let lastName;
-  
+
   // validate email
   try {
     assert(_.isString(req.body.email));
@@ -85,70 +96,48 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
     throw new fractionErrors.Invalid('invalid last name');
   }  
 
-
-
-
-
   return User
-  .findOne({ 'local.id': email })
-  .exec() // `.exec()` gives us a fully-fledged promise
-  .then((user) => {
-
-    console.log('in the promise')
-
-    // check to see if the user exists and simply quit using fraction at
-    // some time in the past
-    if (user) {
-      if (user.isActive) {
+    .findOne({ 'local.id': email })
+    .exec()  // `.exec()` gives us a fully-fledged promise
+    .then((user) => {
+      if (user && user.isActive) {
         throw new fractionErrors.Forbidden('user exists');
       }
-    } else {
-
-      console.log('no user found!')
 
       let pendingUser = {
         name: {
           first: firstName,
           last: lastName
         },
-
         email: {
           email: email,
           // TODO(gavin): ENABLE EMAIL VERIFICATION
           verified: true,
           verifyCode: '123',
-          verifySentAt: 'sfdf'
+          verifySentAt: new Date().toString()
         },
-
         local: {
           id: email,
           password: hashedPassword
         },
-
+        isActive: true,
         fractionEmployee: false
       };
-
-
-      console.log('I am here now===============')
-
-      // return pendingUser
-      // .save()
-      // .then((err, user) => {
-      //   console.log('ERR: ', err);
-      //   console.log('USER: ', user);
-        res.json({ greeting: 'CREATE!' });
-      // });
-
-    }
-
-
-
-  });
-
-
-  // res.json({ greeting: 'CREATE!' });
-
+      return User.create(pendingUser);
+    })
+    .then((newUser) => {
+      return res.json({ user: newUser.toPublicObject() });
+    });
 }));
+
+
+
+
+
+
+
+
+
 
 
 router.get(ROUTE_GET_USER, (req, res) => {

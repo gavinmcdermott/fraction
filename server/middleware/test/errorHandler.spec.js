@@ -2,6 +2,7 @@
 
 // Globals
 import _ from 'lodash';
+import q from 'q';
 import request from 'supertest';
 import express from 'express';
 
@@ -81,6 +82,25 @@ let error404Thrower = (req,res) => {
   throw new fractionErrors.NotFound(error404msg);
 };
 
+// success promise
+let promiseSuccessMsg = 'promise success!';
+let promiseSuccessUrl = '/promiseSuccess';
+let promiseSuccessFunc = (req,res) => {
+  return new Promise((resolve, reject) => {
+    return resolve({ message: promiseSuccessMsg });
+  });
+};
+
+// fail promise
+let promiseErrorMsg = 'promise error!';
+let promiseErrorUrl = '/promiseError';
+let promiseErrorFunc = (req,res) => {
+  return new Promise((resolve, reject) => {
+    throw new fractionErrors.Invalid(promiseErrorMsg);
+  });
+};
+
+
 // Set up a basic routes to test errors
 app.get(errorStringUrl, fractionErrors.wrap(errorStringThrower));
 app.get(errorObjectUrl, fractionErrors.wrap(errorObjectThrower));
@@ -89,6 +109,8 @@ app.get(error400url, fractionErrors.wrap(error400Thrower));
 app.get(error401url, fractionErrors.wrap(error401Thrower));
 app.get(error403url, fractionErrors.wrap(error403Thrower));
 app.get(error404url, fractionErrors.wrap(error404Thrower));
+app.get(promiseSuccessUrl, fractionErrors.wrap(promiseSuccessFunc));
+app.get(promiseErrorUrl, fractionErrors.wrap(promiseErrorFunc));
 
 
 describe('wrap Middleware', () => {
@@ -99,19 +121,6 @@ describe('wrap Middleware', () => {
   beforeEach(() => {
     spyOn(mockRes, 'json');
   });
-  
-
-  // Raw object testing
-  it('handles an inner function that throws a native JS error', (done) => {
-    let genericThrower = () => { throw new Error(errorRawMsg); };
-    fractionErrors.wrap(genericThrower)(mockReq, mockRes);
-
-    setTimeout(function() {
-      expect(mockRes.json).toHaveBeenCalled();
-      done();
-    }, 0);
-  });
-
 
   // Throwing non-Fraction-based errors
   it('handles a native JS error thrown', (done) => {
@@ -200,4 +209,52 @@ describe('wrap Middleware', () => {
       });
   });
 
+  it('handles a promise returning an error', (done) => {
+    requester
+      .get(promiseErrorUrl)
+      .expect(500)
+      .expect('Content-Type', /json/)
+      .end((err, res) => {
+        expect(res.body.message).toBe(promiseErrorMsg);
+        done();
+      });
+  });
+
+  it('handles a promise returning success', (done) => {
+    requester
+      .get(promiseSuccessUrl)
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .end((err, res) => {
+        expect(res.body.message).toBe(promiseSuccessMsg);
+        done();
+      });
+  });
+
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
