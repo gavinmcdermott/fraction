@@ -19,7 +19,8 @@ let userSchema = new mongoose.Schema({
   },
   
   local: {
-    id: { type: String, unique: true, lowercase: true, trim: true }, // user's email
+    // id is simply the user's email (distinct from the Mongo _id)
+    id: { type: String, unique: true, lowercase: true, trim: true },
     password: { type: String },
     verifyCode: { type: String },
     verifySentAt: { type: Date }
