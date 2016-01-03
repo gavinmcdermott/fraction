@@ -5,6 +5,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import path from 'path';
+import q from 'q';
 import webpack from 'webpack';
 import winston from 'winston';
 import url from 'url';
@@ -32,6 +33,8 @@ const SERVICES_PATH = path.join(__dirname + '/server/services');
 let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, dbUtils.connectCallback);
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbInstance;
+// Use Q promises
+mongoose.Promise = require('q').Promise;
 
 
 // Create the app

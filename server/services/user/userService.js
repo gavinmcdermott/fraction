@@ -5,6 +5,8 @@ import _ from 'lodash';
 import assert from 'assert';
 import bodyParser from 'body-parser';
 import express from 'express';
+import mongoose from 'mongoose';
+import q from 'q';
 import url from 'url';
 import validator from 'validator';
 
@@ -13,6 +15,9 @@ import User from './userModel';
 import fractionErrors from './../../middleware/errorHandler';
 import { registry }  from './../serviceRegistry';
 import { verify } from './../../middleware/serviceDispatch';
+
+// Use Q promises
+mongoose.Promise = require('q').Promise;
 
 
 // Constants
@@ -94,39 +99,37 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
     throw new fractionErrors.Invalid('invalid last name');
   }  
 
-  return User
-    .findOne({ 'local.id': email })
-    .exec()  // `.exec()` gives us a fully-fledged promise
-    .then((user) => {
-      if (user && user.isActive) {
-        throw new fractionErrors.Forbidden('user exists');
-      }
+  let pendingUser = {
+    name: {
+      first: firstName,
+      last: lastName
+    },
+    email: {
+      email: email,
+      // TODO(gavin): ENABLE EMAIL VERIFICATION
+      verified: true,
+      verifyCode: '123',
+      verifySentAt: new Date().toString()
+    },
+    local: {
+      id: email,
+      password: hashedPassword
+    },
+    isActive: true,
+    fractionEmployee: false
+  };
 
-      let pendingUser = {
-        name: {
-          first: firstName,
-          last: lastName
-        },
-        email: {
-          email: email,
-          // ========================
-          // TODO(gavin): ENABLE EMAIL VERIFICATION
-          // ========================
-          verified: true,
-          verifyCode: '123',
-          verifySentAt: new Date().toString()
-        },
-        local: {
-          id: email,
-          password: hashedPassword
-        },
-        isActive: true,
-        fractionEmployee: false
-      };
-      return User.create(pendingUser);
-    })
+  return User.create(pendingUser)
     .then((newUser) => {
       return res.json({ user: newUser.toPublicObject() });
+    })
+    .catch((err) => {
+      // Note: E11000 is mongo's duplicate key error
+      // TODO(gavin): Pull out error handling and messages into universal object
+      if (_.contains(err.message, 'E11000')) {
+        throw new fractionErrors.Forbidden('user exists');
+      }
+      throw new Error(err);
     });
 }));
 

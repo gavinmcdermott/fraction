@@ -130,7 +130,7 @@ describe('User Service', function() {
         });
     });
 
-    it('succeeds', (done) => {
+    it('succeeds with valid user data', (done) => {
       requester
         .post(postUrl)
         .send({ email: validEmail, password: validPassword, firstName: firstName, lastName: lastName  })
@@ -154,6 +154,19 @@ describe('User Service', function() {
 
           expect(newUser.notifications).toBeDefined();
           expect(newUser.notifications.viaEmail).toBe(true);
+          done();
+        });
+    });
+
+    it('enforces unique emails as a signup constraint', (done) => {
+      requester
+        .post(postUrl)
+        .send({ email: validEmail, password: validPassword, firstName: firstName, lastName: lastName  })
+        .expect(403)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.status).toBe(403);
+          expect(res.body.message).toEqual('user exists');
           done();
         });
     });
