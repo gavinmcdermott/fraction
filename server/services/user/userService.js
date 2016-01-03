@@ -15,30 +15,26 @@ import { registry }  from './../serviceRegistry';
 import { verify } from './../../middleware/serviceDispatch';
 
 
-// import q from 'q';
-// mongoose.Promise = q.Promise;
-
-
-
 // Constants
+
+// Naming
 const SVC_NAME = 'user';
 const SVC_BASE_URL = registry.apis.baseV1 + '/user';
 
+// Routes
 const ROUTE_CREATE_USER = '/';
-const ROUTE_GET_USER = '/:userId';
 
 
 // Service setup
 
-
-// Service Router
+// Router
 
 // Expose a router to plug into the main express app
 // The router serves as the interface for this service to the outside world
 let router = express.Router();
 
 
-// Service middleware
+// Middleware
 
 // parse application/x-www-form-urlencoded
 router.use(bodyParser.urlencoded({ extended: true }));
@@ -46,7 +42,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
 
-// Service API
+// API
 
 /**
  * Create a new fraction user
@@ -76,7 +72,7 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
   try {
     assert(_.isString(req.body.password));
     hashedPassword = validator.toString(req.body.password);
-    assert(validator.isBase64(hashedPassword));
+    assert(hashedPassword.length);
   } catch(e) {
     throw new fractionErrors.Invalid('invalid password');
   }
@@ -85,6 +81,7 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
   try {
     assert(_.isString(req.body.firstName));
     firstName = validator.toString(req.body.firstName);
+    assert(firstName.length);
   } catch(e) {
     throw new fractionErrors.Invalid('invalid first name');
   }
@@ -92,6 +89,7 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
   try {
     assert(_.isString(req.body.lastName));
     lastName = validator.toString(req.body.lastName);
+    assert(lastName.length);
   } catch(e) {
     throw new fractionErrors.Invalid('invalid last name');
   }  
@@ -111,7 +109,9 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
         },
         email: {
           email: email,
+          // ========================
           // TODO(gavin): ENABLE EMAIL VERIFICATION
+          // ========================
           verified: true,
           verifyCode: '123',
           verifySentAt: new Date().toString()
@@ -131,29 +131,13 @@ router.post(ROUTE_CREATE_USER, fractionErrors.wrap((req, res) => {
 }));
 
 
-
-
-
-
-
-
-
-
-
-router.get(ROUTE_GET_USER, (req, res) => {
-  // console.log('in get');
-  res.json({ greeting: 'GET!' });
-});
-
-
 // Export the service as an object
 module.exports = {
   name: SVC_NAME,
   url: SVC_BASE_URL,
   router: router,
   endpoints: [
-    { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER },
-    { protocol: 'HTTP', method: 'GET', name: 'GET_USER', url: ROUTE_GET_USER }
+    { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER }
   ]
 };
 

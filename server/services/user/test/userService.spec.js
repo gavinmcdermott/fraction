@@ -25,7 +25,7 @@ describe('User Service', function() {
   // var bitArray = sjcl.hash.sha256.hash("message");  
   // var digest_sha256 = sjcl.codec.hex.fromBits(bitArray); 
   let validPassword = 'ab530a13e45914982b79f9b7e3fba994cfd1f3fb22f71cea1afbf02b460c6d1d'
-  let invalidPassword = 'some_crappy_password';
+  let invalidPassword = '';
 
   let validEmail = 'testUser@foo.com';
   let normalizedValidEmail = validEmail.toLowerCase();
@@ -34,7 +34,7 @@ describe('User Service', function() {
   let firstName = 'Alan';
   let lastName = 'Kay';
 
-  describe('Create', () => {
+  describe('Create New User', () => {
     
     let postUrl = userService.url + '/';
 
@@ -53,7 +53,6 @@ describe('User Service', function() {
     });
 
     it('fails without an email', (done) => {
-      
       requester
         .post(postUrl)
         .send({ password: validPassword })
@@ -83,6 +82,19 @@ describe('User Service', function() {
       requester
         .post(postUrl)
         .send({ email: validEmail })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid password');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
+
+    it('fails with an invalid password', (done) => {
+      requester
+        .post(postUrl)
+        .send({ email: validEmail, password: invalidPassword })
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -146,28 +158,5 @@ describe('User Service', function() {
         });
     });
   });
-
-
-
   
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
