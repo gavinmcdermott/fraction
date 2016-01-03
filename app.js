@@ -1,18 +1,20 @@
 'use strict';
 
 // System Dependencies
-import bodyParser from 'body-parser';
 import express from 'express';
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import path from 'path';
+import q from 'q';
 import webpack from 'webpack';
 import winston from 'winston';
 import url from 'url';
 
 // Local Dependencies
+// Note: always bring the config in first
 import config from './server/config/config';
+import dbUtils from './server/utils/dbUtils';
 import errorHandler from './server/middleware/errorHandler';
-
-import serviceDispatch from './server/middleware/serviceDispatch';
 import serviceRegistry from './server/services/serviceRegistry';
 
 import webpackConfig from './webpack.config';
@@ -27,13 +29,16 @@ const PUBLIC_PATH = path.join(__dirname + '/app');
 const SERVICES_PATH = path.join(__dirname + '/server/services');
 
 
-// Get an App instance and config
-let appConfig = config.load();
+// Create DB Connections
+let serviceDbInstance = mongoose.createConnection(process.config.serviceDb, dbUtils.connectCallback);
+// attach the connection to our mongoose instance
+mongoose.serviceDb = serviceDbInstance;
+// Use Q promises
+mongoose.Promise = require('q').Promise;
+
+
+// Create the app
 let app = express();
-
-
-// Set up app properties
-app.set('express_port', process.env.EXPRESS_PORT);
 
 
 // Add Middlewares
@@ -42,11 +47,6 @@ let webpackCompiler = webpack(webpackConfig);
 // Attach webpack-dev-middleware and webpack-hot-middleware
 app.use(webpackDevMiddleware(webpackCompiler, webpackMiddlewareConfig.DEV));
 app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-app.use(serviceDispatch.verify);
 
 
 // Handle static files
