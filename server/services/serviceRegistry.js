@@ -8,7 +8,7 @@ import assert from 'assert';
 import validator from 'validator';
 
 // Locals
-import serviceDispatch from './../middleware/serviceDispatch';
+// import serviceDispatch from './../middleware/serviceDispatch';
 
 
 // Constants
@@ -74,7 +74,7 @@ class ServiceRegistry {
     assert(typeof newService.endpoints === 'object');
 
     if (_.has(currentServices, newService.name)) {
-      throw new Error('[SERVICE EXISTS] Attempting to overwrite ' + newService.name + ' service.');
+      throw new Error('[SERVICE EXISTS] Attempted to overwrite ' + newService.name + ' service.');
     }
     return currentServices[newService.name] = newService;
   };
@@ -131,13 +131,20 @@ let loadServices = (app) => {
       throw new Error('[NO SERVICE LOAD PATH] Could not register service ' + name);
     }
   });
-
-  // Attach the service dispatch middleware - it ensures we call a valid service
-  // when an incoming request is looking for a Fraction service
-  app.use(serviceDispatch.verify(registry));
 };
 
 module.exports = {
   registry: registry,
-  loadServices: _.once(loadServices)
+  loadServices: loadServices
 };
+
+
+
+
+
+
+
+
+
+
+

@@ -92,7 +92,7 @@ let coerceToError = (err) => {
 
 
 /**
- * Express middleware for wrapping Fraction Service/API calls
+ * Middleware for wrapping Fraction Service/API calls
  *
  * @param {func} function A Fraction service/api function (can be regular or Promise)
  * @returns {promise} object

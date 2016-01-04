@@ -10,11 +10,15 @@ import config from './../config/config';
 import dbUtils from './../utils/dbUtils';
 
 
+// Constants
 const SERVICE_DB = process.config.serviceDb;
 
+
+// Test DB setup
 let serviceDbConnection = mongoose.createConnection(SERVICE_DB, dbUtils.connectCallback);
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbConnection;
+
 
 exports.clearLocalTestDatabase = function() {
   
@@ -46,3 +50,49 @@ exports.clearLocalTestDatabase = function() {
 
   return clearDb(SERVICE_DB);
 };
+
+
+
+exports.addTestUser = function(requester) {
+  return new Promise((resolve, reject) => {  
+    let userService = require('./../services/user/userService');
+    let createEndpoint = _.filter(userService.endpoints, (endpoint) => {
+      return endpoint.name === 'CREATE_USER';
+    })[0];
+
+    requester
+      .post(userService.url + createEndpoint.url)
+      .send({ email: 'testUser@foo.com', password: 's0m3Passw0rd', firstName: 'Terrence', lastName: 'Wundermidst'  })
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          throw new Error('Error creating test user: ', err)
+        }
+        expect(res.body.user).toBeDefined();
+        return resolve(res.body.user);
+      });
+  });
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -14,7 +14,7 @@ import url from 'url';
 // Note: always bring the config in first
 import config from './server/config/config';
 import dbUtils from './server/utils/dbUtils';
-import errorHandler from './server/middleware/errorHandler';
+import serviceDispatch from './server/middleware/serviceDispatch';
 import serviceRegistry from './server/services/serviceRegistry';
 
 import webpackConfig from './webpack.config';
@@ -41,12 +41,21 @@ mongoose.Promise = require('q').Promise;
 let app = express();
 
 
-// Add Middlewares
+// Middleware
+
 // Build webpack comiler based on webpack config
 let webpackCompiler = webpack(webpackConfig);
 // Attach webpack-dev-middleware and webpack-hot-middleware
 app.use(webpackDevMiddleware(webpackCompiler, webpackMiddlewareConfig.DEV));
 app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT));
+
+
+
+// TODO ADD DISTPATCH AT TOP LEVEL?
+// TODO ADD DISTPATCH AT TOP LEVEL?
+// TODO ADD DISTPATCH AT TOP LEVEL?
+// app.use(serviceRegistry.registry.apis.baseV1, serviceDispatch)
+
 
 
 // Handle static files

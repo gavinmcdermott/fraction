@@ -6,36 +6,37 @@ import express from 'express';
 
 // Locals
 import testUtils from './../../../utils/testUtils';
-import { registry, loadServices } from './../../serviceRegistry';
+import serviceRegistry from './../../serviceRegistry';
 // Note: Import the one service we want to explicitly test 
 // We don't need to load the whole app
 import userService from './../userService';
-import User from './../userModel';
+
 
 let app = express();
 let requester = request(app);
-loadServices(app);
+serviceRegistry.loadServices(app);
 
 
 // Service Tests
+
 describe('User Service', function() {
 
   // http://bitwiseshiftleft.github.io/sjcl/demo/
   // var bitArray = sjcl.hash.sha256.hash("message");  
   // var digest_sha256 = sjcl.codec.hex.fromBits(bitArray); 
-  let validPassword = 'ab530a13e45914982b79f9b7e3fba994cfd1f3fb22f71cea1afbf02b460c6d1d'
+  let validPassword = 'ab530a13e45914982b79f9b7e3fba994cfd1f3fb22f71cea1afbf02b460c6d1d';
   let invalidPassword = '';
 
   let validEmail = 'testUser@foo.com';
-  let normalizedValidEmail = validEmail.toLowerCase();
   let invalidEmail = 'testUser@foo';
+  let normalizedValidEmail = validEmail.toLowerCase();
 
   let firstName = 'Alan';
   let lastName = 'Kay';
 
 
   describe('Create New User', () => {
-    
+
     let postUrl = userService.url + '/';
 
     beforeAll((done) => {
@@ -149,8 +150,7 @@ describe('User Service', function() {
           expect(newUser.email.email).toEqual(normalizedValidEmail);
           expect(newUser.email.verified).toBe(true);
 
-          expect(newUser.local).toBeDefined();
-          expect(newUser.local.id).toEqual(normalizedValidEmail);
+          expect(newUser.id).toBeDefined();
 
           expect(newUser.notifications).toBeDefined();
           expect(newUser.notifications.viaEmail).toBe(true);
@@ -171,5 +171,163 @@ describe('User Service', function() {
         });
     });
   });
+
+
+  describe('Update Existing User', () => {
+    
+    let user;
+    let updateUrl;
+    let badUpdateUrl = userService.url + '/5689a9f38b7512cf1b0e497f23scD';
+
+    let newFirstName = 'Gavin';
+    let newLastName = 'McD';
+    let newEmail = 'someNewemail@fraction.com';
+    let normalizedNewEmail = newEmail.toLowerCase();
+    let newEmailNotification = false;
+
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+        .then(() => testUtils.addTestUser(requester))
+        .then((testUser) => {
+          user = testUser;
+          updateUrl = userService.url + '/' + user.id;
+          done();
+        });
+    });
+
+    afterAll((done) => {
+      testUtils.clearLocalTestDatabase()
+      .then(() => {
+        done();
+      });
+    });
+
+    it('fails without an existing user', (done) => {
+      requester
+        .put(badUpdateUrl)
+        .send()
+        .expect(404)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('missing user');
+          expect(res.body.status).toBe(404);
+          done();
+        });
+    });
+
+    it('fails when trying to update to an invalid email', (done) => {
+      requester
+        .put(updateUrl)
+        .send({ user: { email: { email: invalidEmail } } })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid email');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
+
+    it('fails when trying to update to an invalid first name', (done) => {
+      requester
+        .put(updateUrl)
+        .send({ user: { name: { first: '', last: 'McD' } } })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid first name');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
+
+    it('fails when trying to update to an invalid last name', (done) => {
+      requester
+        .put(updateUrl)
+        .send({ user: { name: { first: 'Gavin', last: '' } } })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid last name');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
+
+    it('fails when trying to update with an invalid notification bool', (done) => {
+      requester
+        .put(updateUrl)
+        .send({ user: { notifications: { viaEmail: 'notAbool' } } })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid email notification setting');
+          expect(res.body.status).toBe(400);
+          done();
+        });
+    });
+
+    it('updates valid settings: all new settings', (done) => {
+      requester
+        .put(updateUrl)
+        .send({ 
+          user: { 
+            name: { first: newFirstName, last: newLastName },
+            email: { email: newEmail },
+            notifications: { viaEmail: newEmailNotification }
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.user).toBeDefined();
+          expect(res.body.user.name.first).toEqual(newFirstName);
+          expect(res.body.user.name.last).toEqual(newLastName);
+          expect(res.body.user.email.email).toEqual(normalizedNewEmail);
+          expect(res.body.user.notifications.viaEmail).toBe(newEmailNotification);
+          done();
+        });
+    });
+
+    it('updates valid settings: a couple new settings', (done) => {
+      let first = 'Heythere';
+      let last = 'McGillicutty';
+      let notifications = true;
+
+      requester
+        .put(updateUrl)
+        .send({ 
+          user: { 
+            name: { first: first, last: last },
+            notifications: { viaEmail: notifications }
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.user).toBeDefined();
+          expect(res.body.user.name.first).toEqual(first);
+          expect(res.body.user.name.last).toEqual(last);
+          expect(res.body.user.email.email).toEqual(normalizedNewEmail);
+          expect(res.body.user.notifications.viaEmail).toBe(notifications);
+          done();
+        });
+    });
+
+  });
   
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
