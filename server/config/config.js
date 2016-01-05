@@ -21,7 +21,7 @@ let configDefaults = {
   fraction: {
     clientId: 'fraction',
     // https://www.grc.com/passwords.htm
-    clientSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1'
+    tokenSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1'
   }
 };
 

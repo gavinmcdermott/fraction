@@ -13,7 +13,8 @@ import bodyParser from 'body-parser';
 import testUtils from './../../utils/testUtils';
 // Note: Import the one service we want to explicitly test 
 // We don't need to load the whole app
-import fractionErrors from './../errorHandler';
+import middlewareError from './../errorHandler';
+import fractionErrors from './../../utils/fractionErrors';
 
 
 // init a basic test app for url hits
@@ -102,15 +103,15 @@ let promiseErrorFunc = (req,res) => {
 
 
 // Set up a basic routes to test errors
-app.get(errorStringUrl, fractionErrors.wrap(errorStringThrower));
-app.get(errorObjectUrl, fractionErrors.wrap(errorObjectThrower));
-app.get(errorRawUrl, fractionErrors.wrap(errorRawThrower));
-app.get(error400url, fractionErrors.wrap(error400Thrower));
-app.get(error401url, fractionErrors.wrap(error401Thrower));
-app.get(error403url, fractionErrors.wrap(error403Thrower));
-app.get(error404url, fractionErrors.wrap(error404Thrower));
-app.get(promiseSuccessUrl, fractionErrors.wrap(promiseSuccessFunc));
-app.get(promiseErrorUrl, fractionErrors.wrap(promiseErrorFunc));
+app.get(errorStringUrl, middlewareError.wrap(errorStringThrower));
+app.get(errorObjectUrl, middlewareError.wrap(errorObjectThrower));
+app.get(errorRawUrl, middlewareError.wrap(errorRawThrower));
+app.get(error400url, middlewareError.wrap(error400Thrower));
+app.get(error401url, middlewareError.wrap(error401Thrower));
+app.get(error403url, middlewareError.wrap(error403Thrower));
+app.get(error404url, middlewareError.wrap(error404Thrower));
+app.get(promiseSuccessUrl, middlewareError.wrap(promiseSuccessFunc));
+app.get(promiseErrorUrl, middlewareError.wrap(promiseErrorFunc));
 
 
 describe('wrap Middleware', () => {
