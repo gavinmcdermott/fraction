@@ -95,6 +95,7 @@ let coerceToError = (err) => {
 // Exports
 
 module.exports = {
+  baseError: FractionError,
   coerceToError: coerceToError,
   Invalid: Invalid,
   Unauthorized: Unauthorized,

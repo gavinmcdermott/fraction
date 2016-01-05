@@ -2,16 +2,11 @@
 
 // Locals
 import testUtils from './../../../utils/testUtils';
-// Note: only import the service we want to test 
 import userService from './../userService';
 
 
-// Load the test app for this suite
-testUtils.loadTestServices();
-
 // Access the test app's supertest object
 let requester = testUtils.requester;
-
 let testUser = testUtils.testUser;
 
 
@@ -29,6 +24,18 @@ describe('User Service: ', function() {
   let firstName = testUser.firstName;
   let lastName = testUser.lastName;
 
+
+  beforeAll(() => {
+    console.log('');
+    console.log('Starting user service tests');
+  });
+
+  afterAll((done) => {
+    testUtils.clearLocalTestDatabase()
+    .then(() => {
+      done();
+    });
+  });
 
   // CREATE
 
@@ -158,7 +165,7 @@ describe('User Service: ', function() {
     it('enforces unique emails as a signup constraint', (done) => {
       requester
         .post(postUrl)
-        .send({ email: validEmail, password: validPassword, firstName: firstName, lastName: lastName  })
+        .send({ email: validEmail, password: validPassword, firstName: 'Gavin', lastName: 'lastName'  })
         .expect(403)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -169,60 +176,6 @@ describe('User Service: ', function() {
     });
   });
 
-
-  // LOG IN
-
-  describe('Logging In: ', () => {
-
-    let user;
-    let token;
-    let logInUrl = userService.url + '/login';
-
-    beforeAll((done) => {
-      testUtils.clearLocalTestDatabase()
-        .then(() => testUtils.addTestUser(userService))
-        .then((testUser) => {
-          user = testUser;
-          done();
-        });
-    });
-
-    afterAll((done) => {
-      testUtils.clearLocalTestDatabase()
-      .then(() => {
-        done();
-      });
-    });
-
-    it('does not log in a user that cannot be found', (done) => {
-      let nonExistentUser = { email: 'someValid@email.com', password: 'somepassw0rd' };
-
-      requester
-        .post(logInUrl)
-        .send(nonExistentUser)
-        .expect(404)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('user not found');
-          expect(res.body.status).toBe(404);
-          done();
-        });
-    });
-
-    it('logs in an existing valid user', (done) => {
-      requester
-        .post(logInUrl)
-        .send({ email: user.email.email, password: testUser.password })
-        .expect(404)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.token).toBeDefined();
-          expect(res.body.user).toBeDefined();
-          done();
-        });
-    });
-  });
-  
 
   // UPDATE
 
@@ -243,7 +196,7 @@ describe('User Service: ', function() {
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser(userService);
+          return testUtils.addTestUser();
         })
         .then(() => {
           return testUtils.logInTestUser();
@@ -397,33 +350,4 @@ describe('User Service: ', function() {
     });
   });
 
-
-  
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

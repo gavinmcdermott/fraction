@@ -31,21 +31,19 @@ let serviceDbConnection = mongoose.createConnection(SERVICE_DB, dbUtils.connectC
 mongoose.serviceDb = serviceDbConnection;
 
 
+// The only service deps we have are user a-based
+
+
 // Test App
 
 let app = express();
 let requester = request(app);
+serviceRegistry.loadServices(app);
 
 
 // Exports
 
 exports.requester = requester;
-
-exports.loadTestServices = function() {
-  serviceRegistry.registry.clearServices(true);
-  serviceRegistry.loadServices(app);
-};
-
 
 exports.clearLocalTestDatabase = function() {
   
@@ -99,11 +97,11 @@ exports.addTestUser = function() {
 exports.logInTestUser = function() {
   return new Promise((resolve, reject) => {  
     let trimmedTestUser = {
-      email: exports.testUser.email.toLowerCase(),
+      email: exports.testUser.email,
       password: exports.testUser.password
     };
     requester
-      .post('/api/v1/user/login')
+      .post('/api/v1/auth/login') // hard coded for now
       .send(trimmedTestUser)
       .expect(200)
       .end((err, res) => {
@@ -116,29 +114,3 @@ exports.logInTestUser = function() {
       });
   });
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

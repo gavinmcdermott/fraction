@@ -7,11 +7,9 @@ import path from 'path';
 import assert from 'assert';
 import validator from 'validator';
 
-// Locals
-// import serviceDispatch from './../middleware/serviceDispatch';
-
 
 // Constants
+
 // Initial service api url base
 const API_BASE_V1 = '/api/v1';
 
@@ -26,7 +24,8 @@ const VALID_SERVICES = {
   __testB: { loadPath: './__testB/__testBService' },
 
   // Used in Production
-  user: { loadPath: './user/userService' }
+  user: { loadPath: './user/userService' },
+  auth: { loadPath: './auth/authService' }
 };
 
 
@@ -116,35 +115,32 @@ registry = new ServiceRegistry();
  * @param {app} obj Current instance of the running express app
  */
 let loadServices = (app) => {
-  // Loop through the valid services and attempt to load
-  _.forIn(VALID_SERVICES, (service, name) => {
-    // never require and load fake test paths
-    if (_.contains(name, '__test')) {
-      return;
-    }
+    
+  assert(app && _.isObject(app));
+
+  // Helper function to load a single service into the app
+  function loadService(service, name) {
     // Attempt to load the service; provide a nice error in failure
     try {
       let serviceModule = require(service.loadPath);
       app.use(serviceModule.url, serviceModule.router);
       console.log(name.toUpperCase() + ' SERVICE: LOADED'); 
     } catch (err) {
-      throw new Error('[NO SERVICE LOAD PATH] Could not register service ' + name);
+      throw new Error('[INVALID SERVICE LOAD] Could not register service ' + name);
     }
+  }
+
+  _.forIn(VALID_SERVICES, (service, name) => {
+    // never require and load fake test paths
+    if (_.contains(name, '__test')) {
+      return;
+    }
+    loadService(service, name);
   });
+
 };
 
 module.exports = {
   registry: registry,
   loadServices: loadServices
 };
-
-
-
-
-
-
-
-
-
-
-

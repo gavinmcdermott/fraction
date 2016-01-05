@@ -12,7 +12,7 @@ let userSchema = new mongoose.Schema({
   },
   
   email: {
-    email: { type: String, default: '', unique: true, lowercase: true, trim: true },
+    email: { type: String, default: '', required: true, unique: true, lowercase: true, trim: true },
     verified: { type: Boolean, default: false },
     verifyCode: { type: String },
     verifySentAt: { type: Date },
@@ -20,7 +20,7 @@ let userSchema = new mongoose.Schema({
   },
   
   local: {
-    password: { type: String },
+    password: { type: String, required: true },
     verifyCode: { type: String },
     verifySentAt: { type: Date }
   },
@@ -61,7 +61,6 @@ userSchema.methods = {
 };
 
 userSchema.index({ 'email.email': 1 }, { unique: true });
-userSchema.index({ 'local.id': 1 }, { unique: true });
 
 
 let User = mongoose.serviceDb.model('User', userSchema);
