@@ -6,12 +6,11 @@ import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
 import validator from 'validator';
-
-// Locals
-import serviceDispatch from './../middleware/serviceDispatch';
+import services from './fractionServiceList'
 
 
 // Constants
+
 // Initial service api url base
 const API_BASE_V1 = '/api/v1';
 
@@ -19,15 +18,7 @@ const API_BASE_V1 = '/api/v1';
 // TODO: sanity check types on the way in
 const VALID_KEYS = ['name', 'url', 'router', 'endpoints'];
 
-
-const VALID_SERVICES = {
-  // Used for testing service registration and loading
-  __testA: { loadPath: './__testA/__testAService' },
-  __testB: { loadPath: './__testB/__testBService' },
-
-  // Used in Production
-  user: { loadPath: './user/userService' }
-};
+const VALID_SERVICES = services;
 
 
 // Locals
@@ -74,7 +65,7 @@ class ServiceRegistry {
     assert(typeof newService.endpoints === 'object');
 
     if (_.has(currentServices, newService.name)) {
-      throw new Error('[SERVICE EXISTS] Attempting to overwrite ' + newService.name + ' service.');
+      throw new Error('[SERVICE EXISTS] Attempted to overwrite ' + newService.name + ' service.');
     }
     return currentServices[newService.name] = newService;
   };
@@ -115,29 +106,30 @@ registry = new ServiceRegistry();
  *
  * @param {app} obj Current instance of the running express app
  */
-let loadServices = (app) => {
-  // Loop through the valid services and attempt to load
-  _.forIn(VALID_SERVICES, (service, name) => {
-    // never require and load fake test paths
-    if (_.contains(name, '__test')) {
-      return;
-    }
+let loadServices = (app, config) => {
+    
+  assert(app && _.isObject(app));
+
+  // Helper function to load a single service into the app
+  function loadService(service, name) {
     // Attempt to load the service; provide a nice error in failure
     try {
       let serviceModule = require(service.loadPath);
       app.use(serviceModule.url, serviceModule.router);
       console.log(name.toUpperCase() + ' SERVICE: LOADED'); 
     } catch (err) {
-      throw new Error('[NO SERVICE LOAD PATH] Could not register service ' + name);
+      throw new Error('[INVALID SERVICE LOAD] Could not register service ' + name);
     }
-  });
+  }
 
-  // Attach the service dispatch middleware - it ensures we call a valid service
-  // when an incoming request is looking for a Fraction service
-  app.use(serviceDispatch.verify(registry));
+  _.forIn(VALID_SERVICES, (service, name) => {
+    loadService(service, name);
+  });
+  console.log( _.keys(VALID_SERVICES).length + ' SERVICES READY' + '\n');
+  return true;
 };
 
 module.exports = {
   registry: registry,
-  loadServices: _.once(loadServices)
+  loadServices: loadServices
 };
