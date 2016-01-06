@@ -4,9 +4,14 @@
 import _ from 'lodash';
 import express from 'express';
 import serviceRegistry from './../serviceRegistry';
+import services from './../fractionServiceList';
 
 // Locals
 let registry = serviceRegistry.registry;
+
+var validServiceA = _.keys(services)[0];
+var validServiceB = _.keys(services)[1];
+
 
 // Service registry test suite
 describe('Service Registry', function() {
@@ -14,17 +19,23 @@ describe('Service Registry', function() {
   let fakeRouter = () => {};
 
   let missingNameModule = { url: '/test', router: fakeRouter, endpoints: [] };
-
+  
   let missingUrlModule = { name: 'test', router: fakeRouter, endpoints: [] };
   let invalidUrlModule = { name: 'test',url: 'some bad url', router: fakeRouter, endpoints: [] };
   
   let missingRouterModule = { url: '/', name: 'test', endpoints: [] };
+  
   let missingEndpointsModule = { name: 'test', router: fakeRouter };
   
   let invalidObjectsModule = { url: 132, name: 132, router: ';', endpoints: 123 };
   
-  let validModule1 = { url: '/__testA', name: '__testA', router: fakeRouter, endpoints: [] };
-  let validModule2 = { url: '/__testB', name: '__testB', router: fakeRouter, endpoints: [] };
+  let validModule1 = { url: '/' + validServiceA, name: validServiceA, router: fakeRouter, endpoints: [] };
+  let validModule2 = { url: '/' + validServiceB, name: validServiceB, router: fakeRouter, endpoints: [] };
+
+  beforeAll(() => {
+    console.log('');
+    console.log('Starting service registry tests');
+  });
 
   afterEach(() => {
     registry.clearServices(true);

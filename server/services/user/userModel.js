@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import mongoose from 'mongoose';
 
+
 let userSchema = new mongoose.Schema({
   
   name: {
@@ -11,7 +12,7 @@ let userSchema = new mongoose.Schema({
   },
   
   email: {
-    email: { type: String, default: '', unique: true, lowercase: true, trim: true },
+    email: { type: String, default: '', required: true, unique: true, lowercase: true, trim: true },
     verified: { type: Boolean, default: false },
     verifyCode: { type: String },
     verifySentAt: { type: Date },
@@ -19,9 +20,7 @@ let userSchema = new mongoose.Schema({
   },
   
   local: {
-    // id is simply the user's email (distinct from the Mongo _id)
-    id: { type: String, unique: true, lowercase: true, trim: true },
-    password: { type: String },
+    password: { type: String, required: true },
     verifyCode: { type: String },
     verifySentAt: { type: Date }
   },
@@ -44,6 +43,7 @@ userSchema.methods = {
   
   toPublicObject: function() {
     return {
+      id: this._id.toString(),
       name: { 
         first: this.name.first, 
         last: this.name.last
@@ -51,9 +51,6 @@ userSchema.methods = {
       email: {
         email: this.email.email,
         verified: this.email.verified
-      },
-      local: {
-        id: this.local.id
       },
       notifications: {
         viaEmail: this.notifications.viaEmail
@@ -64,7 +61,7 @@ userSchema.methods = {
 };
 
 userSchema.index({ 'email.email': 1 }, { unique: true });
-userSchema.index({ 'local.id': 1 }, { unique: true });
+
 
 let User = mongoose.serviceDb.model('User', userSchema);
 
