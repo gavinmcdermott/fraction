@@ -119,6 +119,10 @@ describe('wrap Middleware', () => {
   let mockReq = {};
   let mockRes = { json: () => {}, status: () => {} };
     
+  beforeAll(() => {
+    console.log('\n' + 'Starting error handler tests');
+  });
+
   beforeEach(() => {
     spyOn(mockRes, 'json');
   });

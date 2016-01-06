@@ -20,8 +20,12 @@ let configDefaults = {
   },
   fraction: {
     clientId: 'fraction',
-    // https://www.grc.com/passwords.htm
-    tokenSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1'
+    // temporarily using: https://www.grc.com/passwords.htm
+    // TODO(important!): upgrade to keys later
+    // TODO(important!): upgrade to keys later
+    // TODO(important!): upgrade to keys later
+    tokenSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1',
+    internalApiSecret: 'n3UZiR6qdBdlCCk3izYU07tx3vQC8caHEiyLvTd4ErfYZjq7seDQqUcN42FkTBN'
   }
 };
 

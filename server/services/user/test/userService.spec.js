@@ -1,13 +1,19 @@
 'use strict';
 
 // Locals
+
 import testUtils from './../../../utils/testUtils';
-import userService from './../userService';
 
 
-// Access the test app's supertest object
+// Test setup
+
+let app = testUtils.app;
 let requester = testUtils.requester;
 let testUser = testUtils.testUser;
+let serviceRegistry = testUtils.serviceRegistry;
+
+// grab an instance of the user service
+let userService = serviceRegistry.registry.services['user'];
 
 
 // Service Tests
@@ -219,7 +225,7 @@ describe('User Service: ', function() {
     it('fails without a valid token', (done) => {
       requester
         .put(updateUrl)
-        // .set('Authorization', token)
+        // .set('Authorization', token) // leave out explicitly
         .send()
         .expect(401)
         .expect('Content-Type', /json/)
@@ -238,7 +244,7 @@ describe('User Service: ', function() {
         .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('missing user');
+          expect(res.body.message).toBe('user not found');
           expect(res.body.status).toBe(404);
           done();
         });

@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
 import validator from 'validator';
+import services from './fractionServiceList'
 
 
 // Constants
@@ -17,16 +18,7 @@ const API_BASE_V1 = '/api/v1';
 // TODO: sanity check types on the way in
 const VALID_KEYS = ['name', 'url', 'router', 'endpoints'];
 
-
-const VALID_SERVICES = {
-  // Used for testing service registration and loading
-  __testA: { loadPath: './__testA/__testAService' },
-  __testB: { loadPath: './__testB/__testBService' },
-
-  // Used in Production
-  user: { loadPath: './user/userService' },
-  auth: { loadPath: './auth/authService' }
-};
+const VALID_SERVICES = services;
 
 
 // Locals
@@ -114,7 +106,7 @@ registry = new ServiceRegistry();
  *
  * @param {app} obj Current instance of the running express app
  */
-let loadServices = (app) => {
+let loadServices = (app, config) => {
     
   assert(app && _.isObject(app));
 
@@ -131,13 +123,10 @@ let loadServices = (app) => {
   }
 
   _.forIn(VALID_SERVICES, (service, name) => {
-    // never require and load fake test paths
-    if (_.contains(name, '__test')) {
-      return;
-    }
     loadService(service, name);
   });
-
+  console.log( _.keys(VALID_SERVICES).length + ' SERVICES READY' + '\n');
+  return true;
 };
 
 module.exports = {

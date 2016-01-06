@@ -2,12 +2,15 @@
 
 // Locals
 import testUtils from './../../../utils/testUtils';
-import authService from './../authService';
+// import authService from './../authService';
 
-
-// Access the test app's supertest object
+let app = testUtils.app;
 let requester = testUtils.requester;
 let testUser = testUtils.testUser;
+let serviceRegistry = testUtils.serviceRegistry;
+
+let authService = serviceRegistry.registry.services['auth'];
+
 
 
 describe('Auth: ', () => {
@@ -40,6 +43,7 @@ describe('Auth: ', () => {
     });
 
 
+
     it('does not log in a user that cannot be found', (done) => {
       let nonExistentUser = { email: 'someValid@email.com', password: 'somepassw0rd' };
 
@@ -58,7 +62,7 @@ describe('Auth: ', () => {
     it('logs in an existing valid user', (done) => {
       requester
         .post(logInUrl)
-        .send({ email: user.email.email, password: testUser.password })
+        .send({ email: testUser.email, password: testUser.password })
         .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {

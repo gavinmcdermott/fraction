@@ -1,13 +1,17 @@
 'use strict';
 
+
 // Globals
+
 import _ from 'lodash';
 import assert from 'assert';
 import express from 'express';
 import mongoose from 'mongoose';
 import request from 'supertest';
 
+
 // Locals
+
 import config from './../config/config';
 import dbUtils from './../utils/dbUtils';
 import serviceRegistry from './../services/serviceRegistry';
@@ -17,24 +21,14 @@ import serviceRegistry from './../services/serviceRegistry';
 
 const SERVICE_DB = process.config.serviceDb;
 
-exports.testUser = {
-  email: 'testUser@foo.com',
-  password: 's0m3Passw0rd',
-  firstName: 'Terrence',
-  lastName: 'Wundermidst'
-};
 
-// Test DB Connections
-
+// DB Connections
 let serviceDbConnection = mongoose.createConnection(SERVICE_DB, dbUtils.connectCallback);
 // attach the connection to our mongoose instance
 mongoose.serviceDb = serviceDbConnection;
 
 
-// The only service deps we have are user a-based
-
-
-// Test App
+// Test app setup
 
 let app = express();
 let requester = request(app);
@@ -43,8 +37,18 @@ serviceRegistry.loadServices(app);
 
 // Exports
 
+exports.app = app;
 exports.requester = requester;
+exports.serviceRegistry = serviceRegistry;
 
+exports.testUser = {
+  email: 'testUser@foo.com',
+  password: 's0m3Passw0rd',
+  firstName: 'Terrence',
+  lastName: 'Wundermidst'
+};
+
+// Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
   // Helper to drop/wipe a specific test database
@@ -76,7 +80,7 @@ exports.clearLocalTestDatabase = function() {
   return clearDb(SERVICE_DB);
 };
 
-
+// Helper to add a test user
 exports.addTestUser = function() {
   return new Promise((resolve, reject) => {  
     requester
@@ -93,7 +97,7 @@ exports.addTestUser = function() {
   });
 };
 
-
+// Helper to log in the test user
 exports.logInTestUser = function() {
   return new Promise((resolve, reject) => {  
     let trimmedTestUser = {
@@ -114,3 +118,17 @@ exports.logInTestUser = function() {
       });
   });
 };
+
+
+// Initialize the test server before running any service tests
+beforeAll((done) => {
+
+  // This is needed to force supertest to listen on a particular port
+  // otherwise it uses an ephemeral one - see supertest documentation
+  let server = app.listen(process.config.port, () => {
+    console.log('Test server listening on port %s', server.address().port);
+    done();
+  });
+});
+
+

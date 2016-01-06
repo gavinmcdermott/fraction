@@ -1,6 +1,8 @@
 'use strict'
 
+
 // Globals
+
 import _ from 'lodash';
 import assert from 'assert';
 import bodyParser from 'body-parser';
@@ -10,14 +12,16 @@ import mongoose from 'mongoose';
 import q from 'q';
 import validator from 'validator';
 
+
 // Locals
+
 import fractionErrors from './../../utils/fractionErrors';
 import middlewareErrors from './../../middleware/errorHandler';
 import middlewareAuth from './../../middleware/tokenAuth';
+import middlewareInternal from './../../middleware/ensureInternal';
 import serviceRegistry  from './../serviceRegistry';
 // DB Models
 import User from './userModel';
-
 
 // Use Q promises
 mongoose.Promise = require('q').Promise;
@@ -25,16 +29,17 @@ mongoose.Promise = require('q').Promise;
 
 // Constants
 
-// Naming
+// naming
 const SVC_NAME = 'user';
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/user';
 
-// Routes
+// routes
 const ROUTE_CREATE_USER = '/';
 const ROUTE_UPDATE_USER = '/:userId';
 
+// internal routes must be protected
+const ROUTE_INTERNAL_CHECK_EXISTENCE = '/internal/check_existence';
 
-// Service setup
 
 // Router
 
@@ -155,14 +160,14 @@ function updateUser(req, res) {
     assert(userId);
     assert(userId.length);
   } catch (err) {
-    throw new fractionErrors.Invalid('missing user');
+    throw new fractionErrors.Invalid('user not found');
   }
 
   return User.findById({ _id: userId })
     .exec()
     .catch((err) => {
       // handle case where the user is missing
-      throw new fractionErrors.NotFound('missing user');
+      throw new fractionErrors.NotFound('user not found');
     })
     .then((existingUser) => {
 
@@ -220,15 +225,62 @@ function updateUser(req, res) {
           }
         }
       }
-
       return existingUser.save();
     })
     .then((updatedUser) => {
       return res.json({ user: updatedUser.toPublicObject() });
     })
     .catch((err) => {
-      if (err instanceof fractionErrors.NotFound
-          || err instanceof fractionErrors.Invalid) {
+      if (err instanceof fractionErrors.BaseError) {
+        throw err;
+      }
+      throw new Error(err.message);
+    });
+};
+
+
+/**
+ * Update an existing fraction user
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function internalCheckExistence(req, res) {
+
+  let email;
+  let hashedPassword;
+
+  // TODO: IMPLEMENT SIGNATURES FOR PROVING INTERNAL CALLS
+  assert(req.headers.fraction_verification_token)
+
+  // validate email
+  try {
+    assert(_.isString(req.body.email));
+    email = validator.toString(req.body.email).toLowerCase();
+    assert(validator.isEmail(email));
+  } catch(e) {
+    throw new fractionErrors.Invalid('invalid email');    
+  }
+
+  // password
+  try {
+    assert(_.isString(req.body.password));
+    hashedPassword = validator.toString(req.body.password);
+    assert(hashedPassword.length);
+  } catch(e) {
+    throw new fractionErrors.Invalid('invalid password');
+  }
+
+  return User.findOne({ 'email.email': email })
+    .then((user) => {
+      if (user) {
+        return res.json(user.toPublicObject());
+      }
+      throw new fractionErrors.NotFound('user not found');
+    })
+    .catch((err) => {
+      if (err instanceof fractionErrors.BaseError) {
         throw err;
       }
       throw new Error(err.message);
@@ -240,6 +292,7 @@ function updateUser(req, res) {
 
 router.post(ROUTE_CREATE_USER, middlewareErrors.wrap(createUser));
 router.put(ROUTE_UPDATE_USER, middlewareAuth.requireAuth, middlewareErrors.wrap(updateUser));
+router.post(ROUTE_INTERNAL_CHECK_EXISTENCE, middlewareInternal.ensureInternal, middlewareErrors.wrap(internalCheckExistence));
 
 
 // Exports
@@ -250,9 +303,11 @@ module.exports = {
   router: router,
   endpoints: [
     { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER },
-    { protocol: 'HTTP', method: 'PUT', name: 'UPDATE_USER', url: ROUTE_UPDATE_USER }
+    { protocol: 'HTTP', method: 'PUT', name: 'UPDATE_USER', url: ROUTE_UPDATE_USER },
+    { protocol: 'HTTP', method: 'POST', name: 'INTERNAL_CHECK_EXISTENCE', url: ROUTE_INTERNAL_CHECK_EXISTENCE }
   ]
 };
+
 
 // Register with the app service registry
 serviceRegistry.registry.register(module.exports);
