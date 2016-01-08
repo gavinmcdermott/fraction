@@ -13,7 +13,7 @@ module.exports = {
   entry: [
     'webpack/hot/dev-server',
     'webpack-hot-middleware/client',
-    path.join(__dirname, '/app/index.js')
+    path.join(__dirname, '/client/index.js')
   ],
   
   // Output build path
@@ -24,7 +24,7 @@ module.exports = {
   },
 
   // Set up source mapping for debugging
-  devtool: "source-map",
+  devtool: "inline-source-map",
 
   // Webpack Loaders (transformations)
   // http://webpack.github.io/docs/using-loaders.html
