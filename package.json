@@ -59,10 +59,10 @@
   "scripts": {
     "client_test": "karma start client/karma.conf.js",
     "server_test": "NODE_ENV=test jasmine JASMINE_CONFIG_PATH=spec/support/jasmine.json",
-    "test": "npm run client_test",
+    "test": "npm run server_test",
     "client_dev": "NODE_ENV=development babel-node server/server.js",
     "server_dev": "NODE_ENV=development nodemon --exec babel-node server/server.js",
-    "start": "npm run client_dev"
+    "start": "npm run server_dev"
   },
   "author": {
     "name": "Gavin McDermott",
