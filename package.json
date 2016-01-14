@@ -47,7 +47,7 @@
     "test": "NODE_ENV=test jasmine JASMINE_CONFIG_PATH=spec/support/jasmine.json",
     "client_dev": "NODE_ENV=development babel-node server/server.js",
     "server_dev": "NODE_ENV=development nodemon --exec babel-node server/server.js",
-    "start": "npm run server_dev"
+    "start": "npm run client_dev"
   },
   "author": {
     "name": "Gavin McDermott",
@@ -61,6 +61,7 @@
     "body-parser": "1.14.1",
     "express": "^4.13.3",
     "express-jwt": "3.3.0",
+    "history": "1.17.0",
     "jsonwebtoken": "5.5.0",
     "jws": "3.1.0",
     "lodash": "3.10.1",
@@ -69,8 +70,10 @@
     "q": "1.4.1",
     "react": "0.14.3",
     "react-dom": "0.14.3",
-    "react-redux": "^4.0.0",
+    "react-redux": "4.0.6",
+    "react-router": "1.0.3",
     "redux": "^3.0.4",
+    "redux-simple-router": "1.0.2",
     "request": "2.67.0",
     "request-promise": "1.0.2",
     "validator": "4.4.0",
