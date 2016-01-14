@@ -5,8 +5,8 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 
 
-export default class SignUp extends Component {
+export default class SignUpComponent extends Component {
   render() {
-    return(<div>This is Signup</div>);
+    return(<div>This is the signup component</div>);
   }
 }; 

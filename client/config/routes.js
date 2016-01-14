@@ -6,19 +6,16 @@ import { Provider } from 'react-redux'
 import { createStore, combineReducers } from 'redux'
 import { Router, Route, IndexRoute } from 'react-router'
 
-import { Main } from './../moduleMain/index'
-import { SignUp, LogIn } from './../moduleAuth/index'
-
-
-
-
+import Main from './../auth/containers/mainContainer'
+import SignUpContainer from './../auth/containers/signUpContainer'
+import LogIn from './../auth/containers/logInContainer'
 
 
 module.exports = (
   <Route path="/" component={ Main }>
     <IndexRoute component={ Main } />
-    <Route path="signup" component={ SignUp }></Route>
-    <Route path="login" component={ LogIn }></Route>
+    <Route path="signup" component={ SignUpContainer } />
+    <Route path="login" component={ LogIn } />
   </Route>
 );
 
