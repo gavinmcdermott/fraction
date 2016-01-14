@@ -148,6 +148,10 @@ function logInUser(req, res) {
       json: true // requestP now automatically stringifies this to JSON
   };
 
+  // TODO: Add a signed token from this call to allow the other endpoint
+  // to know it was called from the fraction service internally
+
+  // Check the user's validity with user service
   return requestP.post(options)
     .then((user) => {
       // Generate a new token for the user
