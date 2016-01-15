@@ -39,6 +39,13 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 // routes
 const ROUTE_CREATE_DOC = '/'
 
+// external service route
+// TODO: figure out a good config for this
+// TODO: figure out a good config for this
+// TODO: figure out a good config for this
+const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
+                                + serviceRegistry.registry.apis.baseV1 
+                                + '/user/internal/check_existence'
 
 // Router
 
@@ -55,57 +62,6 @@ router.use(bodyParser.urlencoded({ extended: true }))
 router.use(bodyParser.json())
 
 
-
-
-
-
-
-
-
-
-/**
- * Get the endpoint for checking if a user exists
- * Requires the user service having been registered
- *
- * @returns {url} string Endpoint for checking if a user exists
- */
-// TODO: pull names out into a global config possibly -- less strings
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// 
-function getUserCheckEndpoint() {
-  let userService;
-  let userCheckEndpointObj;
-
-  userService = registry.services['user'];
-  assert(_.isObject(userService));
-
-  userCheckEndpointObj = _.filter(userService.endpoints, (endpoint) => {
-    return endpoint.name === 'INTERNAL_CHECK_EXISTENCE';
-  })[0];
-  assert(userCheckEndpointObj);
-
-  // Build the url
-  userCheckEndpoint = process.config.apiServer + userService.url + userCheckEndpointObj.url;
-  assert(userCheckEndpoint);
-  return userCheckEndpoint;
-};
-
-// get the endpoint to check if a user exists
-let userCheckEndpoint = getUserCheckEndpoint();
-
-
-
-
-
-
-
-
-
-
-
-
 // Public API Functions
 
 /**
@@ -117,102 +73,105 @@ let userCheckEndpoint = getUserCheckEndpoint();
  */
 function createDocument(req, res) {  
 
-
-
-  // New user info to be saved
-  let newDocument
-  let documentType
+  let doc
+  let docDescription
+  let docState
+  let docType
   let email
 
   // validate document
-  // TODO: FORMAT this pdf into something stroable
-  // TODO: FORMAT this pdf into something stroable
+  // TODO: FORMAT this pdf into something string-able
+  // TODO: FORMAT this pdf into something string-able
+  // TODO: FORMAT this pdf into something string-able
   try {
     assert(_.isString(req.body.document))
-    newDocument = req.body.document
+    doc = req.body.document
   } catch(e) {
     throw new fractionErrors.Invalid('invalid document')
   }  
 
   // validate email
   try {
-    assert(_.isString(req.body.email));
-    email = validator.toString(req.body.email).toLowerCase();
-    assert(validator.isEmail(email));
+    assert(_.isString(req.body.email))
+    email = validator.toString(req.body.email).toLowerCase()
+    assert(validator.isEmail(email))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid email');    
   }
 
+  // validate type
   try {
     assert(_.isString(req.body.type))
-    documentType = req.body.type
-    assert(Document.hasType(documentType))
+    docType = req.body.type
+    assert(Document.hasType(docType))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid document type')
   }
 
-
-
-  // test description and add defaults
-  
-  // check if there are users coming along with it
-
-  // check if there is a property associated with it
-  // attach that if needed
-
-  // infer the state
-
-
-  // Build a request to the user service to check for existence
-  let options = {
-      method: 'POST',
-      uri: userCheckEndpoint,
-      body: { email: email },
-      json: true // requestP now automatically stringifies this to JSON
+  // description
+  if (req.body.description) {
+    try {
+      assert(_.isString(req.body.description))
+      docDescription = req.body.description
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid document description')
+    }
+  } else {
+    docDescription = Document.getDescriptions()[docType]
   }
 
-  return requestP.post(options)
-    .then((user) => {
+  // TODO: infer the state based on specific document types?
+  // TODO: infer the state based on specific document types?
+  // TODO: infer the state based on specific document types?
+  docState = 'done'
 
-      let doc = {
-        type: documentType,
+  let options = {
+    method: 'POST',
+    uri: ROUTE_CHECK_USER_EXISTS,
+    body: { 
+      findByEmail: true,
+      emails: [ email ]
+    },
+    json: true // requestP now automatically stringifies this to JSON
+  }
+
+  // Get the user who uploaded the email
+  return requestP.post(options)
+    .then((data) => {
+      let user = _.first(data.users)
+
+      let newDoc = {
+        type: docType,
         dateUploaded: moment.utc().valueOf(),
         dateModified: moment.utc().valueOf(),
-        document: newDocument,
+        document: doc,
+        description: docDescription,
         entities: {
-          // property: 
           users: [{
-            id: user._id,
-            role: Document.getRoles().UPLOADER
+            id: user.id,
+            role: Document.getRoles().uploader
           }]
-        }
+        },
+        state: docState
       }
-
-      return Document.create(doc)
+      return Document.create(newDoc)
     })
-    
-    // Ensure that the document has a valid property associated with it?
-    // Ensure that the document has a valid property associated with it?
-    // Ensure that the document has a valid property associated with it?
-
     .then((createdDoc) => {
-      return res.json({ saved: true, id: createdDoc._id })
+      return res.json({ saved: true, id: createdDoc.toPublicObject() })
     })
     .catch((response) => {
+      // TODO: handle errors from requestP
+      // TODO: handle errors from requestP
+      // TODO: handle errors from requestP
+
       // This will have been formatted by throwing from the
-      let errorMessage = response.error.message;
+      let errorMessage = (response.error && response.error.message) || response
       if (_.contains(errorMessage, 'invalid')) {
-        throw new fractionErrors.Invalid(errorMessage);
+        throw new fractionErrors.Invalid(errorMessage)
       }
-      throw new fractionErrors.NotFound(errorMessage);
-    });
-
-
-
+      throw new fractionErrors.NotFound(errorMessage)
+    })
 }
-
-
-
 
 
 router.post(ROUTE_CREATE_DOC, middlewareAuth.requireAuth, middlewareErrors.wrap(createDocument))

@@ -248,26 +248,68 @@ function updateUser(req, res) {
  */
 function internalCheckExistence(req, res) {
 
-  let email;
+  let ids
+  let emails
+  let numToFind
+  let query
 
   // TODO: IMPLEMENT SIGNATURES FOR PROVING INTERNAL CALLS
   assert(req.headers.fraction_verification_token)
 
-  // validate email
+  // ensure only searching by email OR id
   try {
-    assert(_.isString(req.body.email));
-    email = validator.toString(req.body.email).toLowerCase();
-    assert(validator.isEmail(email));
+    let invalidFindCall = !!(req.body.findByEmail && req.body.findById)
+    assert(!invalidFindCall)
+
+    let validFindCall = !!(req.body.findByEmail || req.body.findById)
+    assert(validFindCall)
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid email');    
+    throw new fractionErrors.Invalid('invalid check params');    
   }
 
-  return User.findOne({ 'email.email': email })
-    .then((user) => {
-      if (user) {
-        return res.json(user.toPublicObject());
+  if (req.body.findByEmail) {
+    // validate email
+    try {
+      assert(_.isArray(req.body.emails))
+      emails = req.body.emails
+      _.forEach(emails, (userEmail) => {
+        assert(validator.isEmail(userEmail))
+      })
+      numToFind = emails.length
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid email');    
+    }
+    query = { 'email.email': { $in: emails } }
+
+  } else if (req.body.findById) {
+    // validate ids
+    try {
+      assert(_.isArray(req.body.ids))
+      ids = _.forEach(req.body.ids, (userId) => {
+        assert(validator.isString(userId))  
+        return mongoose.Types.ObjectId(userId);
+      })
+      numToFind = ids.length
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid user id');    
+    }
+    query = { '_id': { $in: ids } }
+  }
+
+  return User.find(query)
+    .then((returnedUsers) => {
+      if (!returnedUsers.length) {
+        throw new fractionErrors.NotFound('user not found');
       }
-      throw new fractionErrors.NotFound('user not found');
+      
+      if (returnedUsers.length !== numToFind) {
+        throw new fractionErrors.NotFound('user not found'); 
+      }
+
+      if (returnedUsers.length) {
+        let sanitizedUsers = _.map(returnedUsers, user => user.toPublicObject())
+        return res.json({ users: sanitizedUsers });
+      }
     })
     .catch((err) => {
       if (err instanceof fractionErrors.BaseError) {

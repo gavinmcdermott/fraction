@@ -3,26 +3,37 @@
 import _ from 'lodash';
 import mongoose from 'mongoose';
 
+
+// Add these to the model itself!
+// Add these to the model itself!
 const STATES = {
-  DRAFT: 'draft',
-  NEED_SIGN: 'needSign',
-  DONE: 'done'
+  draft: 'draft',
+  needSign: 'needSign',
+  done: 'done'
 }
 
 const TYPES = {
-  DEED: 'deed',
-  INFO: 'info',
-  TAX: 'tax',
-  LLC_OPERATING_AGREEMENT: 'llcOperatingAgreement'
+  deed: 'deed',
+  info: 'info',
+  tax: 'tax',
+  llcOperatingAgreement: 'llcOperatingAgreement'
 }
 
 const ROLES = {
-  FRACTION_ADMIN: 'fractionAdmin',
-  ADMIN: 'admin',
-  SIGNER: 'signer',
-  AUDITOR: 'auditor',
-  UPLOADER: 'uploader'
+  fractionAdmin: 'fractionAdmin',
+  admin: 'admin',
+  signer: 'signer',
+  auditor: 'auditor',
+  uploader: 'uploader'
 }
+
+const DESCRIPTIONS = {
+  deed: 'this is a sample description for a DEED doc',
+  info: 'this is a sample description for an INFO doc',
+  tax: 'this is a sample description for a doc',
+  llcOperatingAgreement: 'this is a sample description for a doc'
+}
+
 
 
 let documentSchema = new mongoose.Schema({
@@ -35,54 +46,54 @@ let documentSchema = new mongoose.Schema({
 
   document: { type: String, required: true },
 
-  entities: {
-    property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
-    users: [{
-      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      role: { type: String },
-      signature: {
-        signed: { type: Boolean },
-        dateSigned: { type: Date }
-      }
-    }]
-  },
+  users: [{
+    id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: { type: String },
+    signature: {
+      signed: { type: Boolean, default: false },
+      dateSigned: { type: Date }
+    }
+  }],
   
   description: { type: String },
 
-  state: { type: String, default: STATES.DONE } // draft, needSign, done 
+  state: { type: String, default: STATES.done }
 
-});
+})
 
 
+
+documentSchema.statics.getDescriptions = () => {
+  return DESCRIPTIONS
+}
 
 documentSchema.statics.getRoles = () => {
   return ROLES
 }
 
-
 documentSchema.statics.hasType = (type) => {
-  let constantType = _.snakeCase(type).toUpperCase()
-  return _.has(TYPES, constantType)
+  return _.has(TYPES, type)
 }
 
 documentSchema.methods = {
 
-  toPublicObject: () => {
+  toPublicObject: function() {
     return {
       type: this.type,
       dateUploaded: this.dateUploaded,
       dateModified: this.dateModified,
       entities: this.entities,
       description: this.description,
+      document: this.document,
       state: this.state
     }
   }
 
-};
+}
 
-documentSchema.index({ 'entities.property': 1 });
+documentSchema.index({ 'entities.property': 1 })
 
 
-let Document = mongoose.serviceDb.model('Document', documentSchema);
+let Document = mongoose.serviceDb.model('Document', documentSchema)
 
-module.exports = Document;
+module.exports = Document

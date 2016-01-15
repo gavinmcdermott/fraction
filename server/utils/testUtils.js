@@ -110,7 +110,8 @@ exports.logInTestUser = function() {
       .expect(200)
       .end((err, res) => {
         if (err) {
-          throw new Error('Error logging in test user: ', err);
+          console.log('')
+          throw new Error('Error logging in test user: ' + err.message);
         }
         expect(res.body.user).toBeDefined();
         expect(res.body.token).toBeDefined();

@@ -1,16 +1,17 @@
 'use strict';
 
 // Globals
-import _ from 'lodash';
-import express from 'express';
-import serviceRegistry from './../serviceRegistry';
-import services from './../fractionServiceList';
+import _ from 'lodash'
+import express from 'express'
+import serviceRegistry from './../serviceRegistry'
+import * as serviceConfig from './../serviceConfig'
 
 // Locals
-let registry = serviceRegistry.registry;
+let registry = serviceRegistry.registry
+let services = serviceConfig.services
 
-var validServiceA = _.keys(services)[0];
-var validServiceB = _.keys(services)[1];
+var validServiceA = _.keys(services)[0]
+var validServiceB = _.keys(services)[1]
 
 
 // Service registry test suite

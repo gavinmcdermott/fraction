@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
 import validator from 'validator';
-import services from './fractionServiceList'
+import * as serviceConfig from './serviceConfig'
 
 
 // Constants
@@ -18,7 +18,7 @@ const API_BASE_V1 = '/api/v1';
 // TODO: sanity check types on the way in
 const VALID_KEYS = ['name', 'url', 'router', 'endpoints'];
 
-const VALID_SERVICES = services;
+const VALID_SERVICES = serviceConfig.services;
 
 
 // Locals

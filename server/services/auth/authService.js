@@ -40,6 +40,14 @@ const SVC_BASE_URL = registry.apis.baseV1 + '/auth';
 // module routes
 const ROUTE_LOG_IN = '/login';
 
+// external service route
+// TODO: figure out a good config for this
+// TODO: figure out a good config for this
+// TODO: figure out a good config for this
+const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
+                                + serviceRegistry.registry.apis.baseV1 
+                                + '/user/internal/check_existence'
+
 
 // Private Helpers
 /**
@@ -56,48 +64,6 @@ let generateToken = function() {
   };
   return jwt.sign(payload, FRACTION_TOKEN_SECRET);
 }
-
-
-
-
-
-
-/**
- * Get the endpoint for checking if a user exists
- * Requires the user service having been registered
- *
- * @returns {url} string Endpoint for checking if a user exists
- */
-// TODO: pull names out into a global config possibly -- less strings
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// TODO: add a string to reduce the deps for now -- ordering of the services matters
-// 
-function getUserCheckEndpoint() {
-  let userService;
-  let userCheckEndpointObj;
-
-  userService = registry.services['user'];
-  assert(_.isObject(userService));
-
-  userCheckEndpointObj = _.filter(userService.endpoints, (endpoint) => {
-    return endpoint.name === 'INTERNAL_CHECK_EXISTENCE';
-  })[0];
-  assert(userCheckEndpointObj);
-
-  // Build the url
-  userCheckEndpoint = process.config.apiServer + userService.url + userCheckEndpointObj.url;
-  assert(userCheckEndpoint);
-  return userCheckEndpoint;
-};
-
-// get the endpoint to check if a user exists
-let userCheckEndpoint = getUserCheckEndpoint();
-
-
-
-
-
 
 
 // Router
@@ -150,9 +116,10 @@ function logInUser(req, res) {
   // Build a request to the user service to check for existence
   var options = {
       method: 'POST',
-      uri: userCheckEndpoint,
+      uri: ROUTE_CHECK_USER_EXISTS,
       body: {
-          email: email
+        findByEmail: true,
+        emails: [ email ]
       },
       json: true // requestP now automatically stringifies this to JSON
   };
@@ -162,26 +129,30 @@ function logInUser(req, res) {
 
   // Check the user's validity with user service
   return requestP.post(options)
-    .then((user) => {
+    .then((data) => {
+      let user = _.first(data.users)
       // Generate a new token for the user
-      let token;
+      let token
       try {
-        token = generateToken(req);
+        token = generateToken(req)
       } catch (err) {
-        throw new Error('error generating user token');
+        throw new Error('error generating user token')
       }
-      // NOTE: Only pass back a sanitized user
-      return res.json({ token: token, user: user });
+      return res.json({ token: token, user: user })
     })
     .catch((response) => {
+      // TODO: handle errors from requestP
+      // TODO: handle errors from requestP
+      // TODO: handle errors from requestP
+
       // This will have been formatted by throwing from the
-      let errorMessage = response.error.message;
+      let errorMessage = (response.error && response.error.message) || response
       if (_.contains(errorMessage, 'invalid')) {
-        throw new fractionErrors.Invalid(errorMessage);
+        throw new fractionErrors.Invalid(errorMessage)
       }
-      throw new fractionErrors.NotFound(errorMessage);
-    });
-};
+      throw new fractionErrors.NotFound(errorMessage)
+    })
+}
 
 
 // Routes

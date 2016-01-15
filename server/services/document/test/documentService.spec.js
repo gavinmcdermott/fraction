@@ -84,7 +84,7 @@ describe('Document Service: ', () => {
         .post(postUrl)
         .set('Authorization', token)
         .send({
-          document: 'some document'
+          document: 'some document here'
         })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -125,6 +125,25 @@ describe('Document Service: ', () => {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           expect(res.body.message).toBe('invalid document type')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    }) 
+
+    it('fails to create with an invalid description', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          document: 'some document',
+          email: 'foo@bar.com',
+          type: 'deed',
+          description: [{}]
+        })
+        .expect(404)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid document description')
           expect(res.body.status).toBe(400)
           done()
         })
