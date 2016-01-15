@@ -181,16 +181,12 @@ function createProperty(req, res) {
 
 		return requestP.post(options) 
 		 .then((data) =>  {
-
-		 		console.log(data)
-		 	  // try {
-		    	
-		    // } catch(e) {
-		    //   throw new fractionErrors.Invalid('non-user primary contact');    
-		    // }
+		 		console.log('valid user')
 
 		 })
-		 
+		 .catch((e) => {
+		 	throw new fractionErrors.Invalid('non-user primary contact'); 
+		 })
 
 //     // actually upload the document
 //     // TODO do we need any more info to just create?
