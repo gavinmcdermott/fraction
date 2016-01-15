@@ -36,7 +36,7 @@ let userSchema = new mongoose.Schema({
     viaEmail: { type: Boolean, default: true }
     // Other means of communications?
   }
-});
+})
 
 
 userSchema.methods = {
@@ -58,7 +58,7 @@ userSchema.methods = {
     }
   }
 
-};
+}
 
 userSchema.index({ 'email.email': 1 }, { unique: true });
 
