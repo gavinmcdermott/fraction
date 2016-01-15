@@ -62,6 +62,12 @@ let documentSchema = new mongoose.Schema({
 })
 
 
+documentSchema.statics = {
+  types: {
+    foo: 123
+  }
+}
+
 
 documentSchema.statics.getDescriptions = () => {
   return DESCRIPTIONS

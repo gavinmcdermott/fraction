@@ -120,6 +120,7 @@ function createDocument(req, res) {
     docDescription = Document.getDescriptions()[docType]
   }
 
+
   // TODO: infer the state based on specific document types?
   // TODO: infer the state based on specific document types?
   // TODO: infer the state based on specific document types?
