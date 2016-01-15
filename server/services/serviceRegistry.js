@@ -115,7 +115,7 @@ let loadServices = (app, config) => {
     // Attempt to load the service; provide a nice error in failure
     try {
       let serviceModule = require(service.loadPath);
-            //console.log('sdlkfjsldkfjslkjf')
+      console.log('asdsdfsd')
       app.use(serviceModule.url, serviceModule.router);
       console.log(name.toUpperCase() + ' SERVICE: LOADED'); 
     } catch (err) {
