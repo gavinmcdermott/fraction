@@ -1,4 +1,3 @@
-console.log('HI')
 'use strict'
 
 // Globals
@@ -76,7 +75,7 @@ function createProperty(req, res) {
 
 	// validate that there is a user
     try {
-      assert(_.has(req.body, 'primaryContact'));
+      assert(_.has(req.body.property, 'primaryContact'));
     } catch(e) {
       throw new fractionErrors.Invalid('invalid primary contact');    
     }
@@ -102,28 +101,41 @@ function createProperty(req, res) {
   	// THIS TEST NEED TO BE UNCOMMENTED AND 
   	// CHECKED WITH AN UPDATEd VERSION in both files 
 
-	// return requestP.post(options) 
-	//  .then(data) =>  {
-	//  	  try {
-	//     assert(data.length == 1)
-	//     } catch(e) {
-	//       throw new fractionErrors.Invalid('non-user primary contact');    
-	//     }
-	//  }
+		// return requestP.post(options) 
+		//  .then(data) =>  {
+		//  	  try {
+		//     assert(data.length == 1)
+		//     } catch(e) {
+		//       throw new fractionErrors.Invalid('non-user primary contact');    
+		//     }
+		//  }
 
-	// TODO still need to validate this is a real location
-	// on planet earth or in the US
+		// TODO still need to validate this is a real location
+		// on planet earth or in the US
 
-	// validate that there is a location, and it is formatted correctly
-	try {
-      assert(_.has(req.body, 'location'));
-      assert(_.isString(req.body.location.addressLine1))
-      assert(_.isString(req.body.location.city))
-      assert(_.isString(req.body.location.state))
-      assert(_.isNumber(req.body.location.zip))
+		// validate that there is a location
+		try {
+	      assert(_.has(req.body.property, 'location'));
+	    } catch(e) {
+	      throw new fractionErrors.Invalid('invalid location');    
+	    }
+
+   	// validate that the location is formatted correctly
+		try {
+	      assert(_.isString(req.body.property.location.addressLine1))
+	      assert(_.isString(req.body.property.location.city))
+	      assert(_.isString(req.body.property.location.state))
+	      assert(_.isNumber(req.body.property.location.zip))
+	    } catch(e) {
+	      throw new fractionErrors.Invalid('invalidly formatted location');    
+	    }
+
+    try {
+      assert(_.has(req.body.property, details))
     } catch(e) {
-      throw new fractionErrors.Invalid('invalid location');    
+      throw new fractionErrors.Invalid('invalid details');    
     }
+
 
     // actually upload the document
     // TODO do we need any more info to just create?
