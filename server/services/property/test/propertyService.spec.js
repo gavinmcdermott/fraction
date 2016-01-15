@@ -13,6 +13,7 @@ let serviceRegistry = testUtils.serviceRegistry
 // grab an instance of the property serviceRegistry
 let propertyService = serviceRegistry.registry.services['property']
 
+
 // Service tests
 
 describe('Property Service: ', function() {
