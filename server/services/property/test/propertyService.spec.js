@@ -103,31 +103,6 @@ describe('Property Service: ', function() {
         })
     }) 
 
-    // TODO
-    // TODO
-    // TODO 
-    // TODO
-    // TODO
-    // THIS TEST NEED TO BE UNCOMMENTED AND 
-    // CHECKED WITH AN UPDATEd VERSION in both files
-
-    // it('fails to create without a primary contact who is a user', (done) => {
-    //   requester
-    //     .post(postUrl)
-    //     .set('Authorization', token)
-    //     .send({
-    //       property: 'some property',
-    //       primaryContact: 'fakeid',
-    //     })
-    //     .expect(400)
-    //     .expect('Content-Type', /json/)
-    //     .end((err, res) => {
-    //       expect(res.body.message).toBe('non-user primary contact')
-    //       expect(res.body.status).toBe(400)
-    //       done()
-    //     })
-    // }) 
-
     // TODO have not verified primary contact is a user,
     // TODO was waiting for git merge for that
 
@@ -257,6 +232,116 @@ describe('Property Service: ', function() {
           done()
         })
     })
+
+    it('fails to create without a number of bedrooms received', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: testId,
+            location: testRealLocation,
+            details: {
+              stats: {
+                bedrooms: 'sorry'
+              }
+            }
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid bedrooms')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails to create without a number of bathrooms received', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: testId,
+            location: testRealLocation,
+            details: {
+              stats: {
+                bedrooms: '5',
+                bathrooms: 'sorry'
+              }
+            }
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid bathrooms')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails to create without a number for sqft received', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: testId,
+            location: testRealLocation,
+            details: {
+              stats: {
+                bedrooms: '5',
+                bathrooms: '2',
+                sqft: 'sorry'
+              }
+            }
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid sqft')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+
+    // TODO
+    // TODO
+    // TODO 
+    // TODO
+    // TODO
+    // THIS TEST NEED TO BE UNCOMMENTED AND 
+    // CHECKED WITH AN UPDATEd VERSION in both files
+
+    it('fails to create without a primary contact who is a user', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: 'fakeID',
+            location: testRealLocation,
+            details: {
+              stats: {
+                bedrooms: '5',
+                bathrooms: '2',
+                sqft: '22'
+              }
+            }
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('non-user primary contact')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    }) 
 
 
 

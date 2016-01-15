@@ -48,6 +48,29 @@ exports.testUser = {
   lastName: 'Wundermidst'
 };
 
+// test house
+exports.testHouse = {
+  location: {
+    addressLine1: "5 Main Street",
+    neighborhood: "Soma",
+    city: "San Francisco",
+    state: "CA",
+    zip: "94105"
+  },
+
+  details: {
+    description: "a descrip",
+    stats: {
+      bedrooms: '5',
+      bathrooms: '2',
+      sqft: '1420'
+    }
+  },
+
+  // I believe this is Terrence Wundermidst's test ID
+  primaryContact: '569893173e5098736865b4af'
+}
+
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
