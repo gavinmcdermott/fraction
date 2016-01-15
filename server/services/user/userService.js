@@ -16,8 +16,8 @@ import validator from 'validator';
 // Locals
 
 import fractionErrors from './../../utils/fractionErrors';
-import middlewareErrors from './../../middleware/errorHandler';
 import middlewareAuth from './../../middleware/tokenAuth';
+import middlewareErrors from './../../middleware/errorHandler';
 import middlewareInternal from './../../middleware/ensureInternal';
 import serviceRegistry  from './../serviceRegistry';
 // DB Models
@@ -31,7 +31,7 @@ mongoose.Promise = require('q').Promise;
 
 // naming
 const SVC_NAME = 'user';
-const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/user';
+const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME;
 
 // routes
 const ROUTE_CREATE_USER = '/';
@@ -249,7 +249,6 @@ function updateUser(req, res) {
 function internalCheckExistence(req, res) {
 
   let email;
-  let hashedPassword;
 
   // TODO: IMPLEMENT SIGNATURES FOR PROVING INTERNAL CALLS
   assert(req.headers.fraction_verification_token)
@@ -261,15 +260,6 @@ function internalCheckExistence(req, res) {
     assert(validator.isEmail(email));
   } catch(e) {
     throw new fractionErrors.Invalid('invalid email');    
-  }
-
-  // password
-  try {
-    assert(_.isString(req.body.password));
-    hashedPassword = validator.toString(req.body.password);
-    assert(hashedPassword.length);
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid password');
   }
 
   return User.findOne({ 'email.email': email })

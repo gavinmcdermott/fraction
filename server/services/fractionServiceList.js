@@ -2,5 +2,6 @@
 
 module.exports = {
   "user": { "loadPath": "./user/userService" },
-  "auth": { "loadPath": "./auth/authService" }
-};
+  "document": { "loadPath": "./document/documentService" },
+  "auth": { "loadPath": "./auth/authService" }, // remove the string deps
+}

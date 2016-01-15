@@ -2,7 +2,7 @@
 
 // Locals
 
-import testUtils from './../../../utils/testUtils';
+import testUtils from './../../../utils/testUtils'
 
 
 // Test setup
@@ -32,16 +32,16 @@ describe('User Service: ', function() {
 
 
   beforeAll(() => {
-    console.log('');
-    console.log('Starting user service tests');
-  });
+    console.log('')
+    console.log('Starting user service tests')
+  })
 
   afterAll((done) => {
     testUtils.clearLocalTestDatabase()
     .then(() => {
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   // CREATE
 

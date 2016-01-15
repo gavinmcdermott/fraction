@@ -58,6 +58,10 @@ let generateToken = function() {
 }
 
 
+
+
+
+
 /**
  * Get the endpoint for checking if a user exists
  * Requires the user service having been registered
@@ -65,9 +69,10 @@ let generateToken = function() {
  * @returns {url} string Endpoint for checking if a user exists
  */
 // TODO: pull names out into a global config possibly -- less strings
-// TODO: do this!
-// TODO: do this!
-// TODO: do this!
+// TODO: add a string to reduce the deps for now -- ordering of the services matters
+// TODO: add a string to reduce the deps for now -- ordering of the services matters
+// TODO: add a string to reduce the deps for now -- ordering of the services matters
+// 
 function getUserCheckEndpoint() {
   let userService;
   let userCheckEndpointObj;
@@ -88,6 +93,11 @@ function getUserCheckEndpoint() {
 
 // get the endpoint to check if a user exists
 let userCheckEndpoint = getUserCheckEndpoint();
+
+
+
+
+
 
 
 // Router
@@ -142,8 +152,7 @@ function logInUser(req, res) {
       method: 'POST',
       uri: userCheckEndpoint,
       body: {
-          email: email,
-          password: hashedPassword
+          email: email
       },
       json: true // requestP now automatically stringifies this to JSON
   };
@@ -167,7 +176,7 @@ function logInUser(req, res) {
     .catch((response) => {
       // This will have been formatted by throwing from the
       let errorMessage = response.error.message;
-      if (_.contains('invalid')) {
+      if (_.contains(errorMessage, 'invalid')) {
         throw new fractionErrors.Invalid(errorMessage);
       }
       throw new fractionErrors.NotFound(errorMessage);
