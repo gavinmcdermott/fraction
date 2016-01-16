@@ -103,9 +103,6 @@ describe('Property Service: ', function() {
         })
     }) 
 
-    // TODO have not verified primary contact is a user,
-    // TODO was waiting for git merge for that
-
     // TODO
     // This is currently hardcoded because I was having trouble
     // with the scoping of user.id from the beforeAll call on 
@@ -128,26 +125,6 @@ describe('Property Service: ', function() {
       state: 'Fornicalia',
       zip: '55555'
     }
-
-    // TODO was this redundant?
-
-    // it('fails to create without a location', (done) => {
-    //   requester
-    //     .post(postUrl)
-    //     .set('Authorization', token)
-    //     .send({
-    //       property: {
-    //         some primaryContact: testId
-    //       }
-    //     })
-    //     .expect(400)
-    //     .expect('Content-Type', /json/)
-    //     .end((err, res) => {
-    //       expect(res.body.message).toBe('invalid location')
-    //       expect(res.body.status).toBe(400)
-    //       done()
-    //     })
-    // })
 
     it('fails to create without any location', (done) => {
       requester
@@ -233,6 +210,26 @@ describe('Property Service: ', function() {
         })
     })
 
+    it('fails to create without any stats recieved', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: testId,
+            location: testRealLocation,
+            details: 'foo sorry'
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid stats')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
     it('fails to create without a number of bedrooms received', (done) => {
       requester
         .post(postUrl)
@@ -308,15 +305,6 @@ describe('Property Service: ', function() {
         })
     })
 
-
-    // TODO
-    // TODO
-    // TODO 
-    // TODO
-    // TODO
-    // THIS TEST NEED TO BE UNCOMMENTED AND 
-    // CHECKED WITH AN UPDATEd VERSION in both files
-
     it('fails to create without a primary contact who is a user', (done) => {
       requester
         .post(postUrl)
@@ -342,17 +330,6 @@ describe('Property Service: ', function() {
           done()
         })
     }) 
-
-
-
-    
-
-
-    // make sure we have bedroom, bathroom, sqftage. 
-
-
-
-
 
   })
 

@@ -61,6 +61,7 @@ function createProperty(req, res) {
 	let newBedrooms
 	let newBathrooms
 	let newSqft
+
 	// TODO 
 
 	// TODO validate documents with a workaround 
@@ -85,19 +86,6 @@ function createProperty(req, res) {
       throw new fractionErrors.Invalid('invalid primary contact');    
     }
 
-    // TODO written with the assumption this endpoint exists 
-    // TODO and takes in an array of user _ids 
-    // console.log(req.body.primaryContact)
-	let options = {
-      method: 'POST',
-      uri: ROUTE_CHECK_USER_EXISTS,
-      body: {
-      	findById: true,
-      	id: req.body.primaryContact
-      },
-      json: true // requestP now automatically stringifies this to JSON
-  	}
-
 		// TODO still need to validate this is a real location
 		// on planet earth or in the US
 
@@ -107,11 +95,6 @@ function createProperty(req, res) {
 	    } catch(e) {
 	      throw new fractionErrors.Invalid('invalid location');    
 	    }
-
-	  // TODO The type conversions and checking for zip feels messy here
-	  // TODO but I'm not sure where it's best to do it just once - 
-	  // TODO it also feels messy to pull it out at the top before we 
-	  // TODO check if it exists. 
 
    	/* 
    	 * NOTE: for some reason _.toNumber was throwing an error when I called
@@ -139,15 +122,20 @@ function createProperty(req, res) {
       throw new fractionErrors.Invalid('invalid details');    
     }
 
-    // TODO should factor stats assert two lines down to its own test
+
     try {
-      assert(_.has(req.body.property.details, 'stats'))
+    	assert(_.has(req.body.property.details, 'stats'))
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid stats');    
+    }
+
+    try {
       assert(_.has(req.body.property.details.stats, 'bedrooms'))
       // here is where we assign newBedrooms to save later
       newBedrooms = Number(req.body.property.details.stats.bedrooms)
-      // because _.isNumber(NaN) = true and 
-      // Number() casts a non-numeric string to NaN, so we need to
-      // check both in this next assert
+      // because _.isNumber(NaN) = true and Number() casts a 
+      // non-numeric string to NaN, we need to check both in 
+      // this next assert
       assert((!(_.isNaN(newBedrooms)) && _.isNumber(newBedrooms)))
     } catch(e) {
       throw new fractionErrors.Invalid('invalid bedrooms');    
@@ -171,57 +159,60 @@ function createProperty(req, res) {
       throw new fractionErrors.Invalid('invalid sqft');    
     }
 
-      	// TODO
-  	// TODO
-  	// TODO 
-  	// TODO
-  	// TODO
-  	// THIS TEST NEED TO BE UNCOMMENTED AND 
-  	// CHECKED WITH AN UPDATEd VERSION in both files 
+  	// we use these options in the following request to
+  	// to see if we have a valid primaryUser for the 
+  	// new property 
+  	let options = {
+      method: 'POST',
+      uri: ROUTE_CHECK_USER_EXISTS,
+      body: {
+      	findById: true,
+      	id: req.body.primaryContact
+      },
+      json: true // requestP now automatically stringifies this to JSON
+  	}
 
 		return requestP.post(options) 
-		 .then((data) =>  {
-		 		console.log('valid user')
+			.then((data) =>  {
+		 		// Mdelled this off of the documentService.js
+		 		// save function; the first/only user is our user
+		 		let newPrimaryUser = _.first(data.users)
+		 		let newProperty = {
+		 			location: req.body.property.location,
+		 			/*
+		 			 * TODO or NOTE: I did some logic checking on
+		 			 * types of certain things, like that bedrooms is
+		 			 * a valid number, but if that passes I'm passing
+		 			 * this in as a string or whatever the req sent. The
+		 			 * reason for this is that this way we'll take whatever
+		 			 * details are sent, including but not requiring things
+		 			 * not explicitly tested for depending on what the req
+		 			 * sent us.
+		 			 */
+		 			details: req.body.property.details,
+		 			primaryContact: newPrimaryUser,
+		 			dateAdded: moment.utc().valueOf()
+		 		}
 
+		 		// Actually save the new property
+		 		return Property.create(newProperty)
 		 })
+			.then((createdProperty) => {
+				// TODO in both the document service and here we call
+				// the new doc/property the 'id' of the return, which 
+				// naming-wise doesn't make sense unless it just returns
+				// and ID and I just am not familiar enough w/Mongo 
+	      return res.json({ saved: true, id: createdProperty.toPublicObject() })
+	    })
 		 .catch((e) => {
-		 	throw new fractionErrors.Invalid('non-user primary contact'); 
+		 		throw new fractionErrors.Invalid('non-user primary contact'); 
 		 })
-
-//     // actually upload the document
-//     // TODO do we need any more info to just create?
-//     // TODO I need a promise here
-//   //   return requestP.post(options)
-// 	 //    .then(
-// 		//     let prop = {
-// 		//     	location: req.body.location,
-// 		//     	primaryContact: req.body.primaryContact,
-// 		//     	dateAdded: moment.utc().valueOf()
-// 		//     }
-
-// 		//     return Property.create(prop)
-// 		// )
-// 		// .then((createdProp) => {
-// 		// 	return res.json({ saved: true, id: createdProp._id })
-// 		// })
-// 		// .catch((response) => {
-// 		//   let errorMessage = response.error.message;
-// 	 //      if (_.contains(errorMessage, 'invalid')) {
-// 	 //        throw new fractionErrors.Invalid(errorMessage);
-// 	 //      }
-// 	 //      throw new fractionErrors.NotFound(errorMessage);
-// 		// })
-
-	
 }
 
 
 router.post(ROUTE_CREATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(createProperty))
 
-
-
 // Exports
-//console.log("called here")
 module.exports = {
   name: SVC_NAME,
   url: SVC_BASE_URL,
@@ -230,7 +221,6 @@ module.exports = {
     { protocol: 'HTTP', method: 'POST', name: 'CREATE_PROPERTY', url: ROUTE_CREATE_PROPERTY }
   ]
 }
-
 
 // Register with the app service registry
 serviceRegistry.registry.register(module.exports)
