@@ -120,10 +120,10 @@ describe('Property Service: ', function() {
     testRealLocation = {
       /// TODO this is fake right now and needs to 
       // be changed, ideally when we have a test house
-      addressLine1: '589999898353 Maine Streate',
-      city: 'Fran Sancisco',
-      state: 'Fornicalia',
-      zip: '55555'
+      addressLine1: '100 North Main St',
+      city: 'Boston',
+      state: 'Massachusetts',
+      zip: '02114'
     }
 
     it('fails to create without any location', (done) => {
@@ -166,28 +166,24 @@ describe('Property Service: ', function() {
           done()
         })
     })
-
-    // TODO right here is where the 'not real location' test needs to go
-    // 
-    //  it('fails to create without a real  location', (done) => {
-    //   requester
-    //     .post(postUrl)
-    //     .set('Authorization', token)
-    //     .send({
-    //       property: 'some property',
-    //       primaryContact: test_id,
-    //       location: { 
-    //         foo: 'bar'
-    //       }
-    //     })
-    //     .expect(400)
-    //     .expect('Content-Type', /json/)
-    //     .end((err, res) => {
-    //       expect(res.body.message).toBe('invalid location')
-    //       expect(res.body.status).toBe(400)
-    //       done()
-    //     })
-    // })
+    
+    it('fails to create without a real location', (done) => {
+     requester
+       .post(postUrl)
+       .set('Authorization', token)
+       .send({
+         property: 'some property',
+         primaryContact: testId,
+         location: testUnrealLocation
+       })
+       .expect(400)
+       .expect('Content-Type', /json/)
+       .end((err, res) => {
+         expect(res.body.message).toBe('invalid location')
+         expect(res.body.status).toBe(400)
+         done()
+       })
+    })
    
 
     
@@ -329,7 +325,37 @@ describe('Property Service: ', function() {
           expect(res.body.status).toBe(400)
           done()
         })
-    }) 
+    })
+
+    // TODO this test currently fails if uncommented because
+    // TODO I don't have a valid ID to pass in for some reason and
+    // TODO have not yet figured out how to store/get one in Mongo.
+    /* it('successfully creates a new property', (done) => {
+      requester
+        .post(postUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: testId,
+            location: testRealLocation,
+            details: {
+              stats: {
+                bedrooms: '5',
+                bathrooms: '2',
+                sqft: '22'
+              }
+            }
+          }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.saved).toBe(true);
+          expect(res.body.id).toBeDefined();
+          done()
+        })
+    }) */
+   
 
   })
 
