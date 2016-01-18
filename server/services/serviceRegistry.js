@@ -116,7 +116,7 @@ let loadServices = (app, config) => {
     try {
       let serviceModule = require(service.loadPath);
       app.use(serviceModule.url, serviceModule.router);
-      console.log(name.toUpperCase() + ' SERVICE: LOADED'); 
+      console.log('LOADED: ' + name.toUpperCase() + ' SERVICE'); 
     } catch (err) {
       throw new Error('[INVALID SERVICE LOAD] Could not register service ' + name);
     }

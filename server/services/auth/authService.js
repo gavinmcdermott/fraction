@@ -55,14 +55,16 @@ const ROUTE_CHECK_USER_EXISTS = process.config.apiServer
  *
  * @returns {token} string New signed web token
  */
-let generateToken = function() {
-  let now = moment.utc();
+let generateToken = function(user) {
+  assert(user.id)
+  let now = moment.utc()
   let payload = {
     iss: FRACTION_TOKEN_ISSUER,
     exp: moment(now).add(1, 'day').utc().valueOf(),
-    iat: now.valueOf()
-  };
-  return jwt.sign(payload, FRACTION_TOKEN_SECRET);
+    iat: now.valueOf(),
+    sub: user.id
+  }
+  return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
 
 
@@ -92,8 +94,8 @@ router.use(bodyParser.json());
  */
 function logInUser(req, res) {
 
-  let email;
-  let hashedPassword;
+  let email
+  let hashedPassword
 
   // validate email
   try {
@@ -122,7 +124,7 @@ function logInUser(req, res) {
         emails: [ email ]
       },
       json: true // requestP now automatically stringifies this to JSON
-  };
+  }
 
   // TODO: Add a signed token from this call to allow the other endpoint
   // to know it was called from the fraction service internally
@@ -130,11 +132,13 @@ function logInUser(req, res) {
   // Check the user's validity with user service
   return requestP.post(options)
     .then((data) => {
-      let user = _.first(data.users)
-      // Generate a new token for the user
+      let user
       let token
+      assert(data.users.length === 1)
+      // Generate a new token for the user
       try {
-        token = generateToken(req)
+        user = _.first(data.users)
+        token = generateToken(user)
       } catch (err) {
         throw new Error('error generating user token')
       }

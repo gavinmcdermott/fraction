@@ -24,8 +24,7 @@ describe('Auth: ', () => {
     let logInUrl = authService.url + '/login';
 
     beforeAll((done) => {
-      console.log('');
-      console.log('Starting auth service tests');
+      testUtils.initSuite(authService.name)
 
       testUtils.clearLocalTestDatabase()
         .then(() => testUtils.addTestUser())

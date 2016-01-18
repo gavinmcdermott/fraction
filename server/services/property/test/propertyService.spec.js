@@ -239,24 +239,24 @@ describe('Property Service: ', function() {
    
 
     
-    it('fails to create without any details received', (done) => {
-      requester
-        .post(postUrl)
-        .set('Authorization', token)
-        .send({
-          property: {
-            primaryContact: testId,
-            location: testRealLocation,
-          }
-        })
-        .expect(400)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('invalid details')
-          expect(res.body.status).toBe(400)
-          done()
-        })
-    })
+    // it('fails to create without any details received', (done) => {
+    //   requester
+    //     .post(postUrl)
+    //     .set('Authorization', token)
+    //     .send({
+    //       property: {
+    //         primaryContact: testId,
+    //         location: testRealLocation,
+    //       }
+    //     })
+    //     .expect(400)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('invalid details')
+    //       expect(res.body.status).toBe(400)
+    //       done()
+    //     })
+    // })
 
 
 

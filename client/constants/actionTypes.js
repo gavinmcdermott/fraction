@@ -1,0 +1,11 @@
+
+// SIGN_UP
+
+export const SIGN_UP_START = 'SIGN_UP_START'
+export const SIGN_UP_SUCCESS = 'SIGN_UP_SUCCESS'
+export const SIGN_UP_ERROR = 'SIGN_UP_ERROR'
+
+// API_ERROR
+
+export const SET_APP_ERROR = 'SET_APP_ERROR'
+export const UNSET_APP_ERROR = 'UNSET_APP_ERROR'

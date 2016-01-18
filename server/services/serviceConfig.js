@@ -3,6 +3,6 @@
 export const services = {
   "auth": { "loadPath": "./auth/authService" },
   "document": { "loadPath": "./document/documentService" },
-  "user": { "loadPath": "./user/userService" },
-  "property": { "loadPath": "./property/propertyService" }
+  "property": { "loadPath": "./property/propertyService" },
+  "user": { "loadPath": "./user/userService" }
 }

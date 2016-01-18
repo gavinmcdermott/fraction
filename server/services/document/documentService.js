@@ -1,6 +1,5 @@
 'use strict'
 
-
 // Globals
 
 import _ from 'lodash'
@@ -38,6 +37,7 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_DOC = '/'
+const ROUTE_GET_DOCS = '/'
 
 // external service route
 // TODO: figure out a good config for this
@@ -78,7 +78,13 @@ function createDocument(req, res) {
   let docState
   let docType
   let email
+  let userId
 
+  assert(req.token)
+  assert(req.userId)
+
+  userId = req.userId
+ 
   // validate document
   // TODO: FORMAT this pdf into something string-able
   // TODO: FORMAT this pdf into something string-able
@@ -90,20 +96,11 @@ function createDocument(req, res) {
     throw new fractionErrors.Invalid('invalid document')
   }  
 
-  // validate email
-  try {
-    assert(_.isString(req.body.email))
-    email = validator.toString(req.body.email).toLowerCase()
-    assert(validator.isEmail(email))
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid email');    
-  }
-
   // validate type
   try {
     assert(_.isString(req.body.type))
     docType = req.body.type
-    assert(Document.hasType(docType))
+    assert(_.has(Document.constants.types, docType))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid document type')
   }
@@ -117,9 +114,8 @@ function createDocument(req, res) {
       throw new fractionErrors.Invalid('invalid document description')
     }
   } else {
-    docDescription = Document.getDescriptions()[docType]
+    docDescription = Document.constants.descriptions[docType]
   }
-
 
   // TODO: infer the state based on specific document types?
   // TODO: infer the state based on specific document types?
@@ -130,8 +126,8 @@ function createDocument(req, res) {
     method: 'POST',
     uri: ROUTE_CHECK_USER_EXISTS,
     body: { 
-      findByEmail: true,
-      emails: [ email ]
+      findById: true,
+      ids: [ userId ]
     },
     json: true // requestP now automatically stringifies this to JSON
   }
@@ -150,7 +146,7 @@ function createDocument(req, res) {
         entities: {
           users: [{
             id: user.id,
-            role: Document.getRoles().uploader
+            role: Document.constants.roles.uploader
           }]
         },
         state: docState
@@ -158,7 +154,7 @@ function createDocument(req, res) {
       return Document.create(newDoc)
     })
     .then((createdDoc) => {
-      return res.json({ saved: true, id: createdDoc.toPublicObject() })
+      return res.json({ saved: true, document: createdDoc.toPublicObject() })
     })
     .catch((response) => {
       // TODO: handle errors from requestP
@@ -174,8 +170,21 @@ function createDocument(req, res) {
     })
 }
 
+/**
+ * Get Documents
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function getDocuments(req, res) {  
+  console.log('aksdnaskj')
+}
+
+
 
 router.post(ROUTE_CREATE_DOC, middlewareAuth.requireAuth, middlewareErrors.wrap(createDocument))
+router.post(ROUTE_GET_DOCS, middlewareAuth.requireAuth, middlewareErrors.wrap(getDocuments))
 
 
 // Exports
@@ -185,7 +194,8 @@ module.exports = {
   url: SVC_BASE_URL,
   router: router,
   endpoints: [
-    { protocol: 'HTTP', method: 'POST', name: 'CREATE_DOC', url: ROUTE_CREATE_DOC }
+    { protocol: 'HTTP', method: 'POST', name: 'CREATE_DOC', url: ROUTE_CREATE_DOC },
+    { protocol: 'HTTP', method: 'GET', name: 'GET_DOCS', url: ROUTE_GET_DOCS }
   ]
 }
 

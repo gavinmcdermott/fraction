@@ -264,10 +264,11 @@ function internalCheckExistence(req, res) {
     let validFindCall = !!(req.body.findByEmail || req.body.findById)
     assert(validFindCall)
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid check params');    
+    throw new fractionErrors.Invalid('invalid check params')
   }
 
   if (req.body.findByEmail) {
+    
     // validate email
     try {
       assert(_.isArray(req.body.emails))
@@ -277,21 +278,23 @@ function internalCheckExistence(req, res) {
       })
       numToFind = emails.length
     } catch(e) {
-      throw new fractionErrors.Invalid('invalid email');    
+      throw new fractionErrors.Invalid('invalid email')
     }
     query = { 'email.email': { $in: emails } }
 
   } else if (req.body.findById) {
+
     // validate ids
     try {
       assert(_.isArray(req.body.ids))
       ids = _.forEach(req.body.ids, (userId) => {
-        assert(validator.isString(userId))  
-        return mongoose.Types.ObjectId(userId);
+        assert(_.isString(userId))
+        return userId
       })
       numToFind = ids.length
     } catch(e) {
-      throw new fractionErrors.Invalid('invalid user id');    
+      console.log(e.message)
+      throw new fractionErrors.Invalid('invalid user id')
     }
     query = { '_id': { $in: ids } }
   }

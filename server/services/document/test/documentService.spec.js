@@ -19,8 +19,7 @@ describe('Document Service: ', () => {
   
   beforeAll(() => {
     // Todo: have test utils init this line! pull it from each test
-    console.log('')
-    console.log('Starting document service test')
+    testUtils.initSuite(documentService.name)
   })
 
   afterAll((done) => {
@@ -79,46 +78,12 @@ describe('Document Service: ', () => {
         })
     }) 
 
-    it('fails to create without an uploader email', (done) => {
-      requester
-        .post(postUrl)
-        .set('Authorization', token)
-        .send({
-          document: 'some document here'
-        })
-        .expect(400)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('invalid email')
-          expect(res.body.status).toBe(400)
-          done()
-        })
-    }) 
-
-    it('fails to create with a malformed uploader email', (done) => {
-      requester
-        .post(postUrl)
-        .set('Authorization', token)
-        .send({
-          document: 'some document',
-          email: 'testUser.email'
-        })
-        .expect(400)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('invalid email')
-          expect(res.body.status).toBe(400)
-          done()
-        })
-    }) 
-
     it('fails to create with an invalid type', (done) => {
       requester
         .post(postUrl)
         .set('Authorization', token)
         .send({
           document: 'some document',
-          email: testUser.email,
           type: 'some bad type'
         })
         .expect(400)
@@ -136,7 +101,6 @@ describe('Document Service: ', () => {
         .set('Authorization', token)
         .send({
           document: 'some document',
-          email: 'foo@bar.com',
           type: 'deed',
           description: [{}]
         })
@@ -150,12 +114,13 @@ describe('Document Service: ', () => {
     }) 
 
     it('fails to create with a user that does not exist', (done) => {
+      let noUserToken = 'Bearer ' + testUtils.generateUserNotExistToken()
+      
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', noUserToken)
         .send({
           document: 'some document',
-          email: 'foo@bar.com',
           type: 'deed'
         })
         .expect(404)
@@ -180,12 +145,72 @@ describe('Document Service: ', () => {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           expect(res.body.saved).toBe(true);
-          expect(res.body.id).toBeDefined();
+          expect(res.body.document).toBeDefined();
           done()
         })
     }) 
-  
+  })
 
+
+  describe('Get Documents: ', () => {
+    
+    let user
+    let token
+    let doc
+
+    let getUrl = documentService.url + '/'
+
+    let testDoc1 = {
+      document: 'This is a test document 1',
+      email: testUser.email,
+      type: 'deed',
+      description: 'This is a description of the document'
+    }
+
+    let testDoc2 = {
+      document: 'This is test document 2',
+      email: testUser.email,
+      type: 'deed',
+      description: 'This is a description of the document'
+    }
+
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+        .then(() => {
+          return testUtils.addTestUser()
+        })
+        .then(() => {
+          return testUtils.logInTestUser()
+        })
+        .then((result) => {
+          user = result.user
+          token = 'Bearer ' + result.token
+          return testUtils.addDocumentForUser(testDoc1, token)
+        })
+        .then((result) => {
+          return testUtils.addDocumentForUser(testDoc2, token)
+        })
+        .then((result) => {
+          doc = result.document
+          done()
+        })
+    })
+
+    it('should without a valid token', function(done) {
+      
+      requester
+        .get(getUrl)
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          console.log(err.message)
+          console.log(res.body)
+          expect(res.body.message).toBe('invalid token')
+          expect(res.body.status).toBe(401)
+          done()
+        })
+
+    });
 
 
 

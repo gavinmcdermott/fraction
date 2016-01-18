@@ -4,39 +4,57 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Routes from './config/routes'
-import { Router, BrowserHistory } from 'react-router'
+import { Router } from 'react-router'
 import { Provider } from 'react-redux'
 import { createHistory } from 'history'
-
+import { syncReduxAndRouter, routeReducer } from 'redux-simple-router'
 import thunkMiddleware from 'redux-thunk'
+import { reducer as formReducer } from 'redux-form';
 
-import rootReducer from './auth/reducers/signUpReducers'
-import { attemptSignUp } from './auth/actions/signUpActions'
+import currentUserReducer from './reducers/currentUserReducers'
+import appErrorReducer from './reducers/appErrorReducers'
+import { attemptSignUp } from './actions/signUpActions'
 
 
-// import { Provider } from 'react-redux'
-import { createStore, applyMiddleware } from 'redux'
+import { compose, combineReducers, createStore, applyMiddleware } from 'redux'
+
+
+
+
+let reducer = combineReducers({
+  form: formReducer,
+  appErrors: appErrorReducer,
+  currentUser: currentUserReducer,
+  routing: routeReducer
+})
+
+
 
 const createStoreWithMiddleware = applyMiddleware(
-  thunkMiddleware, // lets us dispatch() functions
+  thunkMiddleware // lets us dispatch() functions
 )(createStore)
 
-const store = createStoreWithMiddleware(rootReducer)
+
+const store = createStoreWithMiddleware(reducer)
+const history = createHistory()
 
 
-
-// store.dispatch(attemptSignUp({ email: 'sdf', password: 'dsfsd' }))
-
-
-
+syncReduxAndRouter(history, store)
 
 
 ReactDOM.render(
   <Provider store={ store }>
-    <Router history={ createHistory() }>
+    <Router history={ history }>
       { Routes }
     </Router>
   </Provider>, 
   document.getElementById('root')
-);
+)
 
+
+
+// use sentry: https://getsentry.com/welcome/
+// Regarding smart and dumb components
+// https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
+
+// https://github.com/rackt/redux-simple-router/blob/1.0.2/examples/basic/app.js
