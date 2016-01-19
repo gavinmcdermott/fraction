@@ -4,9 +4,11 @@ import assert from 'assert'
 import fetch from 'isomorphic-fetch'
 
 import { ENDPOINTS } from './../constants/endpoints'
-import { LOG_IN_START,
-         LOG_IN_SUCCESS,
-         LOG_IN_ERROR } from './../constants/actionTypes'
+import { 
+  LOG_IN_START,
+  LOG_IN_SUCCESS,
+  LOG_IN_ERROR 
+} from './../constants/actionTypes'
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'

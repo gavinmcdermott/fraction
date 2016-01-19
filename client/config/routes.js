@@ -13,7 +13,7 @@ import dashboardContainer from './../containers/dashboardContainer'
 import landingContainer from './../containers/landingContainer'
 import logInContainer from './../containers/logInContainer'
 import signUpContainer from './../containers/signUpContainer'
-import { userFetch } from './../actions/userActions'
+import { currentUserFetch } from './../actions/userActions'
 
 
 
@@ -37,11 +37,10 @@ module.exports = (appStore) => {
     }
     
     if (!existingToken) {
-      appStore.dispatch(userFetch('me')).then(checkAuth)
+      appStore.dispatch(currentUserFetch()).then(checkAuth)
     } else {
       checkAuth()
     }
-
   }
 
   return (

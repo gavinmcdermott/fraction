@@ -5,56 +5,55 @@ import assert from 'assert'
 import fetch from 'isomorphic-fetch'
 
 import { ENDPOINTS } from './../constants/endpoints'
-import { USER_FETCH_START,
-         USER_FETCH_SUCCESS,
-         USER_FETCH_ERROR } from './../constants/actionTypes'
+import { 
+  CURRENT_USER_FETCH_START,         
+  CURRENT_USER_FETCH_SUCCESS,
+  CURRENT_USER_FETCH_ERROR 
+} from './../constants/actionTypes'
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'
 import { fJSON, fGet } from './../utils/api'
 
 
-// USER_FETCH Action Creators
+// CURRENT_USER_FETCH Action Creators
 
-export function userFetchStart() {
+export function currentUserFetchStart() {
   return {
-    type: USER_FETCH_START
+    type: CURRENT_USER_FETCH_START
   }
 }
 
-export function userFetchSuccess(data) {
+export function currentUserFetchSuccess(data) {
   return {
-    type: USER_FETCH_SUCCESS,
+    type: CURRENT_USER_FETCH_SUCCESS,
     payload: data
   }
 }
 
-export function userFetchError(err) {
+export function currentUserFetchError(err) {
   return {
-    type: USER_FETCH_ERROR,
+    type: CURRENT_USER_FETCH_ERROR,
     payload: err,
     error: true
   }
 }
 
-export function userFetch(userId) {
+export function currentUserFetch() {
   return (dispatch) => {
-    const fetchUrl = ENDPOINTS.USER_FETCH + '/' + userId
-    assert(_.isString(userId))
+    const fetchUrl = ENDPOINTS.USER_FETCH + '/me'
 
-    dispatch(userFetchStart())
-    dispatch(unsetAppError(ERRORS.USER_FETCH))
+    dispatch(currentUserFetchStart())
+    dispatch(unsetAppError(ERRORS.CURRENT_USER_FETCH))
 
     return fGet(fetchUrl)
       .then(fJSON)
       .then((user) => {
-        dispatch(userFetchSuccess(user))
+        dispatch(currentUserFetchSuccess(user))
       })
       .catch((err) => {
-        dispatch(userFetchError(err))
-        dispatch(setAppError(err, ERRORS.USER_FETCH))
+        dispatch(currentUserFetchError(err))
+        dispatch(setAppError(err, ERRORS.CURRENT_USER_FETCH))
       })
   }
 }
-
-

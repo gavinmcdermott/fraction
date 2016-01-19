@@ -3,9 +3,11 @@
 import fetch from 'isomorphic-fetch'
 
 import { ENDPOINTS } from './../constants/endpoints'
-import { SIGN_UP_START,
-         SIGN_UP_SUCCESS,
-         SIGN_UP_ERROR } from './../constants/actionTypes'
+import { 
+  SIGN_UP_START,
+  SIGN_UP_SUCCESS,
+  SIGN_UP_ERROR 
+} from './../constants/actionTypes'
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'

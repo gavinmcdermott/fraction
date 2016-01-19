@@ -4,17 +4,19 @@
 import { combineReducers } from 'redux'
 import storage from './../vendor/store'
 
-import { SIGN_UP_START,
-         SIGN_UP_SUCCESS,
-         SIGN_UP_ERROR,
-         
-         LOG_IN_START,
-         LOG_IN_SUCCESS,
-         LOG_IN_ERROR,
+import { 
+  SIGN_UP_START, 
+  SIGN_UP_SUCCESS, 
+  SIGN_UP_ERROR,
+  
+  LOG_IN_START, 
+  LOG_IN_SUCCESS, 
+  LOG_IN_ERROR,
 
-         USER_FETCH_START,
-         USER_FETCH_SUCCESS,
-         USER_FETCH_ERROR } from './../constants/actionTypes'
+  CURRENT_USER_FETCH_START, 
+  CURRENT_USER_FETCH_SUCCESS, 
+  CURRENT_USER_FETCH_ERROR 
+} from './../constants/actionTypes'
 
 const AUTH_TOKEN = 'AUTH_TOKEN'
 
@@ -73,20 +75,20 @@ export function currentUser(state=placeholderUser, action) {
       return newState
 
     
-    // USER_FETCH
+    // CURRENT_USER_FETCH
 
-    case USER_FETCH_START:
+    case CURRENT_USER_FETCH_START:
       console.log('user fetch start', action)
       newState.isFetching = true
       return newState
     
-    case USER_FETCH_SUCCESS:
+    case CURRENT_USER_FETCH_SUCCESS:
       console.log('user fetch success', action)
       newState.isFetching = false
       newState.data = action.payload
       return newState
         
-    case USER_FETCH_ERROR:
+    case CURRENT_USER_FETCH_ERROR:
       console.log('user fetch error', action)
       storage.remove(AUTH_TOKEN)
       newState.token = null
