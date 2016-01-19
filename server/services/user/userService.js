@@ -130,18 +130,18 @@ function createUser(req, res) {
   return User.findOne({ 'email.email': email })
     .then((user) => {
       if (user) {
-        throw new fractionErrors.Forbidden('user exists');
+        throw new fractionErrors.Forbidden('user exists')
       }
-      return User.create(pendingUser);
+      return User.create(pendingUser)
     })
     .then((newUser) => {
-      return res.json({ user: newUser.toPublicObject() });
+      return res.json({ user: newUser.toPublicObject() })
     })
     .catch((err) => {
       if (err instanceof fractionErrors.Forbidden) {
-        throw err;
+        throw err
       }
-      throw new Error(err);
+      throw new Error(err)
     });
 };
 

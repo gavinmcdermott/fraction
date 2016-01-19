@@ -1,10 +1,22 @@
 'use strict'
 
+import assert from 'assert'
+import _ from 'lodash'
 
-export default function handleJSON(req) {
-  return req.json()
+
+export function fJSON(response) {
+  assert(_.isObject(response))
+  
+  return response.json()
+    .catch((err) => {
+      const formattedError = {
+        message: 'Unexpected network error',
+        status: response.status
+      }
+      return Promise.reject(formattedError)
+    })
     .then((json) => {
-      if (!json.ok) {
+      if (!response.ok) {
         return Promise.reject(json)
       }
       return Promise.resolve(json)
@@ -12,4 +24,27 @@ export default function handleJSON(req) {
 }
 
 
+export function fPost(url, body) {
+  assert(_.isString(url))
+  assert(_.isObject(body))
+  return window.fetch(url, {
+    method: 'post',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
+}
 
+
+export function fGet(url) {
+  assert(_.isString(url))
+  return window.fetch(url, {
+    method: 'get',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  })
+}

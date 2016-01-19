@@ -2,29 +2,29 @@
 
 import fetch from 'isomorphic-fetch'
 
-import { URL } from './../constants/api'
+import { ENDPOINTS } from './../constants/endpoints'
 import { SIGN_UP_START,
          SIGN_UP_SUCCESS,
          SIGN_UP_ERROR } from './../constants/actionTypes'
-import { CURRENT_USER_ERROR } from './../constants/errorTypes'
+import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'
-import handleJSON from './../utils/api'
+import { fJSON, fPost } from './../utils/api'
+import { history } from './../config/history'
 
+// SIGN_UP Action Creators
 
-// Action Creators
-
-export function signUpStart(newUser) {
+export function signUpStart(data) {
   return {
     type: SIGN_UP_START,
-    payload: newUser.email
+    payload: data.email
   }
 }
 
-export function signUpSuccess(newUser) {
+export function signUpSuccess(data) {
   return {
     type: SIGN_UP_SUCCESS,
-    payload: newUser
+    payload: data.user
   }
 }
 
@@ -37,24 +37,26 @@ export function signUpError(err) {
 }
 
 export function signUp(newUser) {
+  const body = {
+    firstName: newUser.firstName,
+    lastName: newUser.lastName,
+    email: newUser.email,
+    password: newUser.password
+  }
+
   return (dispatch) => {
     dispatch(signUpStart(newUser))
-    dispatch(unsetAppError(CURRENT_USER_ERROR))
+    dispatch(unsetAppError(ERRORS.SIGN_UP))
 
-    return window.fetch(URL.SIGN_UP, {
-      method: 'post',
-      body: {
-        email: newUser.email,
-        password: newUser.password
-      }
-    })
-    .then(handleJSON)
+    return fPost(ENDPOINTS.SIGN_UP, body)
+    .then(fJSON)
     .then((newUser) => {
       dispatch(signUpSuccess(newUser))
+      history.replaceState(null, '/login')
     })
     .catch((err) => {
       dispatch(signUpError(err))
-      dispatch(setAppError(err, CURRENT_USER_ERROR))
+      dispatch(setAppError(err, ERRORS.SIGN_UP))
     })
   }
 }

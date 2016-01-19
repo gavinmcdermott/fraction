@@ -1,11 +1,20 @@
+'use strict'
+
+// API_ERROR
+export const SET_APP_ERROR = 'SET_APP_ERROR'
+export const UNSET_APP_ERROR = 'UNSET_APP_ERROR'
 
 // SIGN_UP
-
 export const SIGN_UP_START = 'SIGN_UP_START'
 export const SIGN_UP_SUCCESS = 'SIGN_UP_SUCCESS'
 export const SIGN_UP_ERROR = 'SIGN_UP_ERROR'
 
-// API_ERROR
+// LOG_IN
+export const LOG_IN_START = 'LOG_IN_START'
+export const LOG_IN_SUCCESS = 'LOG_IN_SUCCESS'
+export const LOG_IN_ERROR = 'LOG_IN_ERROR'
 
-export const SET_APP_ERROR = 'SET_APP_ERROR'
-export const UNSET_APP_ERROR = 'UNSET_APP_ERROR'
+// USER
+export const USER_FETCH_START = 'USER_FETCH_START'
+export const USER_FETCH_SUCCESS = 'USER_FETCH_SUCCESS'
+export const USER_FETCH_ERROR = 'USER_FETCH_ERROR'
