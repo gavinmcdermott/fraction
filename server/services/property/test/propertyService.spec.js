@@ -120,10 +120,10 @@ describe('Property Service: ', function() {
     testRealLocation = {
       /// TODO this is fake right now and needs to 
       // be changed, ideally when we have a test house
-      addressLine1: '100 North Main St',
-      city: 'Boston',
-      state: 'Massachusetts',
-      zip: '02114'
+      addressLine1: '4583 Trillium Woods',
+      city: 'Lake Oswego',
+      state: 'Oregon',
+      zip: '97035'
     }
 
     it('fails to create without any location', (done) => {
@@ -152,11 +152,11 @@ describe('Property Service: ', function() {
         .set('Authorization', token)
         .send({
             property: {
-            primaryContact: testId,
-            location: { 
-              foo: 'bar'
+              primaryContact: testId,
+              location: { 
+                foo: 'bar'
+              }
             }
-          }
         })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -166,26 +166,6 @@ describe('Property Service: ', function() {
           done()
         })
     })
-    
-    it('fails to create without a real location', (done) => {
-     requester
-       .post(postUrl)
-       .set('Authorization', token)
-       .send({
-         property: 'some property',
-         primaryContact: testId,
-         location: testUnrealLocation
-       })
-       .expect(400)
-       .expect('Content-Type', /json/)
-       .end((err, res) => {
-         expect(res.body.message).toBe('invalid location')
-         expect(res.body.status).toBe(400)
-         done()
-       })
-    })
-   
-
     
     it('fails to create without any details received', (done) => {
       requester
@@ -301,6 +281,32 @@ describe('Property Service: ', function() {
         })
     })
 
+    it('fails to create without a real location', (done) => {
+     requester
+       .post(postUrl)
+       .set('Authorization', token)
+       .send({
+         property: {
+            primaryContact: 'fakeID',
+            location: testUnrealLocation,
+            details: {
+              stats: {
+                bedrooms: '5',
+                bathrooms: '2',
+                sqft: '22'
+              }
+            }
+          }
+       })
+       .expect(400)
+       .expect('Content-Type', /json/)
+       .end((err, res) => {
+         expect(res.body.message).toBe('non-real location')
+         expect(res.body.status).toBe(400)
+         done()
+       })
+    })
+
     it('fails to create without a primary contact who is a user', (done) => {
       requester
         .post(postUrl)
@@ -321,6 +327,7 @@ describe('Property Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
+          console.log(res.body)
           expect(res.body.message).toBe('non-user primary contact')
           expect(res.body.status).toBe(400)
           done()
