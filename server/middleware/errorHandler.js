@@ -1,7 +1,8 @@
 'use strict'
 
 // Locals
-import errors from './../utils/fractionErrors';
+import errors from './../utils/fractionErrors'
+import _ from 'lodash'
 
 
 /**
@@ -20,24 +21,24 @@ module.exports.wrap = function(func) {
   return (req, res) => {
     // Convert all passed funcs into promises
     return new Promise((resolve, reject) => {
-      let result;
+      let result
       try { 
-        result = func(req, res);
+        result = func(req, res)
       } catch (e) {
-        return reject(e);
+        return reject(e)
       }
-      return resolve(result);
+      return resolve(result)
     })
-    .then((result) => {
-      return res.send(result);
+    .then((response) => {
+      return response.body
     })
     .catch((err) => {
-      let instance = errors.coerceToError(err);
-      res.status(instance.error.status);
+      let instance = errors.coerceToError(err)
+      res.status(instance.error.status)
       return res.json({ 
         status: instance.error.status,
         message: instance.error.message
-      });
-    });
-  };
-};
+      })
+    })
+  }
+}

@@ -2,6 +2,8 @@
 
 import assert from 'assert'
 import _ from 'lodash'
+import storage from './../vendor/store'
+import { AUTH_TOKEN } from './../constants/storageKeys'
 
 
 export function fJSON(response) {
@@ -23,7 +25,6 @@ export function fJSON(response) {
     })
 }
 
-
 export function fPost(url, body) {
   assert(_.isString(url))
   assert(_.isObject(body))
@@ -31,12 +32,12 @@ export function fPost(url, body) {
     method: 'post',
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + storage.get(AUTH_TOKEN)
     },
     body: JSON.stringify(body)
   })
 }
-
 
 export function fGet(url) {
   assert(_.isString(url))
@@ -44,7 +45,8 @@ export function fGet(url) {
     method: 'get',
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + storage.get(AUTH_TOKEN)
     }
   })
 }

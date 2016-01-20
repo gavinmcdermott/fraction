@@ -126,7 +126,7 @@ exports.logInTestUser = function() {
       password: exports.testUser.password
     };
     requester
-      .post('/api/v1/auth/login') // hard coded for now
+      .post('/api/v1/user/login') // hard coded for now
       .send(trimmedTestUser)
       .expect(200)
       .end((err, res) => {
@@ -149,7 +149,7 @@ exports.logInTestUser = () => {
       password: exports.testUser.password
     }
     requester
-      .post('/api/v1/auth/login') // hard coded for now
+      .post('/api/v1/user/login') // hard coded for now
       .send(trimmedTestUser)
       .expect(200)
       .end((err, res) => {

@@ -88,7 +88,7 @@ let promiseSuccessMsg = 'promise success!';
 let promiseSuccessUrl = '/promiseSuccess';
 let promiseSuccessFunc = (req,res) => {
   return new Promise((resolve, reject) => {
-    return resolve({ message: promiseSuccessMsg });
+    return resolve(res.json({ message: promiseSuccessMsg }));
   });
 };
 

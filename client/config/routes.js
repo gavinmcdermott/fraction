@@ -16,8 +16,6 @@ import signUpContainer from './../containers/signUpContainer'
 import { currentUserFetch } from './../actions/userActions'
 
 
-
-
 module.exports = (appStore) => {
   assert(_.isObject(appStore))
 
@@ -25,6 +23,8 @@ module.exports = (appStore) => {
   // https://github.com/rackt/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
   const ensureAuthenticated = (nextState, replaceState, callback) => {
     const existingToken = appStore.getState().currentUser.token
+  
+    console.log(existingToken)
 
     const checkAuth = () => {
       const { currentUser } = appStore.getState()
@@ -36,7 +36,7 @@ module.exports = (appStore) => {
       callback()
     }
     
-    if (!existingToken) {
+    if (existingToken) {
       appStore.dispatch(currentUserFetch()).then(checkAuth)
     } else {
       checkAuth()

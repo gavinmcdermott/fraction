@@ -20,7 +20,7 @@ import validator from 'validator';
 import fractionErrors from './../../utils/fractionErrors';
 import middlewareErrors from './../../middleware/errorHandler';
 import middlewareAuth from './../../middleware/tokenAuth';
-import serviceRegistry  from './../serviceRegistry';
+import serviceRegistry from './../serviceRegistry';
 
 
 // The current service registry

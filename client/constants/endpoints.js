@@ -6,7 +6,7 @@ const apiBase = location.protocol + '//'
 
 export const ENDPOINTS = {
   API_BASE: apiBase,
-  LOG_IN: apiBase + '/api/v1/auth/login',
+  LOG_IN: apiBase + '/api/v1/user/login',
   SIGN_UP: apiBase + '/api/v1/user',
   USER_FETCH: apiBase + '/api/v1/user',
 }

@@ -17,8 +17,8 @@ import {
   CURRENT_USER_FETCH_SUCCESS, 
   CURRENT_USER_FETCH_ERROR 
 } from './../constants/actionTypes'
+import { AUTH_TOKEN } from './../constants/storageKeys'
 
-const AUTH_TOKEN = 'AUTH_TOKEN'
 
 const placeholderUser = {
   token: storage.get(AUTH_TOKEN),  // Check the storage for a token

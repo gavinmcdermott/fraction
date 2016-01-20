@@ -1,16 +1,22 @@
 'use strict'
 
 // Globals
-import _ from 'lodash';
-import jwt from 'jsonwebtoken';
-import moment from 'moment';
+import _ from 'lodash'
+import jwt from 'jsonwebtoken'
+import moment from 'moment'
+// import requestP from 'request-promise'
 
 // Locals
-import fractionErrors from './../utils/fractionErrors';
+import fractionErrors from './../utils/fractionErrors'
+// import serviceRegistry from './../services/serviceRegistry';
 
 
 // Constants
-const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret;
+const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
+
+// const ROUTE_GET_USER = process.config.apiServer 
+//                        + serviceRegistry.registry.apis.baseV1 
+//                        + '/user'
 
 
 /**
@@ -36,7 +42,7 @@ exports.requireAuth = (req, res, next) => {
 
   // check the header for the token
   if (!_.has(req.headers, 'authorization')) {
-    return respondWithError();
+    return respondWithError()
   }
   prependedToken = req.headers.authorization
 
@@ -57,9 +63,8 @@ exports.requireAuth = (req, res, next) => {
     return respondWithError()
   }
 
-  // Attach the token to the request
-  req.token = token
-  req.userId = decodedToken.sub
-  
+  req.body.userId = decodedToken.sub
+  req.body.token = token
+
   next()
-};
+}
