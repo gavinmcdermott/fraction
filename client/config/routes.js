@@ -22,10 +22,11 @@ module.exports = (appStore) => {
   // For info on the callback see: 
   // https://github.com/rackt/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
   const ensureAuthenticated = (nextState, replaceState, callback) => {
-    const existingToken = appStore.getState().currentUser.token
-  
-    console.log(existingToken)
-
+    const user = appStore.getState().currentUser
+    const hasToken = user.token
+    const loggedIn = user.isLoggedIn
+    
+    // https://github.com/tuxracer/simple-storage
     const checkAuth = () => {
       const { currentUser } = appStore.getState()
       if (!currentUser.token) {
@@ -36,7 +37,9 @@ module.exports = (appStore) => {
       callback()
     }
     
-    if (existingToken) {
+    // If there is a token found on the user and they aren't logged in,
+    // attempt to fetch their info, otherwise they need to sign in
+    if (hasToken && !loggedIn) {
       appStore.dispatch(currentUserFetch()).then(checkAuth)
     } else {
       checkAuth()

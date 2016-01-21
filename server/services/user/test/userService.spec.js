@@ -187,7 +187,7 @@ describe('User Service: ', function() {
   })
 
 
-  // LOGIN
+  // LOG IN
 
   describe('Login User: ', () => {
 
@@ -614,4 +614,27 @@ describe('User Service: ', function() {
     })
   })
 
+
+  // LOG OUT
+
+  describe('Log Out User: ', () => {
+    
+    let user
+    let token
+
+    let logoutUrl = userService.url + '/logout'
+    
+    it('returns a null user and token', (done) => {
+      requester
+        .post(logoutUrl)
+        .send()
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.user).toBe(null)
+          expect(res.body.token).toBe(null)
+          done()
+        })
+    })
+  })
 })

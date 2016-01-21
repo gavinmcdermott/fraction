@@ -44,7 +44,7 @@ class LogInFormComponent extends Component {
         <br/>
         Password: <input type="password" {...password} />
         <br/>
-        <button onClick={handleSubmit(submit)}>Log In</button>
+        <button type="submit">Log In</button>
         <br/>
         <hr/>
         <p><Link to="/">Go to the landing page</Link></p>

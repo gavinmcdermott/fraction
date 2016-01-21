@@ -54,7 +54,7 @@ class SignUpFormComponent extends Component {
         <br/>
         Password: <input type="password" {...password} />
         <br/>
-        <button onClick={handleSubmit(submit)}>Sign Up</button>
+        <button type="submit">Sign Up</button>
         <br/>
         <hr/>
         <p><Link to="/">Go to the landing page</Link></p>

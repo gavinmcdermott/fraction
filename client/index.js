@@ -40,10 +40,16 @@ ReactDOM.render(
 )
 
 
-
-// Notes:
+// TEMP APP NOTES: 
+// To use for error logs:
 // use this: https://getsentry.com/welcome/
-// Regarding smart and dumb components
+
+// Components and composition
 // https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0
 // https://github.com/rackt/redux-simple-router/blob/1.0.2/examples/basic/app.js
+
+// FSA
 // https://github.com/acdlite/flux-standard-action
+
+// routing
+// https://github.com/rackt/react-router/blob/master/docs/guides/advanced/NavigatingOutsideOfComponents.md

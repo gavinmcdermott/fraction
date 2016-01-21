@@ -54,7 +54,7 @@ export function signUp(newUser) {
     .then(fJSON)
     .then((newUser) => {
       dispatch(signUpSuccess(newUser))
-      history.replaceState(null, '/login')
+      history.push('/login')
     })
     .catch((err) => {
       dispatch(signUpError(err))

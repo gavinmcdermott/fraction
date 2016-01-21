@@ -3,6 +3,7 @@
 import assert from 'assert'
 import fetch from 'isomorphic-fetch'
 
+import { history } from './../config/history'
 import { ENDPOINTS } from './../constants/endpoints'
 import { 
   LOG_IN_START,
@@ -53,6 +54,7 @@ export function logIn(pendingUser) {
       .then(fJSON)
       .then((currentUser) => {
         dispatch(logInSuccess(currentUser))
+        history.push('/dashboard')
       })
       .catch((err) => {
         dispatch(logInError(err))

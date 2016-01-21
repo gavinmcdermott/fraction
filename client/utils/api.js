@@ -25,9 +25,8 @@ export function fJSON(response) {
     })
 }
 
-export function fPost(url, body) {
+export function fPost(url, body={}) {
   assert(_.isString(url))
-  assert(_.isObject(body))
   return window.fetch(url, {
     method: 'post',
     headers: {

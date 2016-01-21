@@ -61,6 +61,7 @@ router.use(bodyParser.json())
 
 
 // Private Helpers
+
 /**
  * Generate a signed jwt for a user
  *
@@ -374,20 +375,21 @@ function logInUser(req, res) {
 
 /**
  * Log out a fraction user
+ * TODO: Improve authentication (expire tokens, oauth2, or something else)
  *
  * @param {req} obj Express request object
  * @param {res} obj Express response object
  * @returns {promise}
  */
 function logOutUser(req, res) {
-
+  return res.json({ token: null, user: null })
 }
 
 
 // Routes
 
 router.post(ROUTE_LOG_IN_USER, wrap(logInUser))
-router.post(ROUTE_LOG_OUT_USER, requireAuth, wrap(logOutUser))
+router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
 
 router.post(ROUTE_CREATE_USER, wrap(createUser))
 router.put(ROUTE_UPDATE_USER, requireAuth, wrap(updateUser))
