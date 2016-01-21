@@ -1,16 +1,16 @@
 'use strict'
 
 // Globals
-import _ from 'lodash';
-import jwt from 'jsonwebtoken';
-import moment from 'moment';
+import _ from 'lodash'
+import jwt from 'jsonwebtoken'
+import moment from 'moment'
 
 // Locals
-import fractionErrors from './../utils/fractionErrors';
+import fractionErrors from './../utils/fractionErrors'
 
 
 // Constants
-const INTERNAL_API_SECRET = process.config.fraction.internalApiSecret;
+const INTERNAL_API_SECRET = process.config.fraction.internalApiSecret
 
 
 let generateToken = function() {
@@ -35,7 +35,7 @@ exports.ensureInternal = function(req, res, next) {
   // TODO: implement
 
   // Attach the token to the request
-  req.headers['fraction_verification_token'] = generateToken();
+  req.headers['fraction_verification_token'] = generateToken()
   
-  next();
-};
+  next()
+}

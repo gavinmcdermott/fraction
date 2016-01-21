@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 
 // Globals
@@ -75,31 +75,31 @@ exports.clearLocalTestDatabase = function() {
   // Helper to drop/wipe a specific test database
   let clearDb = function(dbName) {
     return new Promise((resolve, reject) => {
-      let connections;
-      let connection;
+      let connections
+      let connection
 
       // Ensure we're attempting to wipe a testDB
-      assert(_.includes(dbName, 'test'));
+      assert(_.includes(dbName, 'test'))
 
       // Get the connection to the DB we want to drop
       connections = _.filter(mongoose.connections, (con) => {
-        return _.includes(dbName, con.name);
-      });
-      assert(connections.length == 1);
+        return _.includes(dbName, con.name)
+      })
+      assert(connections.length == 1)
 
       // Drop/wipe the db and resolve the promise
-      connection = _.first(connections);
+      connection = _.first(connections)
       connection.db.dropDatabase((err) => {
         if (err) {
-          throw new Error('Error when dropping test DB: ', err);
+          throw new Error('Error when dropping test DB: ', err)
         }
-        return resolve();
-      });
-    });
-  };
+        return resolve()
+      })
+    })
+  }
 
-  return clearDb(SERVICE_DB);
-};
+  return clearDb(SERVICE_DB)
+}
 
 // Helper to add a test user
 exports.addTestUser = function() {
@@ -110,13 +110,13 @@ exports.addTestUser = function() {
       .expect(200)
       .end((err, res) => {
         if (err) {
-          throw new Error('Error creating test user: ', err);
+          throw new Error('Error creating test user: ', err)
         }
-        expect(res.body.user).toBeDefined();
-        return resolve(res.body.user);
-      });
-  });
-};
+        expect(res.body.user).toBeDefined()
+        return resolve(res.body.user)
+      })
+  })
+}
 
 // Helper to log in the test user
 exports.logInTestUser = function() {
@@ -124,7 +124,7 @@ exports.logInTestUser = function() {
     let trimmedTestUser = {
       email: exports.testUser.email,
       password: exports.testUser.password
-    };
+    }
     requester
       .post('/api/v1/user/login') // hard coded for now
       .send(trimmedTestUser)
@@ -132,14 +132,14 @@ exports.logInTestUser = function() {
       .end((err, res) => {
         if (err) {
           console.log('')
-          throw new Error('Error logging in test user: ' + res.body.message);
+          throw new Error('Error logging in test user: ' + res.body.message)
         }
-        expect(res.body.user).toBeDefined();
-        expect(res.body.token).toBeDefined();
-        return resolve(res.body);
-      });
-  });
-};
+        expect(res.body.user).toBeDefined()
+        expect(res.body.token).toBeDefined()
+        return resolve(res.body)
+      })
+  })
+}
 
 // Helper to log in the test user
 exports.logInTestUser = () => {
@@ -192,9 +192,9 @@ beforeAll((done) => {
   // This is needed to force supertest to listen on a particular port
   // otherwise it uses an ephemeral one - see supertest documentation
   let server = app.listen(process.config.port, () => {
-    console.log('Test server listening on port %s', server.address().port);
-    done();
-  });
-});
+    console.log('Test server listening on port %s', server.address().port)
+    done()
+  })
+})
 
 

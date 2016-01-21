@@ -26,7 +26,7 @@ import Document from './documentModel'
 mongoose.Promise = require('q').Promise
 
 // The current service registry
-let registry = serviceRegistry.registry;
+let registry = serviceRegistry.registry
 
 
 // Constants

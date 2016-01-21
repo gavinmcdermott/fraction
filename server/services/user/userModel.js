@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-import _ from 'lodash';
-import mongoose from 'mongoose';
+import _ from 'lodash'
+import mongoose from 'mongoose'
 
 
 let userSchema = new mongoose.Schema({
@@ -60,9 +60,9 @@ userSchema.methods = {
 
 }
 
-userSchema.index({ 'email.email': 1 }, { unique: true });
+userSchema.index({ 'email.email': 1 }, { unique: true })
 
 
-let User = mongoose.serviceDb.model('User', userSchema);
+let User = mongoose.serviceDb.model('User', userSchema)
 
-module.exports = User;
+module.exports = User

@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-import _ from 'lodash';
-import mongoose from 'mongoose';
+import _ from 'lodash'
+import mongoose from 'mongoose'
 
 
 let documentSchema = new mongoose.Schema({
