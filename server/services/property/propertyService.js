@@ -302,16 +302,18 @@ function createProperty(req, res) {
       throw new fractionErrors.Invalid('non-real location')
     })
     .then((validations) => {
-      // "validations" is of the form [{exact}, {inexact}, {err}]
-     console.log(validations[0])
+      // "validations" is of the form [[{exact}], [{inexact}], {err}]
+     console.log(validations[0][0].postalCode)
       let exactMatch = _.map(validations[0], function(a) {
                        return a.toString();
                      })
-      console.log(exactMatch)
-      console.log(exactMatch[0].length)
+      //console.log(exactMatch)
+      //console.log(exactMatch[0].length)
       try {
         // just verify there is an exact match
         assert((exactMatch[0].length > 5))
+        // also check zip code, as a double-check
+        assert((req.body.property.location.zip === validations[0][0].postalCode))
       } catch (e) {
         throw new fractionErrors.Invalid('non-real location')
       }

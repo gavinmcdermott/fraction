@@ -327,7 +327,7 @@ describe('Property Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          console.log(res.body)
+          //console.log(res.body)
           expect(res.body.message).toBe('non-user primary contact')
           expect(res.body.status).toBe(400)
           done()
