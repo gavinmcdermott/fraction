@@ -37,6 +37,9 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_PROPERTY = '/'
+const ROUTE_UPDATE_PROPERTY = '/:propertyId'
+
+// this is probably wrong again? Not sure where we stand on this route
 const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
                                 + serviceRegistry.registry.apis.baseV1 
                                 + '/user/internal/check_existence'
@@ -86,9 +89,8 @@ function createProperty(req, res) {
     throw new fractionErrors.Invalid('invalid location');    
   }
 
-  // validate that the location bits are all there
- 	/* 
- 	 * NOTE: for some reason _.toNumber was throwing an error when called
+  // validate that the location bits are all there 
+ 	/* NOTE: for some reason _.toNumber was throwing an error when called
  	 * it on the zip string '55555' but Number() was not, so I'm using 
  	 * number right now. 
  	 */
@@ -97,8 +99,9 @@ function createProperty(req, res) {
     assert(_.isString(req.body.property.location.city))
     assert(_.isString(req.body.property.location.state))
     assert(_.isString(req.body.property.location.zip))
-    // NOTE: only supporting 5-digit and 9-digit zip codes 
-    // ( which are length 10 b/c of '-')
+    /* NOTE: only supporting 5-digit and 9-digit zip codes 
+     * (which are length 10 b/c of '-')
+     */
     assert((
     	((req.body.property.location.zip).length === 5) || 
     	((req.body.property.location.zip).length === 10)
@@ -106,54 +109,6 @@ function createProperty(req, res) {
   } catch(e) {
     throw new fractionErrors.Invalid('invalidly formatted location');    
   }
-
-  // validate that this is a real location on planet earth
-  /* NOTE: on any frontend we should offer a maps api with suggestions
-   * and we could use npm's address-validator there too, this is just
-   * a check so it returns no suggestions if the address is bad. 
-   */
-  try {
-    // let Address = addressValidator.Address
-    // // I don't believe this will be an error, either line 2 is '' or  defined
-    // let fullStreet = req.body.property.location.addressLine1 + req.body.property.location.addressLine2
-    // let addressToCheck = new Address({
- 	  //   street: fullStreet,
-  	 //    city: req.body.property.location.city,
-  	 //    state: req.body.property.location.state,
-  	 //    // for the foreseable future country can be hardcoded
-  	 //    country: 'US'
-  		// })
-    // // trying to promise-ify addressValidator
-    // let addressValidator_validate = q.denodeify(addressValidator.validate)
-    // addressValidator_validate(addressToCheck, addressValidator.match.streetAddress)
-    //   .then((err, exact, inexact) => {
-    //     console.log("HI!!!!")
-    //     let exactMatch = _.map(exact, function(a) {
-    //                      return a.toString();
-    //                    })
-    //     //console.log(exactMatch)
-    //     //console.log(err)
-    //     assert(false)
-    //     console.log('done')
-    //   })
-      
-    // TODO THIS NEEDS TO BE WRAPPED IN A PROMISE since it delays
-   //  addressValidator.validate(addressToCheck, addressValidator.match.streetAddress, function(err, exact, inexact){
-   // 		let exactMatch = _.map(exact, function(a) {
-			//       							return a.toString();
-			//     							})
-   // 		// make sure the exact match is not empty
-   // 		console.log(exactMatch)
-   // 		assert((exactMatch.length >= 5))
-			// // make sure we have same zip code 
-			// let exactZip = exact[0].postalCode
-			// assert((Number(req.body.property.location.zip) === exactZip))
-   //  })
-  } catch(e) {
-    //console.log(e)
-    throw new fractionErrors.Invalid('non-real location');    
-  }
-
 
   // validate that there are details
   try {
@@ -192,7 +147,6 @@ function createProperty(req, res) {
 
   try {
     assert(_.has(req.body.property.details.stats, 'sqft'))
-    // here is where we assign newSqft to save later
     newSqft = Number(req.body.property.details.stats.sqft)
     assert((!(_.isNaN(newSqft)) && _.isNumber(newSqft)))
   } catch(e) {
@@ -201,6 +155,12 @@ function createProperty(req, res) {
 
   // TODO check to make sure this is not a duplicate of a 
   // TODO property we already have in the database.
+
+  ///////////////////////////////////////////////////////
+  // TODO I AM UNABLE TO VALIDATE ANY USERS 
+  // (I'm probably making a dumb error but was told 
+  // this function is changing again possibly anyway)
+  ///////////////////////////////////////////////////////
 
 	// we use these options in the following request to
 	// to see if we have a valid primaryUser for the 
@@ -215,18 +175,7 @@ function createProperty(req, res) {
     json: true // requestP now automatically stringifies this to JSON
 	}
 
-  // // due to Async nature I chained all the promises at the end
-  // let Address = addressValidator.Address
-  // // I don't believe this will be an error, either line 2 is '' or  defined
-  // let fullStreet = req.body.property.location.addressLine1 + req.body.property.location.addressLine2
-  // let addressToCheck = new Address({
-  //   street: fullStreet,
-  //     city: req.body.property.location.city,
-  //     state: req.body.property.location.state,
-  //     // for the foreseable future country can be hardcoded
-  //     country: 'US'
-  //   })
-  // trying to promise-ify addressValidator
+  // promise-ify the addressValidator
   let addressValidator_validate = q.denodeify(addressValidator.validate)
   // getting our address
   let Address = addressValidator.Address
@@ -247,68 +196,20 @@ function createProperty(req, res) {
         country: 'United States'
       })
 
-// // WORKING CHAIN
-//     return requestP.post(options) 
-//     .then((data) =>  {
-//       // Mdelled this off of the documentService.js
-//       // save function; the first/only user is our user
-//       let newPrimaryUser = _.first(data.users)
-//       let newProperty = {
-//         location: req.body.property.location,
-        
-//          * TODO or NOTE: I did some logic checking on
-//          * types of certain things, like that bedrooms is
-//          * a valid number, but if that passes I'm passing
-//          * this in as a string or whatever the req sent. The
-//          * reason for this is that this way we'll take whatever
-//          * details are sent, including but not requiring things
-//          * not explicitly tested for depending on what the req
-//          * sent us, so if extra details are there, we take them in.
-         
-//         details: req.body.property.details,
-//         primaryContact: newPrimaryUser.id,
-//         dateAdded: moment.utc().valueOf()
-//       }
-
-//       // Actually save the new property
-//       //return Property.create(newProperty)
-//       return newProperty
-//     })
-//      .catch((e) => {
-//       console.log(e)
-//       throw new fractionErrors.Invalid('non-user primary contact'); 
-//     })
-//     .then((newProperty) => {
-//       return Property.create(newProperty)
-//     })
-//     .then((createdProperty) => {
-//       // TODO in both the document service and here we call
-//       // the new doc/property the 'id' of the return, which 
-//       // naming-wise doesn't make sense unless it just returns
-//       // and ID and I just am not familiar enough w/Mongo 
-//       return res.json({ saved: true, id: createdProperty.toPublicObject() })
-//     })
-  
-
-//  start of chain of promises
-  //console.log(addressToCheck)
+  // start of chain of promises
   return addressValidator_validate(addressToCheck, addressValidator.match.streetAddress)
     .catch((e) => {
       // NOTE: because of the dependence of this npm on Google
       // this could potentially also be a different error than
       // just a non-real location, so if something is super weird
       // try console.log(e) and see what's going on. 
-      //console.log(e)
       throw new fractionErrors.Invalid('non-real location')
     })
     .then((validations) => {
       // "validations" is of the form [[{exact}], [{inexact}], {err}]
-     console.log(validations[0][0].postalCode)
       let exactMatch = _.map(validations[0], function(a) {
                        return a.toString();
                      })
-      //console.log(exactMatch)
-      //console.log(exactMatch[0].length)
       try {
         // just verify there is an exact match
         assert((exactMatch[0].length > 5))
@@ -324,24 +225,32 @@ function createProperty(req, res) {
       }
       throw new fractionErrors.Invalid('something wrong with location validator'); 
     })
-    .then(() => {
-      // see if user exists
-      let data = requestP.post(options)
-      return data
-    })
-    .catch((e) => {
-      // necessary to pass the first error down the chain
-      if (e instanceof fractionErrors.Invalid) {
-        throw e
-      }
-      // otherwise it was the second error
-      throw new fractionErrors.Invalid('non-user primary contact');
-    })
-    .then((data) => {
-      let newPrimaryUser = _.first(data.users)
+    ///////////////////////////////////////////////////////////////
+    // TODO this portion of the promise chain should be uncommented
+    // when user verification is setup
+    ///////////////////////////////////////////////////////////////
+    // .then(() => {
+    //   // see if user exists
+    //   let data = requestP.post(options)
+    //   return data
+    // })
+    // .catch((e) => {
+    //   // necessary to pass the first error down the chain
+    //   if (e instanceof fractionErrors.Invalid) {
+    //     throw e
+    //   }
+    //   // otherwise it was the second error
+    //   throw new fractionErrors.Invalid('non-user primary contact');
+    // })
+    //////////////////////////////////////////////////////////////
+    // TODO also uncomment lines within this '.then()' that are 
+    // relevant to userId verification
+    //////////////////////////////////////////////////////////////
+    .then((/*data*/) => {
+      //let newPrimaryUser = _.first(data.users)
        let newProperty = {
          location: req.body.property.location,
-          // TODO or NOTE: I did some logic checking on
+          // * TODO or NOTE: I did some logic checking on
           // * types of certain things, like that bedrooms is
           // * a valid number, but if that passes I'm passing
           // * this in as a string or whatever the req sent. The
@@ -350,18 +259,13 @@ function createProperty(req, res) {
           // * not explicitly tested for depending on what the req
           // * sent us, so if extra details are there, we take them in.
          details: req.body.property.details,
-         primaryContact: newPrimaryUser.id,
+         //primaryContact: 'bobadfadfadfadfadfaf', //newPrimaryUser.id,
          dateAdded: moment.utc().valueOf()
        }
-
        // Actually save the new property
        return Property.create(newProperty)
     })
     .then((createdProperty) => {
-     // TODO in both the document service and here we call
-     // the new doc/property the 'id' of the return, which 
-     // naming-wise doesn't make sense unless it just returns
-     // and ID and I just am not familiar enough w/Mongo 
       return res.json({ saved: true, id: createdProperty.toPublicObject() })
     })
     // catch any other errors
@@ -373,53 +277,25 @@ function createProperty(req, res) {
       // otherwise something else went wrong
       throw new Error(e);
     })
-
-
-	// return requestP.post(options) 
-	// 	.then((data) =>  {
-	//  		// Mdelled this off of the documentService.js
-	//  		// save function; the first/only user is our user
-	//  		let newPrimaryUser = _.first(data.users)
-	//  		let newProperty = {
-	//  			location: req.body.property.location,
-	 			
-	//  			 * TODO or NOTE: I did some logic checking on
-	//  			 * types of certain things, like that bedrooms is
-	//  			 * a valid number, but if that passes I'm passing
-	//  			 * this in as a string or whatever the req sent. The
-	//  			 * reason for this is that this way we'll take whatever
-	//  			 * details are sent, including but not requiring things
-	//  			 * not explicitly tested for depending on what the req
-	//  			 * sent us, so if extra details are there, we take them in.
-	 			 
-	//  			details: req.body.property.details,
-	//  			primaryContact: newPrimaryUser.id,
-	//  			dateAdded: moment.utc().valueOf()
-	//  		}
-
-	//  		// Actually save the new property
-	//  		//return Property.create(newProperty)
- //      return newProperty
-	//  	}, (e) => {
- //      throw new fractionErrors.Invalid('non-user primary contact'); 
- //    })
- //    .then( (newProperty) => {
- //      // validate address, then
-	// 	.then((createdProperty) => {
-	// 		// TODO in both the document service and here we call
-	// 		// the new doc/property the 'id' of the return, which 
-	// 		// naming-wise doesn't make sense unless it just returns
-	// 		// and ID and I just am not familiar enough w/Mongo 
- //      return res.json({ saved: true, id: createdProperty.toPublicObject() })
- //    })
-	 // .catch((e) => {
-  //     //console.log("hello!!")
-	 // 		throw new fractionErrors.Invalid('non-user primary contact'); 
-	 // 	})
 }
 
 
+function updateProperty(req, res) {
+  let propertyId = req.params.propertyId
+
+  try {
+    assert(propertyId)
+    assert(propertyId.length)
+  } catch (err) {
+    throw new fractionErrors.Invalid('property not found')
+  }
+
+}
+
+// Routes
+
 router.post(ROUTE_CREATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(createProperty))
+router.post(ROUTE_UPDATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(updateProperty))
 
 // Exports
 module.exports = {
@@ -427,7 +303,8 @@ module.exports = {
   url: SVC_BASE_URL,
   router: router,
   endpoints: [
-    { protocol: 'HTTP', method: 'POST', name: 'CREATE_PROPERTY', url: ROUTE_CREATE_PROPERTY }
+    { protocol: 'HTTP', method: 'POST', name: 'CREATE_PROPERTY', url: ROUTE_CREATE_PROPERTY },
+    { protocol: 'HTTP', method: 'PUT', name: 'UPDATE_PROPERTY', url: ROUTE_UPDATE_PROPERTY }
   ]
 }
 

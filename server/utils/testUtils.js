@@ -51,13 +51,11 @@ exports.testUser = {
 // test house
 exports.testHouse = {
   location: {
-    addressLine1: "5 Main Street",
-    neighborhood: "Soma",
-    city: "San Francisco",
-    state: "CA",
-    zip: "94105"
+    addressLine1: '4583 Trillium Woods',
+    city: 'Lake Oswego',
+    state: 'Oregon',
+    zip: '97035'
   },
-
   details: {
     description: "a descrip",
     stats: {
@@ -66,9 +64,8 @@ exports.testHouse = {
       sqft: '1420'
     }
   },
-
-  // I believe this is Terrence Wundermidst's test ID
-  primaryContact: '569893173e5098736865b4af'
+  // see addTestProperty for where this is created
+  primaryContact: 'TBD'
 }
 
 // Helper to blow away the test db between runs
@@ -142,6 +139,27 @@ exports.logInTestUser = function() {
       });
   });
 };
+
+exports.addTestProperty = function(givenUserId) {
+  return new Promise((resolve, reject) => {  
+    requester
+      .post('/api/v1/property/') // hard coded for now
+      exports.testHouse.primaryContact = givenUserId
+      //console.log(exports.testHouse)
+      .send(exports.testHouse)
+      .expect(200)
+      .end((err, res) => {
+        console.log('err,res')
+        console.log(err)
+        console.log(res)
+        if (err) {
+          throw new Error('Error creating test property: ', err);
+        }
+        expect(res.body.property).toBeDefined();
+        return resolve(res.body.property);
+      });
+  });
+}
 
 
 // Initialize the test server before running any service tests
