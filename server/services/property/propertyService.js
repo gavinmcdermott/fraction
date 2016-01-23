@@ -36,8 +36,8 @@ const SVC_NAME = 'property'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
-const ROUTE_CREATE_PROPERTY = '/'
-const ROUTE_UPDATE_PROPERTY = '/:propertyId'
+const ROUTE_CREATE_PROPERTY = '/';
+const ROUTE_UPDATE_PROPERTY = '/:propertyId';
 
 // this is probably wrong again? Not sure where we stand on this route
 const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
@@ -266,7 +266,7 @@ function createProperty(req, res) {
        return Property.create(newProperty)
     })
     .then((createdProperty) => {
-      return res.json({ saved: true, id: createdProperty.toPublicObject() })
+      return res.json({ saved: true, property: createdProperty.toPublicObject() })
     })
     // catch any other errors
     .catch((e) => {
@@ -290,12 +290,88 @@ function updateProperty(req, res) {
     throw new fractionErrors.Invalid('property not found')
   }
 
+  return Property.findById({ _id: propertyId })
+    .exec()
+    .catch((err) => {
+      // handle case where the property is not there
+      throw new fractionErrors.NotFound('property not found');
+    })
+    .then((existingProperty) => {
+
+      let primaryContact = req.body.property.primaryContact
+      let location = req.body.property.location
+      // TODO actually I want to do more thinking on what 
+      // TODO an update to a house entails, rennovations and 
+      // TODO documents etc. 
+      // TODO e.g., should we require rennovation proof? 
+
+      //  validate that there is a user
+      if (_.has(req.body.property, 'primaryContact')) {
+        try {
+          assert((req.body.propery.primaryContact.length > 5))
+          existingProperty.primaryContact = primaryContact
+        } catch(e) {
+          throw new fractionErrors.Invalid('invalid primary contact');    
+        }
+      }
+
+      // check location
+      if (_.has(req.body.property, 'location')) {
+        try {
+          assert(_.isString(req.body.property.location.addressLine1))
+          assert(_.isString(req.body.property.location.city))
+          assert(_.isString(req.body.property.location.state))
+          assert(_.isString(req.body.property.location.zip))
+          /* NOTE: only supporting 5-digit and 9-digit zip codes 
+           * (which are length 10 b/c of '-')
+           */
+          assert((
+            ((req.body.property.location.zip).length === 5) || 
+            ((req.body.property.location.zip).length === 10)
+          ))
+          // TODO this overwrites anything in the location that is not 
+          // TODO passed in the update, this should iterate through
+          // TODO all the fields but I'm waiting to see what databases
+          // TODO are used first 
+          existingProperty.location = location
+        } catch(e) {
+          throw new fractionErrors.Invalid('invalidly formatted location');    
+        }
+      }
+
+      // check bedrooms
+      if (_.has(req.body.property.details.stats, 'bedrooms')) {
+        try {
+          let newBedrooms
+          newBedrooms = Number(req.body.property.details.stats.bedrooms)
+          // because _.isNumber(NaN) = true and Number() casts a 
+          // non-numeric string to NaN, we need to check both in 
+          // this next assert
+          assert((!(_.isNaN(newBedrooms)) && _.isNumber(newBedrooms)))
+          existingProperty.details.stats.bedrooms = newBedrooms 
+        } catch(e) {
+          throw new fractionErrors.Invalid('invalid bedrooms');    
+        }
+      }
+
+      // save if all good
+      return existingProperty.save();
+    })
+    .then((updatedProperty) => {
+      return res.json({ property: updatedProperty.toPublicObject() });
+    })
+    .catch((err) => {
+      if (err instanceof fractionErrors.BaseError) {
+        throw err;
+      }
+      throw new Error(err.message);
+    });
 }
 
 // Routes
 
 router.post(ROUTE_CREATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(createProperty))
-router.post(ROUTE_UPDATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(updateProperty))
+router.put(ROUTE_UPDATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(updateProperty))
 
 // Exports
 module.exports = {

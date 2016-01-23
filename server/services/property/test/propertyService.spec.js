@@ -39,8 +39,6 @@ describe('Property Service: ', function() {
     let user
     let token
     let testId
-    let testUnrealLocation
-    let testRealLocation
 
     let postUrl = propertyService.url + '/'
     beforeAll((done) => {
@@ -111,20 +109,6 @@ describe('Property Service: ', function() {
 
     // TODO create a test house object
     //testId = '5689a9f38b7512cf1b0e497f23scD'
-    testUnrealLocation = {
-      addressLine1: '589999898353 Maine Streate',
-      city: 'Fran Sancisco',
-      state: 'Fornicalia',
-      zip: '55555'
-    }
-    testRealLocation = {
-      /// TODO this is fake right now and needs to 
-      // be changed, ideally when we have a test house
-      addressLine1: '4583 Trillium Woods',
-      city: 'Lake Oswego',
-      state: 'Oregon',
-      zip: '97035'
-    }
 
     it('fails to create without any location', (done) => {
       requester
@@ -174,7 +158,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
           }
         })
         .expect(400)
@@ -193,7 +177,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
             details: 'foo sorry'
           }
         })
@@ -213,7 +197,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
             details: {
               stats: {
                 bedrooms: 'sorry'
@@ -237,7 +221,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
             details: {
               stats: {
                 bedrooms: '5',
@@ -262,7 +246,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
             details: {
               stats: {
                 bedrooms: '5',
@@ -288,7 +272,7 @@ describe('Property Service: ', function() {
        .send({
          property: {
             primaryContact: 'fakeID',
-            location: testUnrealLocation,
+            location: testUtils.testUnrealLocation,
             details: {
               stats: {
                 bedrooms: '5',
@@ -318,7 +302,7 @@ describe('Property Service: ', function() {
     //     .send({
     //       property: {
     //         primaryContact: 'fakeID',
-    //         location: testRealLocation,
+    //         location: testUtils.testRealLocation,
     //         details: {
     //           stats: {
     //             bedrooms: '5',
@@ -345,7 +329,7 @@ describe('Property Service: ', function() {
         .send({
           property: {
             primaryContact: testId,
-            location: testRealLocation,
+            location: testUtils.testRealLocation,
             details: {
               stats: {
                 bedrooms: '5',
@@ -359,7 +343,7 @@ describe('Property Service: ', function() {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           expect(res.body.saved).toBe(true);
-          expect(res.body.id).toBeDefined();
+          expect(res.body.property).toBeDefined();
           done()
         })
     }) 
@@ -367,66 +351,158 @@ describe('Property Service: ', function() {
 
   })
 
-  // describe('Update Existing Property: ', () => {
-  //   //console.log('calleddf')
-  //   let property
-  //   let user
-  //   let token
+  describe('Update Existing Property: ', () => {
+    //console.log('calleddf')
+    let property
+    let user
+    let token
 
-  //   let updateUrl
-  //   let badUpdateUrl = propertyService.url + '/5689a9f38b7512cf1b0e497f23scD'
+    let updateUrl
+    let badUpdateUrl = propertyService.url + '/5689a9f38b7512cf1b0e497f23scD'
 
-  //   beforeAll((done) => {
-  //     testUtils.clearLocalTestDatabase()
-  //       .then(() => {
-  //         console.log('called!')
-  //         return testUtils.addTestUser();
-  //       })
-  //       .then(() => {
-  //         console.log('also called!')
-  //         return testUtils.logInTestUser();
-  //       })
-  //       .then((result) => {
-  //         console.log('called here!')
-  //         user = result.user;
-  //         token = 'Bearer ' + result.token;
-  //         return testUtils.addTestProperty(user.id);
-  //         //updateUrl = propertyService.url + '/' + .id;
-  //        // done();
-  //       })
-  //       .then((result) => {
-  //         console.log(result)
-  //         console.log("calleddd")
-  //         property = result.property
-  //         updateUrl = propertyService.url + '/' + property.id;
-  //         done();
-  //       })
-  //   });
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+        .then(() => {
+          return testUtils.addTestUser();
+        })
+        .then(() => {
+          return testUtils.logInTestUser();
+        })
+        .then((result) => {
+          // console.log('called here!')
+          user = result.user;
+          token = 'Bearer ' + result.token;
+          return testUtils.addTestProperty(user.id, token);
+        })
+        .then((result) => {
+          property = result
+          updateUrl = propertyService.url + '/' + property._id
+          done()
+        })
+    });
 
-  //   afterAll((done) => {
-  //     testUtils.clearLocalTestDatabase()
-  //     .then(() => {
-  //       done();
-  //     });
-  //   });
+    afterAll((done) => {
+      testUtils.clearLocalTestDatabase()
+      .then(() => {
+        done();
+      });
+    });
 
 
-  //   it('fails without a valid token', (done) => {
-  //     requester
-  //       .put(updateUrl)
-  //       // .set('Authorization', token) // leave out explicitly
-  //       .send()
-  //       .expect(401)
-  //       .expect('Content-Type', /json/)
-  //       .end((err, res) => {
-  //         expect(res.body.message).toBe('invalid token');
-  //         expect(res.body.status).toBe(401);
-  //         done();
-  //       });
-  //   });
+    it('fails without a valid token', (done) => {
+      requester
+        .put(updateUrl)
+        // .set('Authorization', token) leave out explicitly
+        .send('nully')
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid token');
+          expect(res.body.status).toBe(401);
+          done();
+        });
+    });
+
+    it('fails without an existing property', (done) => {
+      requester
+        .put(badUpdateUrl)
+        .set('Authorization', token)
+        .send()
+        .expect(404)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('property not found');
+          expect(res.body.status).toBe(404);
+          done();
+        });
+    });
+
+    it('fails to update to a blank primary contact', (done) => {
+      requester
+        .put(updateUrl)
+        .set('Authorization', token)
+        .send({
+          property: {
+            primaryContact: ''
+          }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid primary contact')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    }) 
+
+    it('fails to update without a validly formatted location', (done) => {
+      requester
+        .put(updateUrl)
+        .set('Authorization', token)
+        .send({
+            property: {
+              location: { 
+                foo: 'bar'
+              }
+            }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalidly formatted location')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails to update with an invalid bedrooms entry', (done) => {
+      requester
+        .put(updateUrl)
+        .set('Authorization', token)
+        .send({
+            property: {
+              details: {
+                stats: {
+                  bedrooms: 'not'
+                }
+              }
+            }
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid bedrooms')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+  it('updates bedrooms properly', (done) => {
+      requester
+        .put(updateUrl)
+        .set('Authorization', token)
+        .send({
+            property: {
+              details: {
+                stats: {
+                  bedrooms: '55'
+                }
+              }
+            }
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.property).toBeDefined()
+          expect(res.body.property.details.stats.bedrooms).toEqual(55)
+          done()
+        })
+    })
 
 
-  // })
+
+
+  })
 
 
 })

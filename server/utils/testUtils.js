@@ -68,6 +68,20 @@ exports.testHouse = {
   primaryContact: 'TBD'
 }
 
+exports.testUnrealLocation = {
+      addressLine1: '589999898353 Maine Streate',
+      city: 'Fran Sancisco',
+      state: 'Fornicalia',
+      zip: '55555'
+    }
+
+exports.testRealLocation = {
+      addressLine1: '4583 Trillium Woods',
+      city: 'Lake Oswego',
+      state: 'Oregon',
+      zip: '97035'
+    }
+
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
@@ -140,18 +154,18 @@ exports.logInTestUser = function() {
   });
 };
 
-exports.addTestProperty = function(givenUserId) {
+exports.addTestProperty = function(givenUserId, givenToken) {
+  //console.log('called inside!')
+  exports.testHouse.primaryContact = givenUserId
+  // we need a property object to pass the tests
+  let property = {property: exports.testHouse}
   return new Promise((resolve, reject) => {  
     requester
-      .post('/api/v1/property/') // hard coded for now
-      exports.testHouse.primaryContact = givenUserId
-      //console.log(exports.testHouse)
-      .send(exports.testHouse)
+      .post('/api/v1/property/')
+      .set('Authorization', givenToken) // hard coded for now
+      .send(property)
       .expect(200)
       .end((err, res) => {
-        console.log('err,res')
-        console.log(err)
-        console.log(res)
         if (err) {
           throw new Error('Error creating test property: ', err);
         }
