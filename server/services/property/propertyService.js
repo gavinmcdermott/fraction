@@ -15,7 +15,6 @@ import requestP from 'request-promise'
 import fractionErrors from './../../utils/fractionErrors'
 import middlewareAuth from './../../middleware/tokenAuth'
 import middlewareErrors from './../../middleware/errorHandler'
-import middlewareInternal from './../../middleware/ensureInternal'
 import serviceRegistry  from './../serviceRegistry'
 
 // DB Models

@@ -62,7 +62,7 @@ exports.requireAuth = (req, res, next) => {
   if (moment.utc().valueOf() > decodedToken.exp) {
     return respondWithError()
   }
-
+  
   req.body.userId = decodedToken.sub
   req.body.token = token
 

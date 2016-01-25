@@ -14,11 +14,10 @@ import validator from 'validator'
 
 // Locals
 
-import fractionErrors from './../../utils/fractionErrors'
-import middlewareAuth from './../../middleware/tokenAuth'
-import middlewareErrors from './../../middleware/errorHandler'
-import middlewareInternal from './../../middleware/ensureInternal'
 import serviceRegistry  from './../serviceRegistry'
+import fractionErrors from './../../utils/fractionErrors'
+import { requireAuth } from './../../middleware/tokenAuth'
+import { wrap } from './../../middleware/errorHandler'
 // DB Models
 import Document from './documentModel'
 
@@ -39,13 +38,6 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 const ROUTE_CREATE_DOC = '/'
 const ROUTE_GET_DOCS = '/'
 
-// external service route
-// TODO: figure out a good config for this
-// TODO: figure out a good config for this
-// TODO: figure out a good config for this
-const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
-                                + serviceRegistry.registry.apis.baseV1 
-                                + '/user/internal/check_existence'
 
 // Router
 
@@ -79,11 +71,17 @@ function createDocument(req, res) {
   let docType
   let email
   let userId
+  let token
 
-  assert(req.token)
-  assert(req.userId)
+  try {
+    assert(req.body.token)
+    assert(req.body.userId)
+  } catch(e) {
+    throw new fractionErrors.Unauthorized('invalid token')
+  }
 
-  userId = req.userId
+  userId = req.body.userId
+  token = req.body.token
  
   // validate document
   // TODO: FORMAT this pdf into something string-able
@@ -122,21 +120,18 @@ function createDocument(req, res) {
   // TODO: infer the state based on specific document types?
   docState = 'done'
 
+  let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user/' + userId
+  let getUserToken = 'Bearer ' + token
+
   let options = {
-    method: 'POST',
-    uri: ROUTE_CHECK_USER_EXISTS,
-    body: { 
-      findById: true,
-      ids: [ userId ]
-    },
-    json: true // requestP now automatically stringifies this to JSON
+    method: 'GET',
+    uri: getUserRoute,
+    headers: { authorization: getUserToken }
   }
 
   // Get the user who uploaded the email
-  return requestP.post(options)
-    .then((data) => {
-      let user = _.first(data.users)
-
+  return requestP(options)
+    .then((user) => {
       let newDoc = {
         type: docType,
         dateUploaded: moment.utc().valueOf(),
@@ -157,12 +152,13 @@ function createDocument(req, res) {
       return res.json({ saved: true, document: createdDoc.toPublicObject() })
     })
     .catch((response) => {
-      // TODO: handle errors from requestP
-      // TODO: handle errors from requestP
-      // TODO: handle errors from requestP
+      let errorMessage
+      try {
+        errorMessage = JSON.parse(response.error).message
+      } catch(e) {
+        errorMessage = response.error && response.error.message
+      }
 
-      // This will have been formatted by throwing from the
-      let errorMessage = (response.error && response.error.message) || response
       if (_.contains(errorMessage, 'invalid')) {
         throw new fractionErrors.Invalid(errorMessage)
       }
@@ -183,8 +179,8 @@ function getDocuments(req, res) {
 
 
 
-router.post(ROUTE_CREATE_DOC, middlewareAuth.requireAuth, middlewareErrors.wrap(createDocument))
-router.post(ROUTE_GET_DOCS, middlewareAuth.requireAuth, middlewareErrors.wrap(getDocuments))
+router.post(ROUTE_CREATE_DOC, requireAuth, wrap(createDocument))
+router.get(ROUTE_GET_DOCS, requireAuth, wrap(getDocuments))
 
 
 // Exports

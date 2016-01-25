@@ -305,7 +305,7 @@ function getUser(req, res) {
       }
       // otherwise sanitize the details
       let sanitizedUser = {
-        email: user.email
+        id: user.id
       }
       return res.json({ user: sanitizedUser })
     })
@@ -313,7 +313,6 @@ function getUser(req, res) {
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
-      console.log(err.message)
       throw new fractionErrors.NotFound('user not found')
     })
 }

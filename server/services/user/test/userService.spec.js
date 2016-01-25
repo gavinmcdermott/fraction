@@ -428,13 +428,7 @@ describe('User Service: ', function() {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           let newUser = res.body.user
-          // Ensure we're returning a sanitized user
-          expect(newUser.email).toBeDefined()
-          expect(newUser.email.email).toEqual(normalizedValidEmail)
-
-          expect(newUser.name).not.toBeDefined()
-          expect(newUser.id).not.toBeDefined()
-          expect(newUser.notifications).not.toBeDefined()
+          expect(newUser.id).toBeDefined()
           done()
         })
     })
