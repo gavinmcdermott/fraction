@@ -20,8 +20,7 @@ describe('Property Service: ', function() {
 
 	// formatting the output
   beforeAll(() => {
-    console.log('')
-    console.log('Starting property service tests')
+    testUtils.initSuite(propertyService.name)
   });
 
   afterAll((done) => {
@@ -477,26 +476,28 @@ describe('Property Service: ', function() {
     })
 
   it('updates bedrooms properly', (done) => {
-      requester
-        .put(updateUrl)
-        .set('Authorization', token)
-        .send({
-            property: {
-              details: {
-                stats: {
-                  bedrooms: '55'
-                }
+    requester
+      .put(updateUrl)
+      .set('Authorization', token)
+      .send({
+          property: {
+            details: {
+              stats: {
+                bedrooms: '55'
               }
             }
-        })
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.property).toBeDefined()
-          expect(res.body.property.details.stats.bedrooms).toEqual(55)
-          done()
-        })
+          }
+      })
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .end((err, res) => {
+        expect(res.body.property).toBeDefined()
+        expect(res.body.property.details.stats.bedrooms).toEqual(55)
+        done()
+      })
     })
+  
+  })
 
 
 })
