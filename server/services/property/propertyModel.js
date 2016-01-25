@@ -12,14 +12,14 @@ let propertySchema = new mongoose.Schema({
     city: { type: String, required: true },
     county: { type: String },
     state: { type: String, required: true },
-    zip: { type: Number, required: true }
+    zip: { type: String, required: true }
     // lat: { type: String },
     // lon: { type: String }, 
     // someday schools            
   },
 
   // TODO
-  // documents: [{id: mongoose.Schema.Types.ObjectId, ref: 'Document'}],
+ documents: [{type: mongoose.Schema.Types.ObjectId, ref: 'Document'}],
 
   details: {
     description: {type: String},
@@ -36,7 +36,7 @@ let propertySchema = new mongoose.Schema({
       type: { type: String },
       date: { type: Number },
       estValue: { type: Number },
-      estCost: { type: Number},
+      estCost: { type: Number },
     }],
   },
 
@@ -44,23 +44,24 @@ let propertySchema = new mongoose.Schema({
   // TODO marketplace function and price
   // TODO (both user and house should point 
   // TODO to this)
+
   financials: {
     appraisals: [{
-      source: {type: String},
-      price: {type: String},
-      date: {type: Date}
+      source: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },
+      price: { type: String },
+      date: {type: Date }
     }],
     // TODO think on how to verify these
     // TODO think if this comes out of house
     // TODO and into event
-    avgRentalPrice: {type: Number},
-    avgDaysBooked: {type: Number},
+    avgRentalPrice: { type: Number },
+    avgDaysBooked: { type: Number },
     taxes: [{
-      amount: { type: Number},
+      amount: { type: Number },
       date: { type: Date },
       type: { type: String },
       // TODO 
-      // sourceDoc: { type: mongoose.Schema.Types.ObjectId, ref: 'Document'}
+      sourceDoc: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' }
     }],
     // TODO think on whether old sale data from 
     // TODO pre fraction days is relevant
@@ -74,7 +75,7 @@ let propertySchema = new mongoose.Schema({
 
 propertySchema.methods = {
 
-  toPublicObject: () => {
+  toPublicObject: function() {
     // let scrubbedProp = Object.assign({}, this)
     // scrubbedProp.id = this._id.toString()
     return this 

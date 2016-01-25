@@ -69,6 +69,40 @@ exports.generateUserNotExistToken = function() {
   return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
 
+// test house
+exports.testHouse = {
+  location: {
+    addressLine1: '4583 Trillium Woods',
+    city: 'Lake Oswego',
+    state: 'Oregon',
+    zip: '97035'
+  },
+  details: {
+    description: "a descrip",
+    stats: {
+      bedrooms: '5',
+      bathrooms: '2',
+      sqft: '1420'
+    }
+  },
+  // see addTestProperty for where this is created
+  primaryContact: 'TBD'
+}
+
+exports.testUnrealLocation = {
+      addressLine1: '589999898353 Maine Streate',
+      city: 'Fran Sancisco',
+      state: 'Fornicalia',
+      zip: '55555'
+    }
+
+exports.testRealLocation = {
+      addressLine1: '4583 Trillium Woods',
+      city: 'Lake Oswego',
+      state: 'Oregon',
+      zip: '97035'
+    }
+
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
@@ -184,6 +218,27 @@ exports.addDocumentForUser = (testDoc, token) => {
         return resolve(res.body)
       })
   })
+}
+
+exports.addTestProperty = function(givenUserId, givenToken) {
+  //console.log('called inside!')
+  exports.testHouse.primaryContact = givenUserId
+  // we need a property object to pass the tests
+  let property = {property: exports.testHouse}
+  return new Promise((resolve, reject) => {  
+    requester
+      .post('/api/v1/property/')
+      .set('Authorization', givenToken) // hard coded for now
+      .send(property)
+      .expect(200)
+      .end((err, res) => {
+        if (err) {
+          throw new Error('Error creating test property: ', err);
+        }
+        expect(res.body.property).toBeDefined();
+        return resolve(res.body.property);
+      });
+  });
 }
 
 
