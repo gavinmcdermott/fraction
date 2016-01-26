@@ -14,8 +14,8 @@ import request from 'request'
 
 // Locals
 import fractionErrors from './../../utils/fractionErrors'
-import middlewareAuth from './../../middleware/tokenAuth'
-import middlewareErrors from './../../middleware/errorHandler'
+import { requireAuth } from './../../middleware/tokenAuth'
+import { wrap } from './../../middleware/errorHandler'
 import serviceRegistry  from './../serviceRegistry'
 
 // // DB Models
@@ -35,13 +35,13 @@ const SVC_NAME = 'property'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
-const ROUTE_CREATE_PROPERTY = '/';
-const ROUTE_UPDATE_PROPERTY = '/:propertyId';
+const ROUTE_CREATE_PROPERTY = '/'
+const ROUTE_UPDATE_PROPERTY = '/:propertyId'
 
 // this is probably wrong again? Not sure where we stand on this route
-const ROUTE_CHECK_USER_EXISTS = process.config.apiServer 
-                                + serviceRegistry.registry.apis.baseV1 
-                                + '/user/internal/check_existence'
+const ROUTE_CHECK_USER_EXISTS = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user'
+
+
 // Router 
 
 // Expose a router to plug into the main express app
@@ -76,16 +76,16 @@ function createProperty(req, res) {
 
 	// validate that there is a user
   try {
-    assert(_.has(req.body.property, 'primaryContact'));
+    assert(_.has(req.body.property, 'primaryContact'))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid primary contact');    
+    throw new fractionErrors.Invalid('invalid primary contact')    
   }
 
 	// validate that there is a location payload
 	try {
-     assert(_.has(req.body.property, 'location'));
+     assert(_.has(req.body.property, 'location'))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid location');    
+    throw new fractionErrors.Invalid('invalid location')    
   }
 
   // validate that the location bits are all there 
@@ -106,21 +106,21 @@ function createProperty(req, res) {
     	((req.body.property.location.zip).length === 10)
     ))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalidly formatted location');    
+    throw new fractionErrors.Invalid('invalid location')    
   }
 
   // validate that there are details
   try {
     assert(_.has(req.body.property, 'details'))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid details');    
+    throw new fractionErrors.Invalid('invalid details')    
   }
 
   // validate that there are stats
   try {
   	assert(_.has(req.body.property.details, 'stats'))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid stats');    
+    throw new fractionErrors.Invalid('invalid stats')    
   }
 
   // validate that there are bedrooms and it's a number
@@ -132,7 +132,7 @@ function createProperty(req, res) {
     // this next assert
     assert((!(_.isNaN(newBedrooms)) && _.isNumber(newBedrooms)))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid bedrooms');    
+    throw new fractionErrors.Invalid('invalid bedrooms')    
   }
 
   // validate that there is a number of bathrooms
@@ -141,7 +141,7 @@ function createProperty(req, res) {
     newBathrooms = Number(req.body.property.details.stats.bathrooms)
     assert((!(_.isNaN(newBathrooms)) && _.isNumber(newBathrooms)))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid bathrooms');    
+    throw new fractionErrors.Invalid('invalid bathrooms')    
   }
 
   try {
@@ -149,7 +149,7 @@ function createProperty(req, res) {
     newSqft = Number(req.body.property.details.stats.sqft)
     assert((!(_.isNaN(newSqft)) && _.isNumber(newSqft)))
   } catch(e) {
-    throw new fractionErrors.Invalid('invalid sqft');    
+    throw new fractionErrors.Invalid('invalid sqft')    
   }
 
   // TODO check to make sure this is not a duplicate of a 
@@ -202,27 +202,28 @@ function createProperty(req, res) {
       // this could potentially also be a different error than
       // just a non-real location, so if something is super weird
       // try console.log(e) and see what's going on. 
-      throw new fractionErrors.Invalid('non-real location')
+      throw new fractionErrors.Invalid('invalid location')
     })
     .then((validations) => {
       // "validations" is of the form [[{exact}], [{inexact}], {err}]
-      let exactMatch = _.map(validations[0], function(a) {
-                       return a.toString();
-                     })
+      let exactMatch = _.map(validations[0], (address) => {
+        return address.toString()
+      })
+
       try {
         // just verify there is an exact match
         assert((exactMatch[0].length > 5))
         // also check zip code, as a double-check
         assert((req.body.property.location.zip === validations[0][0].postalCode))
       } catch (e) {
-        throw new fractionErrors.Invalid('non-real location')
+        throw new fractionErrors.Invalid('invalid location')
       }
     })
-    .catch((e) => {
-      if (e instanceof fractionErrors.Invalid) {
-        throw e
+    .catch((error) => {
+      if (error instanceof fractionErrors.Invalid) {
+        throw error
       }
-      throw new fractionErrors.Invalid('something wrong with location validator'); 
+      throw new fractionErrors.Invalid('location validation failed') 
     })
     ///////////////////////////////////////////////////////////////
     // TODO this portion of the promise chain should be uncommented
@@ -239,7 +240,7 @@ function createProperty(req, res) {
     //     throw e
     //   }
     //   // otherwise it was the second error
-    //   throw new fractionErrors.Invalid('non-user primary contact');
+    //   throw new fractionErrors.Invalid('non-user primary contact')
     // })
     //////////////////////////////////////////////////////////////
     // TODO also uncomment lines within this '.then()' that are 
@@ -274,7 +275,7 @@ function createProperty(req, res) {
         throw e
       }
       // otherwise something else went wrong
-      throw new Error(e);
+      throw new Error(e)
     })
 }
 
@@ -293,7 +294,7 @@ function updateProperty(req, res) {
     .exec()
     .catch((err) => {
       // handle case where the property is not there
-      throw new fractionErrors.NotFound('property not found');
+      throw new fractionErrors.NotFound('property not found')
     })
     .then((existingProperty) => {
 
@@ -310,7 +311,7 @@ function updateProperty(req, res) {
           assert((req.body.propery.primaryContact.length > 5))
           existingProperty.primaryContact = primaryContact
         } catch(e) {
-          throw new fractionErrors.Invalid('invalid primary contact');    
+          throw new fractionErrors.Invalid('invalid primary contact')    
         }
       }
 
@@ -334,7 +335,7 @@ function updateProperty(req, res) {
           // TODO are used first 
           existingProperty.location = location
         } catch(e) {
-          throw new fractionErrors.Invalid('invalidly formatted location');    
+          throw new fractionErrors.Invalid('invalid location')    
         }
       }
 
@@ -349,28 +350,28 @@ function updateProperty(req, res) {
           assert((!(_.isNaN(newBedrooms)) && _.isNumber(newBedrooms)))
           existingProperty.details.stats.bedrooms = newBedrooms 
         } catch(e) {
-          throw new fractionErrors.Invalid('invalid bedrooms');    
+          throw new fractionErrors.Invalid('invalid bedrooms')    
         }
       }
 
       // save if all good
-      return existingProperty.save();
+      return existingProperty.save()
     })
     .then((updatedProperty) => {
-      return res.json({ property: updatedProperty.toPublicObject() });
+      return res.json({ property: updatedProperty.toPublicObject() })
     })
     .catch((err) => {
       if (err instanceof fractionErrors.BaseError) {
-        throw err;
+        throw err
       }
-      throw new Error(err.message);
-    });
+      throw new Error(err.message)
+    })
 }
 
 // Routes
 
-router.post(ROUTE_CREATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(createProperty))
-router.put(ROUTE_UPDATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(updateProperty))
+router.post(ROUTE_CREATE_PROPERTY, requireAuth, wrap(createProperty))
+router.put(ROUTE_UPDATE_PROPERTY, requireAuth, wrap(updateProperty))
 
 // Exports
 module.exports = {
