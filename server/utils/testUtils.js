@@ -70,38 +70,50 @@ exports.generateUserNotExistToken = function() {
 }
 
 // test house
-exports.testHouse = {
-  location: {
-    addressLine1: '4583 Trillium Woods',
-    city: 'Lake Oswego',
-    state: 'Oregon',
-    zip: '97035'
-  },
-  details: {
-    description: "a descrip",
-    stats: {
-      bedrooms: '5',
-      bathrooms: '2',
-      sqft: '1420'
-    }
-  },
-  // see addTestProperty for where this is created
-  primaryContact: 'TBD'
-}
 
-exports.testUnrealLocation = {
-      addressLine1: '589999898353 Maine Streate',
-      city: 'Fran Sancisco',
-      state: 'Fornicalia',
-      zip: '55555'
-    }
+exports.properties = {
 
-exports.testRealLocation = {
-      addressLine1: '4583 Trillium Woods',
+  validHouse: {
+    location: {
+      address1: '4583 Trillium Woods',
+      address2: '',
       city: 'Lake Oswego',
       state: 'Oregon',
       zip: '97035'
-    }
+    },
+    details: {
+      description: "a descrip",
+      stats: {
+        bedrooms: '5',
+        bathrooms: '2',
+        sqft: '1420'
+      }
+    },
+    primaryContact: ''
+  },
+
+  invalidLocation: {
+    address1: '',
+    state: 'Fornicalia',
+    zip: '555'
+  },
+
+  fakeLocation: {
+    address1: '589999898353 Maine Streate',
+    address2: '',
+    city: 'Fran Sancisco',
+    state: 'Fornicalia',
+    zip: '55555'
+  },
+
+  validLocation: {
+    address1: '4583 Trillium Woods',
+    address2: '',
+    city: 'Lake Oswego',
+    state: 'Oregon',
+    zip: '97035'
+  }
+}
 
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
@@ -220,16 +232,15 @@ exports.addDocumentForUser = (testDoc, token) => {
   })
 }
 
-exports.addTestProperty = function(givenUserId, givenToken) {
-  //console.log('called inside!')
-  exports.testHouse.primaryContact = givenUserId
-  // we need a property object to pass the tests
-  let property = {property: exports.testHouse}
+// Add a test property to the db
+exports.addTestProperty = function(userId, token) {
+  let validHouse = properties.validHouse.validHouse
+  validHouse.primaryContact = userId
   return new Promise((resolve, reject) => {  
     requester
       .post('/api/v1/property/')
-      .set('Authorization', givenToken) // hard coded for now
-      .send(property)
+      .set('Authorization', token) // hard coded for now
+      .send({ property: validHouse })
       .expect(200)
       .end((err, res) => {
         if (err) {

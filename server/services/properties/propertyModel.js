@@ -6,17 +6,21 @@ import mongoose from 'mongoose';
 let propertySchema = new mongoose.Schema({
 
   location: {
-    addressLine1: { type: String, required: true },
-    addressLine2: { type: String },
-    neighborhood: { type: String },
+    address1: { type: String, required: true },
+    address2: { type: String },
+    // neighborhood: { type: String },
     city: { type: String, required: true },
-    county: { type: String },
+    // county: { type: String },
     state: { type: String, required: true },
     zip: { type: String, required: true }
     // lat: { type: String },
     // lon: { type: String }, 
     // someday schools            
   },
+
+
+
+
 
   // TODO
  documents: [{type: mongoose.Schema.Types.ObjectId, ref: 'Document'}],

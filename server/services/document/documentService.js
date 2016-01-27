@@ -152,6 +152,8 @@ function createDocument(req, res) {
       return res.json({ saved: true, document: createdDoc.toPublicObject() })
     })
     .catch((response) => {
+      // MOVE THIS TO THE POST USER FETCH!!!
+
       let errorMessage
       try {
         errorMessage = JSON.parse(response.error).message
