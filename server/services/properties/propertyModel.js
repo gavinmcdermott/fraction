@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-import _ from 'lodash';
-import mongoose from 'mongoose';
+import _ from 'lodash'
+import mongoose from 'mongoose'
 
 let propertySchema = new mongoose.Schema({
 
@@ -17,10 +17,6 @@ let propertySchema = new mongoose.Schema({
     // lon: { type: String }, 
     // someday schools            
   },
-
-
-
-
 
   // TODO
  documents: [{type: mongoose.Schema.Types.ObjectId, ref: 'Document'}],
@@ -88,9 +84,8 @@ propertySchema.methods = {
 }
 
 
-
 // index?
 
-let Property = mongoose.serviceDb.model('Property', propertySchema);
+let Property = mongoose.serviceDb.model('Property', propertySchema)
 
-module.exports = Property;
+module.exports = Property

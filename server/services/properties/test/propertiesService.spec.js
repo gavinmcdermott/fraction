@@ -100,14 +100,17 @@ describe('Property Service: ', function() {
 
   beforeAll(() => {
     testUtils.initSuite(propertyService.name)
-  });
+  })
 
   afterAll((done) => {
     testUtils.clearLocalTestDatabase()
     .then(() => {
-      done();
+      done()
     })
   })
+
+
+  // CREATE
 
   describe('Create New Property: ', () => {
 
@@ -356,7 +359,6 @@ describe('Property Service: ', function() {
         })
     })
 
-
     it('fails to create without a primary contact who is a user', (done) => {
       
       initGoogleNock(true)
@@ -442,8 +444,104 @@ describe('Property Service: ', function() {
           done()
         })
     }) 
-   
   })
+
+
+  // GET
+
+  describe('Get Property: ', () => {
+
+    let user
+    let token
+    let testUserId
+    let property
+
+    let getUrl = propertyService.url + '/'
+    let invalidGetUrl = propertyService.url + '/23423ds'
+    let missingGetUrl = propertyService.url + '/56a8703388b05566d1fd3bc2'
+    
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+        .then(() => {
+          return testUtils.addTestUser()
+        })
+        .then(() => {
+          return testUtils.logInTestUser()
+        })
+        .then((result) => {
+          user = result.user
+          token = 'Bearer ' + result.token
+          testUserId = user.id
+          return testUtils.addTestProperty(user.id, token)
+        })
+        .then((property) => {
+          property = property
+          getUrl += property.id.toString()
+          done()
+        })
+    })
+
+    it('should fail without a token', (done) => {
+      requester
+        .get(getUrl)
+        .send({})
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid token')
+          expect(res.body.status).toBe(401)
+          done()
+        })
+    })
+
+    it('should fail with bad propertyid', (done) => {
+      requester
+        .get(invalidGetUrl)
+        .set('Authorization', token)
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid propertyId')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('should fail if it cannot find property', (done) => {
+      requester
+        .get(missingGetUrl)
+        .set('Authorization', token)
+        .expect(404)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('property not found')
+          expect(res.body.status).toBe(404)
+          done()
+        })
+    })
+
+    it('should return a property', (done) => {
+      requester
+        .get(getUrl)
+        .set('Authorization', token)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.property).toBeDefined()
+          done()
+        })
+    })
+  })
+
+  
+
+
+
+
+
+
+
+
 
   // describe('Update Existing Property: ', () => {
   //   //console.log('calleddf')
@@ -457,30 +555,30 @@ describe('Property Service: ', function() {
   //   beforeAll((done) => {
   //     testUtils.clearLocalTestDatabase()
   //       .then(() => {
-  //         return testUtils.addTestUser();
+  //         return testUtils.addTestUser()
   //       })
   //       .then(() => {
-  //         return testUtils.logInTestUser();
+  //         return testUtils.logInTestUser()
   //       })
   //       .then((result) => {
   //         // console.log('called here!')
-  //         user = result.user;
-  //         token = 'Bearer ' + result.token;
-  //         return testUtils.addTestProperty(user.id, token);
+  //         user = result.user
+  //         token = 'Bearer ' + result.token
+  //         return testUtils.addTestProperty(user.id, token)
   //       })
   //       .then((result) => {
   //         property = result
   //         updateUrl = propertyService.url + '/' + property._id
   //         done()
   //       })
-  //   });
+  //   })
 
   //   afterAll((done) => {
   //     testUtils.clearLocalTestDatabase()
   //     .then(() => {
-  //       done();
-  //     });
-  //   });
+  //       done()
+  //     })
+  //   })
 
 
   //   it('fails without a valid token', (done) => {
@@ -491,11 +589,11 @@ describe('Property Service: ', function() {
   //       .expect(401)
   //       .expect('Content-Type', /json/)
   //       .end((err, res) => {
-  //         expect(res.body.message).toBe('invalid token');
-  //         expect(res.body.status).toBe(401);
-  //         done();
-  //       });
-  //   });
+  //         expect(res.body.message).toBe('invalid token')
+  //         expect(res.body.status).toBe(401)
+  //         done()
+  //       })
+  //   })
 
   //   it('fails without an existing property', (done) => {
   //     requester
@@ -505,11 +603,11 @@ describe('Property Service: ', function() {
   //       .expect(404)
   //       .expect('Content-Type', /json/)
   //       .end((err, res) => {
-  //         expect(res.body.message).toBe('property not found');
-  //         expect(res.body.status).toBe(404);
-  //         done();
-  //       });
-  //   });
+  //         expect(res.body.message).toBe('property not found')
+  //         expect(res.body.status).toBe(404)
+  //         done()
+  //       })
+  //   })
 
   //   it('fails to update to a blank primary contact', (done) => {
   //     requester

@@ -14,8 +14,8 @@ import request from 'request'
 
 // Locals
 import fractionErrors from './../../utils/fractionErrors'
-import middlewareAuth from './../../middleware/tokenAuth'
-import middlewareErrors from './../../middleware/errorHandler'
+import { requireAuth } from './../../middleware/tokenAuth'
+import { wrap } from './../../middleware/errorHandler'
 import serviceRegistry  from './../serviceRegistry'
 
 // // DB Models
@@ -32,7 +32,7 @@ let registry = serviceRegistry.registry
 
 // naming
 const SVC_NAME = 'properties'
-const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/property'
+const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_PROPERTY = '/'
@@ -277,8 +277,6 @@ function createProperty(req, res) {
 }
 
 
-
-
 /**
  * Get a property
  *
@@ -288,6 +286,40 @@ function createProperty(req, res) {
  */
 function getProperty(req, res) {
 
+  let propertyId
+
+  try {
+    assert(req.body.userId)
+    assert(req.body.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
+  try {
+    assert(req.params.propertyId)
+    propertyId = req.params.propertyId
+  } catch (err) {
+    throw new fractionErrors.Invalid('invalid propertyId')
+  }
+
+  return Property.findById({ _id: propertyId })
+    .exec()
+    .catch((err) => {
+      throw new fractionErrors.Invalid('invalid propertyId')
+    })
+    .then((property) => {
+      if (!property) {
+        throw new fractionErrors.NotFound('property not found')  
+      }
+      return res.json({ property: property.toPublicObject() })
+    })
+    .catch((err) => {
+      // console.log(err)
+      if (err instanceof fractionErrors.BaseError) {
+        throw err
+      }
+      throw new fractionErrors.NotFound('property not found')
+    })
 }
 
 
@@ -383,9 +415,9 @@ function getProperty(req, res) {
 
 // Routes
 
-router.post(ROUTE_CREATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(createProperty))
-// router.put(ROUTE_UPDATE_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(updateProperty))
-router.put(ROUTE_GET_PROPERTY, middlewareAuth.requireAuth, middlewareErrors.wrap(getProperty))
+router.post(ROUTE_CREATE_PROPERTY, requireAuth, wrap(createProperty))
+// router.put(ROUTE_UPDATE_PROPERTY, requireAuth, wrap(updateProperty))
+router.get(ROUTE_GET_PROPERTY, requireAuth, wrap(getProperty))
 
 // Exports
 module.exports = {
@@ -395,7 +427,7 @@ module.exports = {
   endpoints: {
     createProperty: { protocol: 'HTTP', method: 'POST', name: 'createProperty', url: ROUTE_CREATE_PROPERTY },
     // updateProperty: { protocol: 'HTTP', method: 'PUT', name: 'updateProperty', url: ROUTE_UPDATE_PROPERTY },
-    getProperty: { protocol: 'HTTP', method: 'PUT', name: 'getProperty', url: ROUTE_GET_PROPERTY }
+    getProperty: { protocol: 'HTTP', method: 'GET', name: 'getProperty', url: ROUTE_GET_PROPERTY }
   }
 }
 

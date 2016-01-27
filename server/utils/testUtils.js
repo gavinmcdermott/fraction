@@ -70,7 +70,6 @@ exports.generateUserNotExistToken = function() {
 }
 
 // test house
-
 exports.properties = {
 
   validHouse: {
@@ -233,25 +232,30 @@ exports.addDocumentForUser = (testDoc, token) => {
 }
 
 // Add a test property to the db
-exports.addTestProperty = function(userId, token) {
-  let validHouse = properties.validHouse.validHouse
-  validHouse.primaryContact = userId
-  return new Promise((resolve, reject) => {  
-    requester
-      .post('/api/v1/property/')
-      .set('Authorization', token) // hard coded for now
-      .send({ property: validHouse })
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          throw new Error('Error creating test property: ', err);
-        }
-        expect(res.body.property).toBeDefined();
-        return resolve(res.body.property);
-      });
-  });
-}
+exports.addTestProperty = function(userId) {
+  assert(userId)
 
+  // import the property model to simply inject the property
+  let Property = require('./../services/properties/propertyModel')
+
+  let house = exports.properties.validHouse
+  house.primaryContact = userId
+
+  let newProperty = {
+    location: house.location,
+    details: house.details,
+    primaryContact: userId,
+    dateAdded: moment.utc().valueOf()
+  }
+
+  return Property.create(newProperty)
+    .then((property) => {
+      if (!property) {
+        throw new Error('Error creating test property: ', err)
+      }
+      return property
+    })
+}
 
 // Initialize the test server before running any service tests
 beforeAll((done) => {
