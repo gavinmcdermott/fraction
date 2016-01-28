@@ -76,6 +76,9 @@ let propertySchema = new mongoose.Schema({
 propertySchema.methods = {
 
   toPublicObject: function() {
+    // TODO: CLEAN UP THE ID!!!
+    // TODO: CLEAN UP THE ID!!!
+    // TODO: CLEAN UP THE ID!!!
     // let scrubbedProp = Object.assign({}, this)
     // scrubbedProp.id = this._id.toString()
     return this 

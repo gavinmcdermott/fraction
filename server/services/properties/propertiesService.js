@@ -11,6 +11,7 @@ import mongoose from 'mongoose'
 import q from 'q'
 import requestP from 'request-promise'
 import request from 'request'
+import validator from 'validator'
 
 // Locals
 import fractionErrors from './../../utils/fractionErrors'
@@ -177,7 +178,6 @@ function createProperty(req, res) {
     throw new fractionErrors.Invalid('invalid sqft')    
   }
 
-
   // 1
   // Ensure the property is not a duplicate
   return Property.findOne({
@@ -192,7 +192,6 @@ function createProperty(req, res) {
       }
       return true
     })
-
 
     // 2
     // Ensure that the primary contact is a Fraction user
@@ -216,7 +215,6 @@ function createProperty(req, res) {
       let errorMessage = JSON.parse(err.error).message
       throw new fractionErrors.NotFound(errorMessage)
     })
-
 
     // 3
     // Ensure that the property address is a real address
@@ -251,7 +249,6 @@ function createProperty(req, res) {
       }
       throw new fractionErrors.Invalid('address validation failed')
     })
-
     
     // 4
     // create the property
@@ -268,7 +265,7 @@ function createProperty(req, res) {
       return res.json({ property: createdProperty.toPublicObject() })
     })
 
-
+    // 5
     // Handle all thrown errors in the waterfall
     .catch((error) => {
       // TODO (gavin): Ensure that the final error is an instance that we can manage
@@ -321,6 +318,11 @@ function getProperty(req, res) {
       throw new fractionErrors.NotFound('property not found')
     })
 }
+
+
+
+
+
 
 
 

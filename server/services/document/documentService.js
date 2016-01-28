@@ -131,6 +131,10 @@ function createDocument(req, res) {
 
   // Get the user who uploaded the email
   return requestP(options)
+    .catch((response) => {
+      let errorMessage = JSON.parse(response.error).message
+      throw new fractionErrors.NotFound(errorMessage)
+    })
     .then((user) => {
       let newDoc = {
         type: docType,
@@ -148,23 +152,31 @@ function createDocument(req, res) {
       }
       return Document.create(newDoc)
     })
+
+
     .then((createdDoc) => {
+      // FaKE A BAD save and see what happens
       return res.json({ saved: true, document: createdDoc.toPublicObject() })
     })
-    .catch((response) => {
-      // MOVE THIS TO THE POST USER FETCH!!!
-
-      let errorMessage
-      try {
-        errorMessage = JSON.parse(response.error).message
-      } catch(e) {
-        errorMessage = response.error && response.error.message
+    .catch((err) => {
+      if (err instanceof fractionErrors.BaseError) {
+        throw err
       }
 
-      if (_.contains(errorMessage, 'invalid')) {
-        throw new fractionErrors.Invalid(errorMessage)
+
+      console.log(err.error.message)
+
+      // HANDLES SOME INVALID DOCS
+      if (_.contains(err, 'invalid')) {
+        throw new fractionErrors.Invalid(err)
       }
-      throw new fractionErrors.NotFound(errorMessage)
+
+      // WHAT HAPPENS IF ERROR ON SAVE???
+      // WHAT HAPPENS IF ERROR ON SAVE???
+      // WHAT HAPPENS IF ERROR ON SAVE???
+      // console.log(errorMessage)
+      throw new Error(err.message)
+      // throw new fractionErrors.NotFound(errorMessage)
     })
 }
 
