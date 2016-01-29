@@ -36,13 +36,8 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_OFFERING = '/'
-
-// configuration for currency validation
-let currencyValidationConfig = {
-  require_symbol: false,
-  symbol_after_digits: false, 
-  allow_negatives: false
-}
+const ROUTE_GET_OFFERINGS = '/'
+const ROUTE_GET_OFFERING = '/:offeringId'
 
 
 // Router 
@@ -95,25 +90,27 @@ function createOffering(req, res) {
 
   try {
     assert(_.has(req.body, 'price'))
-    price = req.body.price
-    assert(validator.isCurrency(price, currencyValidationConfig))
-    assert(!validator.isDecimal(price))
+    assert(validator.isFloat(req.body.price))
+    price = parseFloat(req.body.price).toFixed(2)
+    assert(validator.isDecimal(price))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid price')
   }  
 
   try {
     assert(_.has(req.body, 'quantity'))
-    quantity = req.body.quantity
-    assert(!validator.isDecimal(quantity))
-    assert(quantity <= 1000)
+    assert(validator.isInt(req.body.quantity, {
+      min: 1,
+      max: 1000
+    }))
+    quantity = parseInt(req.body.quantity, 10)
   } catch(e) {
     throw new fractionErrors.Invalid('invalid quantity')
   }  
 
   // 1
   // Check if it's a real property  
-  let getPropertyRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/properties/' + property
+  let getPropertyRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/properties/' + propertyId
   let getPropertyToken = 'Bearer ' + token
   let getPropertyOptions = {
     method: 'GET',
@@ -131,102 +128,171 @@ function createOffering(req, res) {
     // Check for prior offerings on this property to:
     // verify shares that can be offered, if another offering is open
     .then((returnedProp) => {
-      return Offering.find({ property: property })
+      return Offering.find({ property: propertyId })
     })
     .then((offerings) => {
-      console.log('found offerings', offerings)
-      // if any are currently open; throw - 2 cannot be open at the same time
-      // get the number of shares that have been offered previously in closed ones
-      // ensure that we can offer the number we want
-      return {
-        foo: 123
+      let partitionedOfferings = _.partition(offerings, offering => offering.status === Offering.status.open)
+      let openOfferings = partitionedOfferings[0]
+      let closedOfferings = partitionedOfferings[1]
+      
+      // Ensure no other open offerings exist 
+      if (openOfferings.length) {
+        throw new fractionErrors.Forbidden('existing open offering for this property')
       }
+
+      // Ensure that the 1000 share aggregate limit is enforced
+      let sharesIssued = _.reduce(closedOfferings, (result, offering, key) => {
+        return result + offering.filled
+      }, 0)
+      if ((sharesIssued + quantity) > 1000) {
+        throw new fractionErrors.Forbidden('aggregate shares issued cannot exceed 1000')
+      }
+
+      return true
     })
     .catch((err) => {
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
-      console.log(err.message)
-      throw new fractionErrors.NotFound('property not found')
+      throw new Error(err.message)
     })
 
     // 3
     // Save the new offering
     .then((data) => {
       let offering = {
+        // description?
+        // name?
         property: propertyId,
         addedBy: userId,
         price: price,
-        quantity: quantity,
         status: Offering.status.open,
+        quantity: quantity,
         filled: 0,
         remaining: quantity,
         dateOpened: moment.utc().valueOf(),
         dateClosed: null,
         backers: []
       }
-      console.log('ABOUT TO SAVE: ', offering)
-      console.log('=========')
-      console.log('')
-      return offering.save()
+      return Offering.create(offering)
     })
     .then((newOffering) => {
-      console.log('SAVED: ', newOffering)
       return res.json({ offering: newOffering.toPublicObject() })
     })
     .catch((err) => {
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
-      console.log(err.message)
-      throw new Error(err)
+      throw new Error(err.message)
     })
 }
 
 
 /**
- * Get all offerings or a specifc property
+ * Get all offerings
  *
  * @param {req} obj Express request object
  * @param {res} obj Express response object
  * @returns {promise}
  */
-function getProperty(req, res) {
+function getOfferings(req, res) {
 
-  // let propertyId
+  // TODO: Add in: pagination; result limit; by house;  by open / closed
 
-  // try {
-  //   assert(req.body.userId)
-  //   assert(req.body.token)
-  // } catch(e) {
-  //   new fractionErrors.Unauthorized('invalid token')
-  // }
+  let status
+  let propertyId
+  let query = {}
 
-  // try {
-  //   assert(req.params.propertyId)
-  //   propertyId = req.params.propertyId
-  // } catch (err) {
-  //   throw new fractionErrors.Invalid('invalid propertyId')
-  // }
+  try {
+    assert(req.body.userId)
+    assert(req.body.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
 
-  // return Property.findById({ _id: propertyId })
-  //   .exec()
-  //   .catch((err) => {
-  //     throw new fractionErrors.Invalid('invalid propertyId')
-  //   })
-  //   .then((property) => {
-  //     if (!property) {
-  //       throw new fractionErrors.NotFound('property not found')  
-  //     }
-  //     return res.json({ property: property.toPublicObject() })
-  //   })
-  //   .catch((err) => {
-  //     // console.log(err)
-  //     if (err instanceof fractionErrors.BaseError) {
-  //       throw err
-  //     }
-  //     throw new fractionErrors.NotFound('property not found')
-  //   })
+  // set a status to search by
+  if (_.has(req.query, 'status')) {
+    try {
+      status = req.query.status
+      if (_.isString(status)) {
+        assert(_.has(Offering.status, status))
+        query.status = status
+      }
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid status')
+    }
+  }
+
+  // set a property to find by
+  if ((_.has(req.query, 'property'))) {
+    try {
+      propertyId = req.query.property
+      assert(_.isString(propertyId))
+      query.property = propertyId
+    } catch(e) {
+      throw new fractionErrors.Invalid('invalid property')
+    }
+  }
+
+  return Offering.find(query)
+    .exec()
+    .then((offerings) => {
+      let sanitized = _.map(offerings, (offering) => {
+        return offering.toPublicObject()
+      })
+      return res.json({ offerings: sanitized })
+    })
+    .catch((err) => {
+      throw new Error(err.message)
+    })
+}
+
+
+/**
+ * Get a offerings for a single property
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function getOffering(req, res) {
+
+  let offeringId
+  let query
+
+  try {
+    assert(req.body.userId)
+    assert(req.body.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
+  try {
+    assert(req.params.offeringId)
+    offeringId = req.params.offeringId
+  } catch (err) {
+    throw new fractionErrors.Invalid('invalid offeringId')
+  }
+  
+  query = {
+    // status: Offering.status.open,
+    _id: offeringId
+  }
+
+  return Offering.findById(query)
+    .exec()
+    .then((offering) => {
+      if (!offering) {
+        throw new fractionErrors.NotFound('offer not found')
+      }
+      return res.json({ offering: offering.toPublicObject() })
+    })
+    .catch((err) => {
+      if (err instanceof fractionErrors.BaseError) {
+        throw err
+      }
+      throw new Error(err.message)
+    })
 }
 
 
@@ -238,6 +304,8 @@ function getProperty(req, res) {
 // Routes
 
 router.post(ROUTE_CREATE_OFFERING, requireAuth, wrap(createOffering))
+router.get(ROUTE_GET_OFFERINGS, requireAuth, wrap(getOfferings))
+router.get(ROUTE_GET_OFFERING, requireAuth, wrap(getOffering))
 
 
 // Exports
@@ -247,6 +315,8 @@ module.exports = {
   router: router,
   endpoints: {
     createOffering: { protocol: 'HTTP', method: 'POST', name: 'createOffering', url: ROUTE_CREATE_OFFERING },
+    getOfferings: { protocol: 'HTTP', method: 'GET', name: 'getOfferings', url: ROUTE_GET_OFFERINGS },
+    getOffering: { protocol: 'HTTP', method: 'GET', name: 'getOffering', url: ROUTE_GET_OFFERING },
   }
 }
 

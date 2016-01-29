@@ -472,7 +472,7 @@ describe('Property Service: ', function() {
           user = result.user
           token = 'Bearer ' + result.token
           testUserId = user.id
-          return testUtils.addTestProperty(user.id, token)
+          return testUtils.addTestProperty(user.id)
         })
         .then((property) => {
           property = property
@@ -498,11 +498,11 @@ describe('Property Service: ', function() {
       requester
         .get(invalidGetUrl)
         .set('Authorization', token)
-        .expect(400)
+        .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid propertyId')
-          expect(res.body.status).toBe(400)
+          expect(res.body.message).toBe('property not found')
+          expect(res.body.status).toBe(404)
           done()
         })
     })

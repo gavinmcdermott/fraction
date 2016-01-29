@@ -203,6 +203,10 @@ function updateUser(req, res) {
       throw new fractionErrors.NotFound('user not found')
     })
     .then((existingUser) => {
+      
+      if (!existingUser) {
+        throw new fractionErrors.NotFound('user not found')
+      }
 
       let email = req.body.user.email
       let name = req.body.user.name

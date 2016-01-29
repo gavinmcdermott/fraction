@@ -300,10 +300,6 @@ function getProperty(req, res) {
   }
 
   return Property.findById({ _id: propertyId })
-    .exec()
-    .catch((err) => {
-      throw new fractionErrors.Invalid('invalid propertyId')
-    })
     .then((property) => {
       if (!property) {
         throw new fractionErrors.NotFound('property not found')  

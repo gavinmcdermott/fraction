@@ -5,7 +5,7 @@ import mongoose from 'mongoose'
 
 
 var backerSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   shares: [{
     count: { type: Number, required: true },
     dateBacked: { type: Date, required: true },
@@ -14,15 +14,15 @@ var backerSchema = new mongoose.Schema({
 
 
 let offeringSchema = new mongoose.Schema({
-  property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
-  addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  property: { type: mongoose.Schema.Types.ObjectId, ref: 'Property', required: true },
+  addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   price: { type: Number, required: true },
   quantity: { type: Number, required: true },
-  status: { type: String, required: true },
-  filled: { type: Boolean, required: true },
+  status: { type: String, required: true, default: 'open' },
+  filled: { type: Number, required: true },
   remaining: { type: Number, required: true },
   dateOpened: { type: Date, required: true },
-  dateClosed: { type: Date, required: true },
+  dateClosed: { type: Date },
   backers: [ backerSchema ]
 })
 
@@ -37,12 +37,19 @@ offeringSchema.statics = {
 
 offeringSchema.methods = {
   toPublicObject: function() {
-    let publicObj = Object.assign({}, this)
-    // clean up the id
-    delete publicObj._id
-    publicObj.id = this._id
-    // return the sanitized object
-    return publicObj
+    return {
+      property: this.property,
+      addedBy: this.addedBy,
+      price: this.price,
+      quantity: this.quantity,
+      status: this.status,
+      filled: this.filled,
+      remaining: this.remaining,
+      dateOpened: this.dateOpened,
+      dateClosed: this.dateClosed,
+      backers: this.backers,
+      id: this._id
+    }
   }
 }
 
