@@ -180,10 +180,18 @@ function createUser(req, res) {
  */
 function updateUser(req, res) {
 
-  let userId = req.params.userId
+  let userId
+
   try {
-    assert(userId)
-    assert(userId.length)
+    assert(req.body.userId)
+    assert(req.body.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
+  try {
+    assert(req.params.userId)
+    userId = req.params.userId
   } catch (err) {
     throw new fractionErrors.Invalid('invalid userid')
   }
@@ -195,6 +203,10 @@ function updateUser(req, res) {
       throw new fractionErrors.NotFound('user not found')
     })
     .then((existingUser) => {
+      
+      if (!existingUser) {
+        throw new fractionErrors.NotFound('user not found')
+      }
 
       let email = req.body.user.email
       let name = req.body.user.name

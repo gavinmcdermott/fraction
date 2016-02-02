@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-import _ from 'lodash';
-import mongoose from 'mongoose';
+import _ from 'lodash'
+import mongoose from 'mongoose'
 
 let propertySchema = new mongoose.Schema({
 
   location: {
-    addressLine1: { type: String, required: true },
-    addressLine2: { type: String },
-    neighborhood: { type: String },
+    address1: { type: String, required: true },
+    address2: { type: String },
+    // neighborhood: { type: String },
     city: { type: String, required: true },
-    county: { type: String },
+    // county: { type: String },
     state: { type: String, required: true },
     zip: { type: String, required: true }
     // lat: { type: String },
@@ -76,6 +76,9 @@ let propertySchema = new mongoose.Schema({
 propertySchema.methods = {
 
   toPublicObject: function() {
+    // TODO: CLEAN UP THE ID!!!
+    // TODO: CLEAN UP THE ID!!!
+    // TODO: CLEAN UP THE ID!!!
     // let scrubbedProp = Object.assign({}, this)
     // scrubbedProp.id = this._id.toString()
     return this 
@@ -84,9 +87,8 @@ propertySchema.methods = {
 }
 
 
-
 // index?
 
-let Property = mongoose.serviceDb.model('Property', propertySchema);
+let Property = mongoose.serviceDb.model('Property', propertySchema)
 
-module.exports = Property;
+module.exports = Property
