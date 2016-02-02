@@ -675,14 +675,10 @@ describe('Offerings Service: ', () => {
   })
 
 
+  // UPDATE BACKER ON AN OFFERING
 
 
-
-
-
-
-
-
+  // REMOVE BACKER FROM AN OFFERING
 
 })
 

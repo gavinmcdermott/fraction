@@ -42,8 +42,10 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 const ROUTE_CREATE_OFFERING = '/'
 const ROUTE_GET_OFFERINGS = '/'
 const ROUTE_GET_OFFERING = '/:offeringId'
+
 const ROUTE_ADD_BACKER = '/:offeringId/backers'
 const ROUTE_DELETE_BACKER = '/:offeringId/backers/:backerId'
+const ROUTE_UPDATE_BACKER = '/:offeringId/backers/:backerId'
 
 
 // Router 
@@ -398,6 +400,19 @@ function addBacker(req, res) {
 
 
 /**
+ * Update a backer in a property's offering
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+
+function updateBacker(req, res) {
+  // TODO : fill in
+}
+
+
+/**
  * Removes a backer to a property's offering
  *
  * @param {req} obj Express request object
@@ -406,7 +421,7 @@ function addBacker(req, res) {
  */
 
 function deleteBacker(req, res) {
-
+  // TODO : fill in
 }
 
 
@@ -418,6 +433,8 @@ router.get(ROUTE_GET_OFFERINGS, requireAuth, wrap(getOfferings))
 router.get(ROUTE_GET_OFFERING, requireAuth, wrap(getOffering))
 
 router.post(ROUTE_ADD_BACKER, requireAuth, wrap(addBacker))
+router.put(ROUTE_UPDATE_BACKER, requireAuth, wrap(updateBacker))
+router.delete(ROUTE_DELETE_BACKER, requireAuth, wrap(deleteBacker))
 
 
 // Exports
@@ -432,6 +449,8 @@ module.exports = {
     getOffering: { protocol: 'HTTP', method: 'GET', name: 'getOffering', url: ROUTE_GET_OFFERING },
     // Backers for an offering
     addBacker: { protocol: 'HTTP', method: 'POST', name: 'addBacker', url: ROUTE_ADD_BACKER },
+    updateBacker: { protocol: 'HTTP', method: 'PUT', name: 'updateBacker', url: ROUTE_UPDATE_BACKER },
+    deleteBacker: { protocol: 'HTTP', method: 'DELETE', name: 'deleteBacker', url: ROUTE_DELETE_BACKER },
   }
 }
 
