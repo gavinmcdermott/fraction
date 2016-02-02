@@ -30,6 +30,10 @@ let registry = serviceRegistry.registry
 
 // Constants
 
+// Shares
+const MIN_PROPERTY_SHARES = 1
+const MAX_PROPERTY_SHARES = 1000
+
 // naming
 const SVC_NAME = 'offerings'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
@@ -38,6 +42,8 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 const ROUTE_CREATE_OFFERING = '/'
 const ROUTE_GET_OFFERINGS = '/'
 const ROUTE_GET_OFFERING = '/:offeringId'
+const ROUTE_ADD_BACKER = '/:offeringId/backers'
+const ROUTE_DELETE_BACKER = '/:offeringId/backers/:backerId'
 
 
 // Router 
@@ -100,8 +106,8 @@ function createOffering(req, res) {
   try {
     assert(_.has(req.body, 'quantity'))
     assert(validator.isInt(req.body.quantity, {
-      min: 1,
-      max: 1000
+      min: MIN_PROPERTY_SHARES,
+      max: MAX_PROPERTY_SHARES
     }))
     quantity = parseInt(req.body.quantity, 10)
   } catch(e) {
@@ -119,6 +125,7 @@ function createOffering(req, res) {
   }
 
   return requestP(getPropertyOptions)
+    // handle the property not existing
     .catch((err) => {
       let errorMessage = JSON.parse(err.error).message
       throw new fractionErrors.NotFound(errorMessage)
@@ -190,6 +197,9 @@ function createOffering(req, res) {
 
 /**
  * Get all offerings
+ * Can scope by query params: 
+ * status: open, closed (if not included, it will retrieve both)
+ * property: scope offerings by a property
  *
  * @param {req} obj Express request object
  * @param {res} obj Express response object
@@ -197,7 +207,7 @@ function createOffering(req, res) {
  */
 function getOfferings(req, res) {
 
-  // TODO: Add in: pagination; result limit; by house;  by open / closed
+  // TODO: Add in: pagination; result limit
 
   let status
   let propertyId
@@ -275,7 +285,6 @@ function getOffering(req, res) {
   }
   
   query = {
-    // status: Offering.status.open,
     _id: offeringId
   }
 
@@ -296,8 +305,112 @@ function getOffering(req, res) {
 }
 
 
+/**
+ * Adds a backer to a property's offering
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+
+function addBacker(req, res) {
+
+  let query
+  let backerId
+  let offeringId
+  let shares
+
+  try {
+    assert(req.body.userId)
+    assert(req.body.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
+  try {
+    assert(req.params.offeringId)
+    offeringId = req.params.offeringId
+  } catch (err) {
+    throw new fractionErrors.Invalid('invalid offeringId')
+  }
+
+  try {
+    assert(req.body.backer)
+    backerId = req.body.backer
+  } catch (err) {
+    throw new fractionErrors.Invalid('invalid backer')
+  }
+
+  try {
+    assert(req.body.shares)
+    assert(validator.isInt(req.body.shares, {
+      min: MIN_PROPERTY_SHARES,
+      max: MAX_PROPERTY_SHARES
+    }))
+    shares = parseInt(req.body.shares, 10)
+  } catch (err) {
+    throw new fractionErrors.Invalid('invalid shares')
+  }
+
+  query = {
+    _id: offeringId
+  }
+
+  return Offering.findOne(query)
+    .then((offering) => {
+      if (!offering) {
+        throw new fractionErrors.NotFound('offering not found')
+      }
+
+      // ensure that the backer isnt in the document yet
+      let backerExists = _.filter(offering.backers, backer => backer.user.toString() === backerId).length
+      if (backerExists) {
+        throw new fractionErrors.Forbidden('backer exists')
+      }
+
+      // ensure that max of 1000 isn't being exceeded
+      let newFillCount = offering.filled + shares
+      if (newFillCount > offering.quantity) {
+        throw new fractionErrors.Invalid('invalid share quantity')     
+      }
+
+      return Offering.findByIdAndUpdate(
+        offeringId, { 
+          '$push': {
+            'backers': { 'user': backerId, 'quantity': shares }
+          },
+          '$inc': {
+            'filled': shares, 'remaining': -shares
+          }
+        }, { 
+          new: true
+        }
+      )
+    })
+    .then((updated) => {
+      return res.json({ offering: updated.toPublicObject() })
+    })
+    .catch((err) => {
+      console.log('ERRRR: ', err)
+      if (err instanceof fractionErrors.BaseError) {
+        throw err
+      }
+      throw new Error(err.message)
+    })
+}
 
 
+/**
+ * Removes a backer to a property's offering
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+
+function deleteBacker(req, res) {
+
+}
 
 
 
@@ -307,6 +420,8 @@ router.post(ROUTE_CREATE_OFFERING, requireAuth, wrap(createOffering))
 router.get(ROUTE_GET_OFFERINGS, requireAuth, wrap(getOfferings))
 router.get(ROUTE_GET_OFFERING, requireAuth, wrap(getOffering))
 
+router.post(ROUTE_ADD_BACKER, requireAuth, wrap(addBacker))
+
 
 // Exports
 module.exports = {
@@ -314,9 +429,12 @@ module.exports = {
   url: SVC_BASE_URL,
   router: router,
   endpoints: {
+    // Offerings
     createOffering: { protocol: 'HTTP', method: 'POST', name: 'createOffering', url: ROUTE_CREATE_OFFERING },
     getOfferings: { protocol: 'HTTP', method: 'GET', name: 'getOfferings', url: ROUTE_GET_OFFERINGS },
     getOffering: { protocol: 'HTTP', method: 'GET', name: 'getOffering', url: ROUTE_GET_OFFERING },
+    // Backers for an offering
+    addBacker: { protocol: 'HTTP', method: 'POST', name: 'addBacker', url: ROUTE_ADD_BACKER },
   }
 }
 

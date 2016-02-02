@@ -384,7 +384,7 @@ describe('Offerings Service: ', () => {
         })
     })
 
-    it('fetches ALL OPEN offerings - MULTIPLE offerings; MULTIPLE properties', (done) => {
+    it('fetches ALL OPEN offerings - MULTIPLE properties', (done) => {
       let testPropertyB
       let testOfferingB
 
@@ -416,7 +416,6 @@ describe('Offerings Service: ', () => {
         })
     })
 
-
     it('fetches ALL OPEN & CLOSED offerings - SINGLE property', (done) => {
 
       // Add a third closed offering to property A
@@ -439,37 +438,6 @@ describe('Offerings Service: ', () => {
             })
         })
     })
-
-
-
-
-
-
-    // it('fetches all open offerings - multiple offerings', (done) => {
-    //   testUtils.addTestProperty(testUserId, testPropertyBName)
-    //     .then((house) => {
-
-    //       testUtils.addOffering(testUserId, house.id, 500, 200, 'open')
-    //         .then((offeringB) => {
-
-
-    //           requester
-    //             .get(getOneUrl)
-    //             .set('Authorization', token)
-    //             .send({})
-    //             .expect(200)
-    //             .expect('Content-Type', /json/)
-    //             .end((err, res) => {
-    //               expect(res.body.offerings).toBeDefined()
-    //               expect(res.body.offerings.length).toBe(2)
-    //               done()
-    //             })
-    //         })
-    //     })
-    // })
-    // TODO: scope offerings by property!
-
-
   })
 
 
@@ -488,7 +456,7 @@ describe('Offerings Service: ', () => {
       testUtils.addOffering(testUserId, testProperty.id, 900, 333, 'open')
         .then((offering) => {
           testOffering = offering
-          // bui;d the url
+          // build the url
           getOneUrl = offeringsService.url + '/' + testOffering.id
           done()
         })
@@ -540,6 +508,176 @@ describe('Offerings Service: ', () => {
         })
     })
   })
+
+
+  // ADD BACKER TO AN OFFERING
+  
+  describe('Add Backer to an Offering: ', () => {
+    
+    // offering specific to these tests
+    let testOffering
+
+    // need to build the url in the before all
+    let addBackerUrl
+    
+    beforeAll((done) => {
+      // Set the default to 200 filled shares
+      testUtils.addOffering(testUserId, testProperty.id, 1000, 200, 'open')
+        .then((offering) => {
+          testOffering = offering
+          // build the url
+          addBackerUrl = offeringsService.url + '/' + testOffering.id + '/backers'
+          done()
+        })
+    })
+
+    afterAll(() => {
+      testUtils.removeOffering()
+        .then((ok) => {
+          done()
+        })
+    })
+
+    it('fails without a valid token', (done) => {
+      requester
+        .post(addBackerUrl)
+        .send({})
+        .expect(401)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid token')
+          expect(res.body.status).toBe(401)
+          done()
+        })
+    })
+
+    it('fails without the new backer\'s user id', (done) => {
+      requester
+        .post(addBackerUrl)
+        .send({})
+        .set('Authorization', token)
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid backer')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails without the count of shares', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid shares')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails with bad shares number', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId,
+          shares: 10.134
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid shares')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails with too many shares', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId,
+          shares: 1001
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid shares')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('fails with too many shares based on what is currently filled', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId,
+          shares: 900  // currently 200 are filled
+        })
+        .expect(400)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('invalid share quantity')
+          expect(res.body.status).toBe(400)
+          done()
+        })
+    })
+
+    it('successfully adds a backer', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId,
+          shares: 300  // currently 200 are filled
+        })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.offering).toBeDefined()
+          expect(res.body.offering.backers.length).toBe(1)
+          let backer = res.body.offering.backers[0]
+          expect(backer.user).toEqual(testUserId)
+          done()
+        })
+    })
+
+    it('fails to add a backer twice', (done) => {
+      requester
+        .post(addBackerUrl)
+        .set('Authorization', token)
+        .send({
+          backer: testUserId,
+          shares: 300  // currently 200 are filled
+        })
+        .expect(403)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.message).toBe('backer exists')
+          expect(res.body.status).toBe(403)
+          done()
+        })
+    })
+
+
+
+
+
+
+
+
+  })
+
+
 
 
 

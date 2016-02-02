@@ -6,10 +6,7 @@ import mongoose from 'mongoose'
 
 var backerSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  shares: [{
-    count: { type: Number, required: true },
-    dateBacked: { type: Date, required: true },
-  }]
+  quantity: { type: Number, required: true }
 })
 
 

@@ -38,7 +38,7 @@ const placeholderUser = {
 export function currentUser(state=placeholderUser, action) {
   let newState = Object.assign({}, state)
   switch (action.type) {
-
+    
     // SIGN_UP
 
     case SIGN_UP_START:

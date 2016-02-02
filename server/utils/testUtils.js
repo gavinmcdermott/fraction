@@ -210,6 +210,7 @@ exports.logInTestUser = function() {
         }
         expect(res.body.user).toBeDefined()
         expect(res.body.token).toBeDefined()
+        console.log('logged in user ', res.body.user)
         return resolve(res.body)
       })
   })
@@ -232,6 +233,7 @@ exports.addDocumentForUser = (testDoc, token) => {
         }
         expect(res.body.saved).toBe(true)
         expect(res.body.document).toBeDefined()
+        console.log('added document ', res.body.document.id)
         return resolve(res.body)
       })
   })
@@ -259,6 +261,7 @@ exports.addTestProperty = function(userId, houseId='houseA') {
       if (!property) {
         throw new Error('Error creating test property: ', err)
       }
+      console.log('added property ', property._id)
       return property
     })
 }
@@ -270,8 +273,8 @@ exports.addTestProperty = function(userId, houseId='houseA') {
 exports.addOffering = function(userId, propertyId, quantity, filled, status) {
   assert(userId)
   assert(propertyId)
-  assert(quantity)
-  assert(filled)
+  assert(_.isNumber(quantity))
+  assert(_.isNumber(filled))
   assert(status)
 
   // import the property model to simply inject the property
@@ -300,6 +303,7 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
       if (!offering) {
         throw new Error('Error creating test offering: ', err)
       }
+      console.log('added offering ', offering._id)
       return offering
     })
 }
