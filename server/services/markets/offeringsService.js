@@ -358,6 +358,7 @@ function addBacker(req, res) {
 
   return Offering.findOne(query)
     .then((offering) => {
+      // ensure the offering exists
       if (!offering) {
         throw new fractionErrors.NotFound('offering not found')
       }
@@ -374,16 +375,13 @@ function addBacker(req, res) {
         throw new fractionErrors.Invalid('invalid share quantity')     
       }
 
+      // atomically update the offering
       return Offering.findByIdAndUpdate(
         offeringId, { 
-          '$push': {
-            'backers': { 'user': backerId, 'quantity': shares }
-          },
-          '$inc': {
-            'filled': shares, 'remaining': -shares
-          }
+          '$push': { 'backers': { 'user': backerId, 'quantity': shares } },
+          '$inc': { 'filled': shares, 'remaining': -shares }
         }, { 
-          new: true
+          new: true // return the updated document
         }
       )
     })
@@ -391,7 +389,6 @@ function addBacker(req, res) {
       return res.json({ offering: updated.toPublicObject() })
     })
     .catch((err) => {
-      console.log('ERRRR: ', err)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }

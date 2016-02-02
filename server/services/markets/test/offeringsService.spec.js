@@ -644,8 +644,13 @@ describe('Offerings Service: ', () => {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           expect(res.body.offering).toBeDefined()
-          expect(res.body.offering.backers.length).toBe(1)
-          let backer = res.body.offering.backers[0]
+          let offering = res.body.offering
+          
+          expect(offering.backers.length).toBe(1)
+          expect(offering.remaining).toBe(500)
+          expect(offering.filled).toBe(500)
+
+          let backer = offering.backers[0]
           expect(backer.user).toEqual(testUserId)
           done()
         })
@@ -667,14 +672,6 @@ describe('Offerings Service: ', () => {
           done()
         })
     })
-
-
-
-
-
-
-
-
   })
 
 
