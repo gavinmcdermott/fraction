@@ -13,7 +13,7 @@ import { Strategy } from 'passport-jwt'
 import fractionErrors from './../../utils/fractionErrors'
 
 // DB Models
-import User from './userModel'
+import User from './../users/userModel'
 
 
 // Constants

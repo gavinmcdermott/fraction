@@ -14,14 +14,11 @@ import validator from 'validator'
 
 
 // Locals
-
-import authenticateUser from './passportLocal'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
-import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
-
-import ensureAuth from './passportJwt'
+import authUser from './../common/passportLocal'
+import ensureAuth from './../common/passportJwt'
 
 // DB Models
 import User from './userModel'
@@ -333,10 +330,9 @@ function logOutUser(req, res) {
 
 // Routes
 
-router.post(ROUTE_LOG_IN_USER, authenticateUser, wrap(logInUser))
-router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
-
 router.post(ROUTE_CREATE_USER, wrap(createUser))
+router.post(ROUTE_LOG_IN_USER, authUser, wrap(logInUser))
+router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
 router.put(ROUTE_UPDATE_USER, ensureAuth, wrap(updateUser))
 router.get(ROUTE_GET_USER, ensureAuth, wrap(getUser))
 
