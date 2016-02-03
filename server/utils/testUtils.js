@@ -205,8 +205,7 @@ exports.logInTestUser = function() {
       .expect(200)
       .end((err, res) => {
         if (err) {
-          console.log('')
-          throw new Error('Error logging in test user: ' + res.body.message)
+          throw new Error('Error logging in test user: ' + err)
         }
         expect(res.body.user).toBeDefined()
         expect(res.body.token).toBeDefined()
@@ -229,7 +228,7 @@ exports.addDocumentForUser = (testDoc, token) => {
       .end((err, res) => {
         if (err) {
           console.log('')
-          throw new Error('Error adding document to user: ' + res.body.message)
+          throw new Error('Error adding document to user: ' + err.message)
         }
         expect(res.body.saved).toBe(true)
         expect(res.body.document).toBeDefined()

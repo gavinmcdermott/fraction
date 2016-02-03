@@ -218,10 +218,10 @@ describe('User Service: ', function() {
       requester
         .post(loginUrl)
         .send({ password: validPassword })
-        .expect(400)
+        // .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid email')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -247,7 +247,7 @@ describe('User Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid password')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -260,7 +260,7 @@ describe('User Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid password')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })

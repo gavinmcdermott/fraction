@@ -7,9 +7,9 @@ import _ from 'lodash'
 import assert from 'assert'
 import bodyParser from 'body-parser'
 import express from 'express'
-import jwt from 'jsonwebtoken'
 import moment from 'moment'
 import mongoose from 'mongoose'
+import passport from './passportLocal'
 import q from 'q'
 import validator from 'validator'
 
@@ -22,7 +22,6 @@ import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
 // DB Models
 import User from './userModel'
-
 
 // Use Q promises
 mongoose.Promise = require('q').Promise
@@ -41,9 +40,6 @@ const ROUTE_GET_USER = '/:userId'
 const ROUTE_LOG_IN_USER = '/login'
 const ROUTE_LOG_OUT_USER = '/logout'
 
-const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
-const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
-
 
 // Router
 
@@ -58,26 +54,6 @@ let router = express.Router()
 router.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 router.use(bodyParser.json())
-
-
-// Private Helpers
-
-/**
- * Generate a signed jwt for a user
- *
- * @returns {token} string New signed web token
- */
-let generateToken = function(userId) {
-  assert(userId)
-  let now = moment.utc()
-  let payload = {
-    iss: FRACTION_TOKEN_ISSUER,
-    exp: moment(now).add(1, 'day').utc().valueOf(),
-    iat: now.valueOf(),
-    sub: userId
-  }
-  return jwt.sign(payload, FRACTION_TOKEN_SECRET)
-}
 
 
 // Public API Functions
@@ -338,49 +314,37 @@ function getUser(req, res) {
  * @returns {promise}
  */
 function logInUser(req, res) {
-
-  let email
-  let hashedPassword
-
-  // validate email
-  try {
-    assert(_.isString(req.body.email))
-    email = validator.toString(req.body.email).toLowerCase()
-    assert(validator.isEmail(email))
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid email')    
+  if (req.error) {
+    throw req.error
   }
-
-  // password
-  try {
-    assert(_.isString(req.body.password))
-    hashedPassword = validator.toString(req.body.password)
-    assert(hashedPassword.length)
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid password')
+  if (req.token && req.user) {
+    return res.json({ token: req.token, user: req.user })
   }
+}
 
-  return User.findOne({ 'email.email': email, 'local.password': hashedPassword })
-    .then((user) => {
-      if (!user) {
-        throw new fractionErrors.NotFound('user not found')
-      }      
-      let token
 
-      try {
-        token = generateToken(user._id.toString())
-      } catch (err) {
-        throw new Error('error generating user token')
-      }
-      return res.json({ token: token, user: user.toPublicObject() })
-    })
-    .catch((err) => {
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
-      console.log(err.message)
-      throw new fractionErrors.NotFound('user not found')
-    })
+/**
+ * Express middleware function that wraps a passport-local middleware implementation
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function authenticate(req, res, next) {
+  passport.authenticate('local', (err, data, info) => {
+    // err should be an instance of a fractionError
+    if (err) {
+      req.error = err
+    }
+    if (info) {
+      req.error = new fractionErrors.Invalid(info.message)
+    }
+    if (data) {
+      req.user = data.user
+      req.token = data.token
+    }
+    return next()
+  })(req, res, next)
 }
 
 
@@ -399,7 +363,7 @@ function logOutUser(req, res) {
 
 // Routes
 
-router.post(ROUTE_LOG_IN_USER, wrap(logInUser))
+router.post(ROUTE_LOG_IN_USER, authenticate, wrap(logInUser))
 router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
 
 router.post(ROUTE_CREATE_USER, wrap(createUser))

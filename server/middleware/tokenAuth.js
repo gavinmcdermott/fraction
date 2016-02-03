@@ -4,19 +4,13 @@
 import _ from 'lodash'
 import jwt from 'jsonwebtoken'
 import moment from 'moment'
-// import requestP from 'request-promise'
 
 // Locals
 import fractionErrors from './../utils/fractionErrors'
-// import serviceRegistry from './../services/serviceRegistry';
 
 
 // Constants
 const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
-
-// const ROUTE_GET_USER = process.config.apiServer 
-//                        + serviceRegistry.registry.apis.baseV1 
-//                        + '/user'
 
 
 /**
