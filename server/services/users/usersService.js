@@ -123,7 +123,7 @@ function createUser(req, res) {
       password: hashedPassword
     },
     isActive: true,
-    fractionEmployee: false
+    scopes: User.scopes.fraction.user
   }
 
   return User.findOne({ 'email.email': email })

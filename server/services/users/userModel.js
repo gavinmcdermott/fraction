@@ -27,7 +27,7 @@ let userSchema = new mongoose.Schema({
 
   isActive: Boolean,
   
-  fractionEmployee: Boolean,
+  scopes: { type: String, required: true },
   
   lastLogin: { type: Date },
 
@@ -37,6 +37,16 @@ let userSchema = new mongoose.Schema({
     // Other means of communications?
   }
 })
+
+
+userSchema.statics = {
+  scopes: {
+    fraction: {
+      user: 'fraction:user',
+      admin: 'fraction:admin'
+    }
+  }
+}
 
 
 userSchema.methods = {

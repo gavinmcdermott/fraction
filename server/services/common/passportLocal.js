@@ -27,14 +27,15 @@ const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
  *
  * @returns {token} string New signed web token
  */
-let generateToken = function(userId) {
-  assert(userId)
+let generateToken = function(user) {
+  assert(_.isObject(user))
   let now = moment.utc()
   let payload = {
     iss: FRACTION_TOKEN_ISSUER,
     exp: moment(now).add(1, 'day').utc().valueOf(),
     iat: now.valueOf(),
-    sub: userId
+    sub: user._id.toString(),
+    scopes: user.scopes
   }
   return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
@@ -81,7 +82,7 @@ passport.use(new Strategy({
 
         let token
         try {
-          token = generateToken(user._id.toString())
+          token = generateToken(user)
         } catch (err) {
           return done(new fractionErrors.GenericStringError('error generating user token'))
         }

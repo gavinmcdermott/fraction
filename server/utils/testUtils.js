@@ -27,6 +27,7 @@ const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
 // Models to be used later in the helper functions
 let Offering
+let User
 
 
 // DB Connections
@@ -59,9 +60,9 @@ exports.testUser = {
 exports.initSuite = (suiteName) => {
   console.log('')
   console.log('')
-  console.log('================================================')
+  console.log('================================================================')
   console.log('Running ' + suiteName + ' service specs')
-  console.log('================================================')
+  console.log('================================================================')
   console.log('')
 }
 
@@ -76,6 +77,21 @@ exports.generateUserNotExistToken = function() {
   }
   return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
+
+// Generate a valid JWT token for a user 
+let generateToken = function(user) {
+  let now = moment.utc()
+  let payload = {
+    iss: FRACTION_TOKEN_ISSUER,
+    exp: moment(now).add(1, 'day').utc().valueOf(),
+    iat: now.valueOf(),
+    sub: user._id.toString(),
+    scopes: user.scopes
+  }
+  return jwt.sign(payload, FRACTION_TOKEN_SECRET)
+}
+
+
 
 // test house
 exports.properties = {
@@ -177,45 +193,74 @@ exports.clearLocalTestDatabase = function() {
 }
 
 // Helper to add a test user
-exports.addTestUser = function() {
-  return new Promise((resolve, reject) => {  
-    requester
-      .post('/api/v1/users/') // hard coded for now
-      .send(exports.testUser)
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          throw new Error('Error creating test user: ', err)
-        }
-        expect(res.body.user).toBeDefined()
-        return resolve(res.body.user)
-      })
-  })
+exports.addTestUser = (isFractionAdmin=false, user=exports.testUser) => {
+  
+  // import the property model to simply inject the property
+  User = User || require('./../services/users/userModel')
+
+  let scopes = isFractionAdmin ? User.scopes.fraction.admin : User.scopes.fraction.user
+  
+  let pendingUser = {
+    name: {
+      first: user.firstName,
+      last: user.lastName
+    },
+    email: {
+      email: user.email,
+      // TODO(gavin): ENABLE EMAIL VERIFICATION
+      verified: true,
+      verifyCode: '123',
+      verifySentAt: moment.utc().valueOf()
+    },
+    local: {
+      password: user.password
+    },
+    isActive: true,
+    scopes: scopes
+  }
+
+  return User.create(pendingUser)
+    .then((newUser) => {
+      if (!newUser) {
+        throw new Error('Could not create test user!')
+      }
+      return { user: newUser.toPublicObject() }
+    })
+    .catch((err) => {
+      console.log('Error creating test user: ', err)
+      throw err
+    })
 }
 
 // Helper to log in the test user
-exports.logInTestUser = function() {
-  return new Promise((resolve, reject) => {  
-    let trimmedTestUser = {
-      email: exports.testUser.email,
-      password: exports.testUser.password
-    }
-    requester
-      .post('/api/v1/users/login') // hard coded for now
-      .send(trimmedTestUser)
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          throw new Error('Error logging in test user: ' + err)
-        }
-        expect(res.body.user).toBeDefined()
-        expect(res.body.token).toBeDefined()
-        console.log('logged in user ', res.body.user)
-        return resolve(res.body)
-      })
-  })
+exports.logInTestUser = function(user=exports.testUser) {
+
+  // import the property model to simply inject the property
+  User = User || require('./../services/users/userModel')
+
+  let testUser = {
+    email: user.email.toLowerCase(),
+    password: user.password
+  }
+
+  return User.findOne({ 'email.email': testUser.email, 'local.password': testUser.password })
+    .then((user) => {
+      if (!user) {
+        throw new Error('Error logging in test user! USER NOT FOUND')
+      }
+      let token = generateToken(user)
+      return { token: token, user: user.toPublicObject() }
+    })
+    .catch((err) => {
+      console.log('Error logging in test user: ', err)
+      throw err
+    })
 }
 
+
+
+
+// FIXME: ADD DOCUMENT DIRECT DB UPLOADS
 // Add documents that belong to a user
 exports.addDocumentForUser = (testDoc, token) => {
   assert(_.isObject(testDoc))
@@ -238,6 +283,9 @@ exports.addDocumentForUser = (testDoc, token) => {
       })
   })
 }
+
+
+
 
 // Add a test property to the db
 exports.addTestProperty = function(userId, houseId='houseA') {

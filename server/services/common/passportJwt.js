@@ -45,15 +45,10 @@ passport.use(new Strategy(opts, (jwtPayload, done) => {
       if (!user) {
         return done(new fractionErrors.NotFound('user not found'))
       }
-      return done(null, user.toPublicObject())
+      return done(null, { user: user.toPublicObject(), token: jwtPayload })
     })
   })
 )
-
-
-function exractAuthToken(req) {
-  return req.headers.authorization
-}
 
 
 /**
@@ -78,8 +73,9 @@ function ensureAuth(req, res, next) {
       req.error = new fractionErrors.Unauthorized(info.message)
     }
     if (data) {
-      req.user = data
-      req.token = exractAuthToken(req)
+      req.user = data.user
+      req.tokenPayload = data.token
+      req.token = req.headers.authorization
     }
     return next()
   })(req, res, next)
