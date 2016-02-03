@@ -51,6 +51,11 @@ passport.use(new Strategy(opts, (jwtPayload, done) => {
 )
 
 
+function exractAuthToken(req) {
+  return req.headers.authorization
+}
+
+
 /**
  * Express middleware function that wraps a passport-local middleware implementation
  *
@@ -59,16 +64,22 @@ passport.use(new Strategy(opts, (jwtPayload, done) => {
  * @returns {promise}
  */
 function ensureAuth(req, res, next) {
+
+  if (req.user) {
+    return next()
+  }
+
   passport.authenticate('jwt', { session: false }, (err, data, info) => {
     // err should be an instance of a fractionError
     if (err) {
       req.error = err
     }
     if (info) {
-      req.error = new fractionErrors.Unauthorized('invalid token')
+      req.error = new fractionErrors.Unauthorized(info.message)
     }
     if (data) {
       req.user = data
+      req.token = exractAuthToken(req)
     }
     return next()
   })(req, res, next)

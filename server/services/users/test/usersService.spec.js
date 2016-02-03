@@ -358,7 +358,7 @@ describe('Users Service: ', function() {
         .expect(401)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid token')
+          expect(res.body.message).toBe('No auth token')
           expect(res.body.status).toBe(401)
           done()
         })
@@ -482,7 +482,7 @@ describe('Users Service: ', function() {
         .expect(401)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid token')
+          expect(res.body.message).toBe('No auth token')
           expect(res.body.status).toBe(401)
           done()
         })

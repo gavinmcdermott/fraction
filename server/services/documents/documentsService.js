@@ -1,7 +1,6 @@
 'use strict'
 
 // Globals
-
 import _ from 'lodash'
 import assert from 'assert'
 import bodyParser from 'body-parser'
@@ -13,11 +12,12 @@ import requestP from 'request-promise'
 import validator from 'validator'
 
 // Locals
-
 import serviceRegistry  from './../serviceRegistry'
 import fractionErrors from './../../utils/fractionErrors'
-import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
+import { requireAuth } from './../../middleware/tokenAuth'
+import ensureAuth from './../common/passportJwt'
+
 // DB Models
 import Document from './documentModel'
 
@@ -73,15 +73,18 @@ function createDocument(req, res) {
   let userId
   let token
 
-  try {
-    assert(req.body.token)
-    assert(req.body.userId)
-  } catch(e) {
-    throw new fractionErrors.Unauthorized('invalid token')
+  if (req.error) {
+    throw req.error
   }
 
-  userId = req.body.userId
-  token = req.body.token
+  try {
+    assert(req.user)
+    assert(req.token)
+    token = req.token
+    userId = req.user.id
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }  
  
   // validate document
   // TODO: FORMAT this pdf into something string-able
@@ -121,7 +124,7 @@ function createDocument(req, res) {
   docState = 'done'
 
   let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + userId
-  let getUserToken = 'Bearer ' + token
+  let getUserToken = token
 
   let options = {
     method: 'GET',
@@ -188,13 +191,13 @@ function createDocument(req, res) {
  * @returns {promise}
  */
 function getDocuments(req, res) {  
-  console.log('aksdnaskj')
+  // console.log('aksdnaskj')
 }
 
 
 
-router.post(ROUTE_CREATE_DOC, requireAuth, wrap(createDocument))
-router.get(ROUTE_GET_DOCS, requireAuth, wrap(getDocuments))
+router.post(ROUTE_CREATE_DOC, ensureAuth, wrap(createDocument))
+router.get(ROUTE_GET_DOCS, ensureAuth, wrap(getDocuments))
 
 
 // Exports

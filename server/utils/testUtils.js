@@ -23,6 +23,7 @@ import serviceRegistry from './../services/serviceRegistry'
 
 const SERVICE_DB = process.config.serviceDb
 const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
+const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
 // Models to be used later in the helper functions
 let Offering
@@ -68,7 +69,7 @@ exports.initSuite = (suiteName) => {
 exports.generateUserNotExistToken = function() {
   let now = moment.utc()
   let payload = {
-    iss: 'some issuer',
+    iss: FRACTION_TOKEN_ISSUER,
     exp: moment(now).add(1, 'day').utc().valueOf(),
     iat: now.valueOf(),
     sub: '56995219797feefe7770659g'

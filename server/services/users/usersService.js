@@ -2,7 +2,6 @@
 
 
 // Globals
-
 import _ from 'lodash'
 import assert from 'assert'
 import bodyParser from 'body-parser'
@@ -274,6 +273,12 @@ function getUser(req, res) {
     throw req.error
   }
 
+  try {
+    assert(req.user)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
   if (req.params.userId === FETCH_ME) {
     return res.json({ user: req.user })
   }
@@ -343,13 +348,13 @@ module.exports = {
   name: SVC_NAME,
   url: SVC_BASE_URL,
   router: router,
-  endpoints: [
-    { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER },
-    { protocol: 'HTTP', method: 'PUT', name: 'UPDATE_USER', url: ROUTE_UPDATE_USER },
-    { protocol: 'HTTP', method: 'GET', name: 'GET_USER', url: ROUTE_GET_USER },
-    { protocol: 'HTTP', method: 'POST', name: 'LOG_IN_USER', url: ROUTE_LOG_IN_USER },
-    { protocol: 'HTTP', method: 'POST', name: 'LOG_OUT_USER', url: ROUTE_LOG_OUT_USER }
-  ]
+  endpoints: {
+    createUser: { protocol: 'HTTP', method: 'POST', name: 'createUser', url: ROUTE_CREATE_USER },
+    logInUser: { protocol: 'HTTP', method: 'POST', name: 'logInUser', url: ROUTE_LOG_IN_USER },
+    logOutUser: { protocol: 'HTTP', method: 'POST', name: 'logOutUser', url: ROUTE_LOG_OUT_USER },
+    updateUser: { protocol: 'HTTP', method: 'PUT', name: 'updateUser', url: ROUTE_UPDATE_USER },
+    getUser: { protocol: 'HTTP', method: 'GET', name: 'getUser', url: ROUTE_GET_USER }
+  }
 }
 
 
