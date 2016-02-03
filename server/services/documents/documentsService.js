@@ -31,7 +31,7 @@ let registry = serviceRegistry.registry
 // Constants
 
 // naming
-const SVC_NAME = 'document'
+const SVC_NAME = 'documents'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
@@ -120,7 +120,7 @@ function createDocument(req, res) {
   // TODO: infer the state based on specific document types?
   docState = 'done'
 
-  let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user/' + userId
+  let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + userId
   let getUserToken = 'Bearer ' + token
 
   let options = {

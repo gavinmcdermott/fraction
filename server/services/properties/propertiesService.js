@@ -196,7 +196,7 @@ function createProperty(req, res) {
     // 2
     // Ensure that the primary contact is a Fraction user
     .then((valid) => {
-      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user/' + primaryContact
+      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + primaryContact
       let getContactToken = 'Bearer ' + token
       let getContactOptions = {
         method: 'GET',

@@ -16,12 +16,12 @@ let testUser = testUtils.testUser
 let serviceRegistry = testUtils.serviceRegistry
 
 // grab an instance of the user service
-let userService = serviceRegistry.registry.services['user']
+let usersService = serviceRegistry.registry.services['users']
 
 
 // Service Tests
 
-describe('User Service: ', function() {
+describe('Users Service: ', function() {
 
   let validPassword = testUser.password
   let invalidPassword = ''
@@ -36,7 +36,7 @@ describe('User Service: ', function() {
 
 
   beforeAll(() => {
-    testUtils.initSuite(userService.name)
+    testUtils.initSuite(usersService.name)
   })
 
   afterAll((done) => {
@@ -51,7 +51,7 @@ describe('User Service: ', function() {
 
   describe('Create User: ', () => {
 
-    let postUrl = userService.url + '/'
+    let postUrl = usersService.url + '/'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
@@ -191,7 +191,7 @@ describe('User Service: ', function() {
 
   describe('Login User: ', () => {
 
-    let loginUrl = userService.url + '/login'
+    let loginUrl = usersService.url + '/login'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
@@ -322,9 +322,9 @@ describe('User Service: ', function() {
     let token
 
     let getUrl
-    let badGetUrl = userService.url + '/5689a9f38b7512cf1b0e497f'
-    let noUserUrl = userService.url + '/ssss'
-    let meUrl = userService.url + '/me'
+    let badGetUrl = usersService.url + '/5689a9f38b7512cf1b0e497f'
+    let noUserUrl = usersService.url + '/ssss'
+    let meUrl = usersService.url + '/me'
 
 
     beforeAll((done) => {
@@ -338,7 +338,7 @@ describe('User Service: ', function() {
         .then((result) => {
           user = result.user
           token = 'Bearer ' + result.token
-          getUrl = userService.url + '/' + user.id
+          getUrl = usersService.url + '/' + user.id
           done()
         })
     })
@@ -443,7 +443,7 @@ describe('User Service: ', function() {
     let token
 
     let updateUrl
-    let badUpdateUrl = userService.url + '/5689a9f38b7512cf1b0e497f'
+    let badUpdateUrl = usersService.url + '/5689a9f38b7512cf1b0e497f'
 
     let newFirstName = 'Gavin'
     let newLastName = 'McD'
@@ -462,7 +462,7 @@ describe('User Service: ', function() {
         .then((result) => {
           user = result.user
           token = 'Bearer ' + result.token
-          updateUrl = userService.url + '/' + user.id
+          updateUrl = usersService.url + '/' + user.id
           done()
         })
     })
@@ -616,7 +616,7 @@ describe('User Service: ', function() {
     let user
     let token
 
-    let logoutUrl = userService.url + '/logout'
+    let logoutUrl = usersService.url + '/logout'
     
     it('returns a null user and token', (done) => {
       requester

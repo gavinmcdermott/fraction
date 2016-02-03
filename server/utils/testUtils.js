@@ -179,7 +179,7 @@ exports.clearLocalTestDatabase = function() {
 exports.addTestUser = function() {
   return new Promise((resolve, reject) => {  
     requester
-      .post('/api/v1/user/') // hard coded for now
+      .post('/api/v1/users/') // hard coded for now
       .send(exports.testUser)
       .expect(200)
       .end((err, res) => {
@@ -200,7 +200,7 @@ exports.logInTestUser = function() {
       password: exports.testUser.password
     }
     requester
-      .post('/api/v1/user/login') // hard coded for now
+      .post('/api/v1/users/login') // hard coded for now
       .send(trimmedTestUser)
       .expect(200)
       .end((err, res) => {

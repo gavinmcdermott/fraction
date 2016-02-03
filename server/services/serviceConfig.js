@@ -1,9 +1,9 @@
 'use strict';
 
 export const services = {
+  "documents": { "loadPath": "./documents/documentsService" },
   "properties": { "loadPath": "./properties/propertiesService" },
-  "document": { "loadPath": "./document/documentService" },
-  "user": { "loadPath": "./user/userService" },
+  "users": { "loadPath": "./users/usersService" },
   // broader container services
   "offerings": { "loadPath": "./markets/offeringsService" },
 }

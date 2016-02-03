@@ -91,6 +91,31 @@ passport.use(new Strategy({
 )
 
 
+/**
+ * Express middleware function that wraps a passport-local middleware implementation
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function authenticateUser(req, res, next) {
+  passport.authenticate('local', (err, data, info) => {
+    // err should be an instance of a fractionError
+    if (err) {
+      req.error = err
+    }
+    if (info) {
+      req.error = new fractionErrors.Invalid(info.message)
+    }
+    if (data) {
+      req.user = data.user
+      req.token = data.token
+    }
+    return next()
+  })(req, res, next)
+}
+
+
 // Exports
 
-module.exports = passport
+module.exports = authenticateUser

@@ -10,7 +10,7 @@ let testUser = testUtils.testUser
 let serviceRegistry = testUtils.serviceRegistry
 
 // grab an instance of the document service
-let documentService = serviceRegistry.registry.services['document']
+let documentsService = serviceRegistry.registry.services['documents']
 
 
 // Service Tests
@@ -19,7 +19,7 @@ describe('Document Service: ', () => {
   
   beforeAll(() => {
     // Todo: have test utils init this line! pull it from each test
-    testUtils.initSuite(documentService.name)
+    testUtils.initSuite(documentsService.name)
   })
 
   afterAll((done) => {
@@ -34,7 +34,7 @@ describe('Document Service: ', () => {
     let user
     let token
 
-    let postUrl = documentService.url + '/'
+    let postUrl = documentsService.url + '/'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
@@ -158,7 +158,7 @@ describe('Document Service: ', () => {
   //   let token
   //   let doc
 
-  //   let getUrl = documentService.url + '/'
+  //   let getUrl = documentsService.url + '/'
 
   //   let testDoc1 = {
   //     document: 'This is a test document 1',

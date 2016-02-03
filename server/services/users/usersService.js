@@ -9,17 +9,20 @@ import bodyParser from 'body-parser'
 import express from 'express'
 import moment from 'moment'
 import mongoose from 'mongoose'
-import passport from './passportLocal'
 import q from 'q'
 import validator from 'validator'
 
 
 // Locals
 
+import authenticateUser from './passportLocal'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
 import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
+
+import ensureAuth from './passportJwt'
+
 // DB Models
 import User from './userModel'
 
@@ -30,7 +33,7 @@ mongoose.Promise = require('q').Promise
 // Constants
 
 // naming
-const SVC_NAME = 'user'
+const SVC_NAME = 'users'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
@@ -158,9 +161,13 @@ function updateUser(req, res) {
 
   let userId
 
+  // Will be a Fraction Error instance
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.body.user)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -263,35 +270,23 @@ function updateUser(req, res) {
 function getUser(req, res) {
 
   const FETCH_ME = 'me'
-  let idToFetch
+  let idToFetch = req.params.userId
 
-  try {
-    assert(req.body.userId)
-    assert(req.body.token)
-  } catch(e) {
-    new fractionErrors.Unauthorized('invalid token')
+  // Will be a Fraction Error instance
+  if (req.error) {
+    throw req.error
   }
 
-  if (req.params.userId === 'me') {
-    idToFetch = req.body.userId
-  } else {
-    idToFetch = req.params.userId
+  if (req.params.userId === FETCH_ME) {
+    return res.json({ user: req.user })
   }
 
-  if (!idToFetch) {
-    throw new fractionErrors.Invalid('invalid userid')
-  }
-
-  return User.findById({_id: idToFetch})
+  return User.findById({ _id: idToFetch })
     .then((user) => {
       if (!user) {
         throw new fractionErrors.NotFound('user not found')
       }
-      // If the request is for the app's current user, send full details
-      if (req.params.userId === FETCH_ME) {
-        return res.json({ user: user.toPublicObject() })      
-      }
-      // otherwise sanitize the details
+      // sanitize any user's details down to the id for now
       let sanitizedUser = {
         id: user.id
       }
@@ -324,31 +319,6 @@ function logInUser(req, res) {
 
 
 /**
- * Express middleware function that wraps a passport-local middleware implementation
- *
- * @param {req} obj Express request object
- * @param {res} obj Express response object
- * @returns {promise}
- */
-function authenticate(req, res, next) {
-  passport.authenticate('local', (err, data, info) => {
-    // err should be an instance of a fractionError
-    if (err) {
-      req.error = err
-    }
-    if (info) {
-      req.error = new fractionErrors.Invalid(info.message)
-    }
-    if (data) {
-      req.user = data.user
-      req.token = data.token
-    }
-    return next()
-  })(req, res, next)
-}
-
-
-/**
  * Log out a fraction user
  * TODO: Improve authentication (expire tokens, oauth2, or something else)
  *
@@ -363,12 +333,12 @@ function logOutUser(req, res) {
 
 // Routes
 
-router.post(ROUTE_LOG_IN_USER, authenticate, wrap(logInUser))
+router.post(ROUTE_LOG_IN_USER, authenticateUser, wrap(logInUser))
 router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
 
 router.post(ROUTE_CREATE_USER, wrap(createUser))
-router.put(ROUTE_UPDATE_USER, requireAuth, wrap(updateUser))
-router.get(ROUTE_GET_USER, requireAuth, wrap(getUser))
+router.put(ROUTE_UPDATE_USER, ensureAuth, wrap(updateUser))
+router.get(ROUTE_GET_USER, ensureAuth, wrap(getUser))
 
 
 // Exports
