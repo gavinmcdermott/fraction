@@ -14,8 +14,9 @@ import request from 'request'
 import validator from 'validator'
 
 // Locals
-import fractionErrors from './../../utils/fractionErrors'
 import { wrap } from './../../middleware/errorHandler'
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
 import ensureAuth from './../common/passportJwt'
 
@@ -423,7 +424,7 @@ function getProperty(req, res) {
 
 // Routes
 
-router.post(ROUTE_CREATE_PROPERTY, ensureAuth, wrap(createProperty))
+router.post(ROUTE_CREATE_PROPERTY, ensureAuth, ensureFractionAdmin, wrap(createProperty))
 router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
 
 // router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))

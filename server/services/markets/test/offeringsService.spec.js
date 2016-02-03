@@ -12,6 +12,7 @@ import testUtils from './../../../utils/testUtils'
 let app = testUtils.app
 let requester = testUtils.requester
 let testUser = testUtils.testUser
+let adminUser = testUtils.adminUser
 let testProperties = testUtils.properties
 let serviceRegistry = testUtils.serviceRegistry
 
@@ -24,10 +25,14 @@ let offeringsService = serviceRegistry.registry.services['offerings']
 describe('Offerings Service: ', () => {
   
   let user
-  let token
-  let testUserId
-  let testProperty
+  let userToken
 
+  let admin
+  let adminToken
+
+  let testPropertyA
+  let testPropertyB
+  
   let testPropertyAName = 'houseA'
   let testPropertyBName = 'houseB'
 
@@ -37,19 +42,20 @@ describe('Offerings Service: ', () => {
     
     testUtils.clearLocalTestDatabase()
       .then(() => {
-        return testUtils.addTestUser()
+        return testUtils.addTestUser(false, testUser)
       })
-      .then(() => {
-        return testUtils.logInTestUser()
+      .then((data) => {
+        user = data.user
+        userToken = data.token
+        return testUtils.addTestUser(true, adminUser)
       })
-      .then((result) => {
-        user = result.user
-        token = 'Bearer ' + result.token
-        testUserId = user.id
-        return testUtils.addTestProperty(testUserId)
+      .then((data) => {
+        admin = data.user
+        adminToken = data.token
+        return testUtils.addTestProperty(user.id)
       })
       .then((property) => {
-        testProperty = property
+        testPropertyA = property
         done()
       })
   })
@@ -64,7 +70,7 @@ describe('Offerings Service: ', () => {
   describe('Create Offering: ', () => {
     
     // offering specific to these tests
-    let testOffering
+    let testOfferingA
 
     let postUrl = offeringsService.url + offeringsService.endpoints.createOffering.url
 
@@ -91,7 +97,7 @@ describe('Offerings Service: ', () => {
     it('fails to create without a property passed', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({})
         .expect(400)
         .expect('Content-Type', /json/)
@@ -105,7 +111,7 @@ describe('Offerings Service: ', () => {
     it('fails to create without a price passed', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd'
         })
@@ -121,7 +127,7 @@ describe('Offerings Service: ', () => {
     it('fails to create with an invalid price', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd',
           price: 'asd'
@@ -138,7 +144,7 @@ describe('Offerings Service: ', () => {
     it('fails to create without a quantity', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd',
           price: 123.34
@@ -155,7 +161,7 @@ describe('Offerings Service: ', () => {
     it('fails to create with an invalid quantity - decimal', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd',
           price: 123.34,
@@ -173,7 +179,7 @@ describe('Offerings Service: ', () => {
     it('fails to create when issuing too many shares', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd',
           price: 123.34,
@@ -191,7 +197,7 @@ describe('Offerings Service: ', () => {
     it('fails to create if the propertyId is bad', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '1233sasfsd3fFd',
           price: 123.34,
@@ -209,7 +215,7 @@ describe('Offerings Service: ', () => {
     it('fails to create if the property does not exist', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: '56aa8a9f8c8d31c107dc4ess',
           price: 123.34,
@@ -224,20 +230,21 @@ describe('Offerings Service: ', () => {
         })
     })
 
-    it('creates a new offering', (done) => {
+    it('creates a new offering', (done) => {  
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
-          property: testProperty.id,
+          property: testPropertyA.id,
           price: 123.34,
           quantity: 500
         })
         .expect(200)
         .expect('Content-Type', /json/)
         .end((err, res) => {
+          console.log(err)
           expect(res.body.offering).toBeDefined()
-          testOffering = res.body.offering
+          testOfferingA = res.body.offering
           done()
         })
     }) 
@@ -245,9 +252,9 @@ describe('Offerings Service: ', () => {
     it('cannot create a second offering while another is open', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
-          property: testProperty.id,
+          property: testPropertyA.id,
           price: 200,
           quantity: 225
         })
@@ -258,7 +265,7 @@ describe('Offerings Service: ', () => {
           expect(res.body.status).toBe(403)
           
           // Remove the offering for the next test
-          testUtils.removeOffering(testOffering.id)
+          testUtils.removeOffering(testOfferingA.id)
             .then((ok) => {
               done()
             })
@@ -266,13 +273,13 @@ describe('Offerings Service: ', () => {
     }) 
 
     it('cannot create an offering whose share quantity violates the 1000 share aggregate rule', (done) => {
-      testUtils.addOffering(testUserId, testProperty.id, 900, 900, 'closed')
+      testUtils.addOffering(admin.id, testPropertyA.id, 900, 900, 'closed')
         .then((offering) => {
           requester
             .post(postUrl)
-            .set('Authorization', token)
+            .set('Authorization', adminToken)
             .send({
-              property: testProperty.id,
+              property: testPropertyA.id,
               price: 200,
               quantity: 225
             })
@@ -292,16 +299,16 @@ describe('Offerings Service: ', () => {
     }) 
 
     it('creates an offering whose share quantity violates the 1000 share aggregate rule', (done) => {
-      testUtils.addOffering(testUserId, testProperty.id, 300, 300, 'closed')
+      testUtils.addOffering(admin.id, testPropertyA.id, 300, 300, 'closed')
         .then((offeringA) => {
-          testUtils.addOffering(testUserId, testProperty.id, 300, 300, 'closed')
+          testUtils.addOffering(admin.id, testPropertyA.id, 300, 300, 'closed')
             .then((offeringB) => {
 
               requester
                 .post(postUrl)
-                .set('Authorization', token)
+                .set('Authorization', adminToken)
                 .send({
-                  property: testProperty.id,
+                  property: testPropertyA.id,
                   price: 300,
                   quantity: 401
                 })
@@ -329,13 +336,14 @@ describe('Offerings Service: ', () => {
     
     // offering specific to these tests
     let testOfferingA
+    let testOfferingB
 
     let getAllUrl = offeringsService.url + offeringsService.endpoints.getOfferings.url
     
     beforeAll((done) => {
 
       // Add first test offering to property A
-      testUtils.addOffering(testUserId, testProperty.id, 900, 333, 'open')
+      testUtils.addOffering(admin.id, testPropertyA.id, 900, 333, 'open')
         .then((offering) => {
           testOfferingA = offering
           done()
@@ -365,13 +373,13 @@ describe('Offerings Service: ', () => {
     it('fetches ALL OPEN & CLOSED offerings - SINGLE property', (done) => {
       
       // Add a second, closed offering to property A
-      testUtils.addOffering(testUserId, testProperty.id, 50, 50, 'closed')
+      testUtils.addOffering(admin.id, testPropertyA.id, 50, 50, 'closed')
         .then((offering) => {
           requester
             .get(getAllUrl)
-            .set('Authorization', token)
+            .set('Authorization', userToken)
             .query({
-              property: testProperty.id
+              property: testPropertyA.id
             })
             .send({})
             .expect(200)
@@ -385,22 +393,20 @@ describe('Offerings Service: ', () => {
     })
 
     it('fetches ALL OPEN offerings - MULTIPLE properties', (done) => {
-      let testPropertyB
-      let testOfferingB
 
       // Add test property B
-      testUtils.addTestProperty(testUserId, testPropertyBName)
+      testUtils.addTestProperty(admin.id, testPropertyBName)
         .then((house) => {
           testPropertyB = house
 
           // Add an open offering for property B
-          testUtils.addOffering(testUserId, house.id, 500, 200, 'open')
+          testUtils.addOffering(admin.id, house.id, 500, 200, 'open')
             .then((offeringB) => {
               testOfferingB = offeringB
 
               requester
                 .get(getAllUrl)
-                .set('Authorization', token)
+                .set('Authorization', userToken)
                 .query({
                   status: 'open'
                 })
@@ -419,15 +425,15 @@ describe('Offerings Service: ', () => {
     it('fetches ALL OPEN & CLOSED offerings - SINGLE property', (done) => {
 
       // Add a third closed offering to property A
-      testUtils.addOffering(testUserId, testProperty.id, 50, 50, 'closed')
+      testUtils.addOffering(admin.id, testPropertyA.id, 50, 50, 'closed')
         .then((offeringB) => {
 
           requester
             .get(getAllUrl)
             .query({
-              property: testProperty.id
+              property: testPropertyA.id
             })
-            .set('Authorization', token)
+            .set('Authorization', userToken)
             .send({})
             .expect(200)
             .expect('Content-Type', /json/)
@@ -446,18 +452,18 @@ describe('Offerings Service: ', () => {
   describe('Get Single Offering: ', () => {
     
     // offering specific to these tests
-    let testOffering
+    let testOfferingA
 
     // need to build the url in the before all
     let getOneUrl
     let invalidGetOneUrl = offeringsService.url + '/56abc5d62bb818550d21ssss'
     
     beforeAll((done) => {
-      testUtils.addOffering(testUserId, testProperty.id, 900, 333, 'open')
+      testUtils.addOffering(admin.id, testPropertyA.id, 900, 333, 'open')
         .then((offering) => {
-          testOffering = offering
+          testOfferingA = offering
           // build the url
-          getOneUrl = offeringsService.url + '/' + testOffering.id
+          getOneUrl = offeringsService.url + '/' + testOfferingA.id
           done()
         })
     })
@@ -485,7 +491,7 @@ describe('Offerings Service: ', () => {
     it('Received an get an offering without a valid offeringId', (done) => {
       requester
         .get(invalidGetOneUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -498,7 +504,7 @@ describe('Offerings Service: ', () => {
     it('fetches a single offering by id', (done) => {
       requester
         .get(getOneUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({})
         .expect(200)
         .expect('Content-Type', /json/)
@@ -515,18 +521,18 @@ describe('Offerings Service: ', () => {
   describe('Add Backer to an Offering: ', () => {
     
     // offering specific to these tests
-    let testOffering
+    let testOfferingA
 
     // need to build the url in the before all
     let addBackerUrl
     
     beforeAll((done) => {
       // Set the default to 200 filled shares
-      testUtils.addOffering(testUserId, testProperty.id, 1000, 200, 'open')
+      testUtils.addOffering(admin.id, testPropertyA.id, 1000, 200, 'open')
         .then((offering) => {
-          testOffering = offering
+          testOfferingA = offering
           // build the url
-          addBackerUrl = offeringsService.url + '/' + testOffering.id + '/backers'
+          addBackerUrl = offeringsService.url + '/' + testOfferingA.id + '/backers'
           done()
         })
     })
@@ -555,7 +561,7 @@ describe('Offerings Service: ', () => {
       requester
         .post(addBackerUrl)
         .send({})
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -568,9 +574,9 @@ describe('Offerings Service: ', () => {
     it('fails without the count of shares', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId
+          backer: user.id
         })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -584,9 +590,9 @@ describe('Offerings Service: ', () => {
     it('fails with bad shares number', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId,
+          backer: user.id,
           shares: 10.134
         })
         .expect(400)
@@ -601,9 +607,9 @@ describe('Offerings Service: ', () => {
     it('fails with too many shares', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId,
+          backer: user.id,
           shares: 1001
         })
         .expect(400)
@@ -618,9 +624,9 @@ describe('Offerings Service: ', () => {
     it('fails with too many shares based on what is currently filled', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId,
+          backer: user.id,
           shares: 900  // currently 200 are filled
         })
         .expect(400)
@@ -635,9 +641,9 @@ describe('Offerings Service: ', () => {
     it('successfully adds a backer', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId,
+          backer: user.id,
           shares: 300  // currently 200 are filled
         })
         .expect(200)
@@ -651,7 +657,7 @@ describe('Offerings Service: ', () => {
           expect(offering.filled).toBe(500)
 
           let backer = offering.backers[0]
-          expect(backer.user).toEqual(testUserId)
+          expect(backer.user).toEqual(user.id)
           done()
         })
     })
@@ -659,9 +665,9 @@ describe('Offerings Service: ', () => {
     it('fails to add a backer twice', (done) => {
       requester
         .post(addBackerUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
-          backer: testUserId,
+          backer: user.id,
           shares: 300  // currently 200 are filled
         })
         .expect(403)

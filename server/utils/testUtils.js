@@ -45,18 +45,26 @@ serviceRegistry.loadServices(app)
 
 // Exports
 
+// App basics
 exports.app = app
 exports.requester = requester
 exports.serviceRegistry = serviceRegistry
 
+// test users
+exports.adminUser = {
+  email: 'adminUser@foo.com',
+  password: 's0m3Passw0rd',
+  firstName: 'AdminFirst',
+  lastName: 'AdminLast'
+}
 exports.testUser = {
   email: 'testUser@foo.com',
   password: 's0m3Passw0rd',
-  firstName: 'Terrence',
-  lastName: 'Wundermidst'
+  firstName: 'RegularFirst',
+  lastName: 'RegularLast'
 }
 
-// Log the beginning of a test suite for developer debugging and readability
+// Test suite initialization
 exports.initSuite = (suiteName) => {
   console.log('')
   console.log('')
@@ -66,7 +74,10 @@ exports.initSuite = (suiteName) => {
   console.log('')
 }
 
-// Generate a JWT attached to no user
+
+// Tokens
+
+// Generate tokens associated with no user
 exports.generateUserNotExistToken = function() {
   let now = moment.utc()
   let payload = {
@@ -92,8 +103,9 @@ let generateToken = function(user) {
 }
 
 
+// Properties
 
-// test house
+// test property objects
 exports.properties = {
 
   validHouses: {
@@ -160,6 +172,9 @@ exports.properties = {
   }
 }
 
+
+// Helper functions
+
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
@@ -224,35 +239,11 @@ exports.addTestUser = (isFractionAdmin=false, user=exports.testUser) => {
       if (!newUser) {
         throw new Error('Could not create test user!')
       }
-      return { user: newUser.toPublicObject() }
+      let token = 'Bearer ' + generateToken(newUser)
+      return { user: newUser.toPublicObject(), token: token }
     })
     .catch((err) => {
       console.log('Error creating test user: ', err)
-      throw err
-    })
-}
-
-// Helper to log in the test user
-exports.logInTestUser = function(user=exports.testUser) {
-
-  // import the property model to simply inject the property
-  User = User || require('./../services/users/userModel')
-
-  let testUser = {
-    email: user.email.toLowerCase(),
-    password: user.password
-  }
-
-  return User.findOne({ 'email.email': testUser.email, 'local.password': testUser.password })
-    .then((user) => {
-      if (!user) {
-        throw new Error('Error logging in test user! USER NOT FOUND')
-      }
-      let token = generateToken(user)
-      return { token: token, user: user.toPublicObject() }
-    })
-    .catch((err) => {
-      console.log('Error logging in test user: ', err)
       throw err
     })
 }
@@ -286,7 +277,6 @@ exports.addDocumentForUser = (testDoc, token) => {
 
 
 
-
 // Add a test property to the db
 exports.addTestProperty = function(userId, houseId='houseA') {
   assert(userId)
@@ -314,10 +304,7 @@ exports.addTestProperty = function(userId, houseId='houseA') {
     })
 }
 
-
-
-
-
+// add an offering to the platform
 exports.addOffering = function(userId, propertyId, quantity, filled, status) {
   assert(userId)
   assert(propertyId)
@@ -356,7 +343,7 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
     })
 }
 
-
+// remove an offering from the platform
 function removeSingleOffering(offeringId) {
   assert(offeringId)
   return Offering.findById({ _id: offeringId })
@@ -375,6 +362,7 @@ function removeSingleOffering(offeringId) {
     })
 }
 
+// remove all offerings from the platform
 exports.removeOffering = function(offeringId) {
   // import the property model to simply inject the property
   Offering = Offering || require('./../services/markets/offeringModel')
@@ -393,8 +381,7 @@ exports.removeOffering = function(offeringId) {
 }
 
 
-
-
+// Initialization
 
 // Initialize the test server before running any service tests
 beforeAll((done) => {

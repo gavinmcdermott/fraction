@@ -21,17 +21,18 @@ import User from './../users/userModel'
 const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
 const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
-
-
-
+// options for the deconstructing the jwt
 let opts = {
   secretOrKey: FRACTION_TOKEN_SECRET,
   issuer: FRACTION_TOKEN_ISSUER,
   authScheme: 'Bearer'
 }
 
-
-
+/**
+ * Passport middleware implementation for passport-jwt
+ *
+ * @param {Strategy} func Passport jwt strategy function
+ */
 passport.use(new Strategy(opts, (jwtPayload, done) => {
   if (!jwtPayload) {
     throw new fractionErrors.Unauthorized('invalid token')
@@ -50,9 +51,8 @@ passport.use(new Strategy(opts, (jwtPayload, done) => {
   })
 )
 
-
 /**
- * Express middleware function that wraps a passport-local middleware implementation
+ * Express middleware function that wraps a passport-jwt middleware implementation
  *
  * @param {req} obj Express request object
  * @param {res} obj Express response object
@@ -82,5 +82,6 @@ function ensureAuth(req, res, next) {
 }
 
 
+// Exports
 
 module.exports = ensureAuth

@@ -14,6 +14,7 @@ import testUtils from './../../../utils/testUtils'
 let app = testUtils.app
 let requester = testUtils.requester
 let testUser = testUtils.testUser
+let adminUser = testUtils.adminUser
 let testProperties = testUtils.properties
 let serviceRegistry = testUtils.serviceRegistry
 
@@ -115,24 +116,30 @@ describe('Property Service: ', function() {
   describe('Create New Property: ', () => {
 
     let user
-    let token
-    let testUserId
+    let userToken
+
+    let admin
+    let adminToken
 
     let postUrl = propertyService.url + '/'
     
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then(() => {
-          return testUtils.logInTestUser()
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          return testUtils.addTestUser(true, adminUser)
         })
-        .then((result) => {
-          user = result.user
-          token = 'Bearer ' + result.token
-          testUserId = user.id
+        .then((data) => {
+          admin = data.user
+          adminToken = data.token
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -152,7 +159,7 @@ describe('Property Service: ', function() {
     it('fails to create without a property', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({})
         .expect(400)
         .expect('Content-Type', /json/)
@@ -166,7 +173,7 @@ describe('Property Service: ', function() {
     it('fails to create without a primary contact', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: 'some property'
         })
@@ -182,10 +189,10 @@ describe('Property Service: ', function() {
     it('fails to create without any location', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId
+            primaryContact: user.id
           }
         })
         .expect(400)
@@ -200,10 +207,10 @@ describe('Property Service: ', function() {
     it('fails to create with an invalid location', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
             property: {
-              primaryContact: testUserId,
+              primaryContact: user.id,
               location: testProperties.invalidLocation
             }
         })
@@ -219,10 +226,10 @@ describe('Property Service: ', function() {
     it('fails to create without any details received', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation
           }
         })
@@ -238,10 +245,10 @@ describe('Property Service: ', function() {
     it('fails to create without any stats recieved', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: 'foo sorry'
           }
@@ -258,10 +265,10 @@ describe('Property Service: ', function() {
     it('fails to create without a number of bedrooms received', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: {
               stats: {
@@ -282,10 +289,10 @@ describe('Property Service: ', function() {
     it('fails to create without a number of bathrooms received', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: {
               stats: {
@@ -307,10 +314,10 @@ describe('Property Service: ', function() {
     it('fails to create without a number for sqft received', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: {
               stats: {
@@ -336,10 +343,10 @@ describe('Property Service: ', function() {
       
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
          property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.fakeLocation,
             details: {
               stats: {
@@ -365,7 +372,7 @@ describe('Property Service: ', function() {
 
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
             primaryContact: 'fakeID',
@@ -394,10 +401,10 @@ describe('Property Service: ', function() {
 
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: {
               stats: {
@@ -422,10 +429,10 @@ describe('Property Service: ', function() {
 
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', adminToken)
         .send({
           property: {
-            primaryContact: testUserId,
+            primaryContact: user.id,
             location: testProperties.validLocation,
             details: {
               stats: {
@@ -452,8 +459,11 @@ describe('Property Service: ', function() {
   describe('Get Property: ', () => {
 
     let user
-    let token
-    let testUserId
+    let userToken
+
+    let admin
+    let adminToken
+
     let property
 
     let getUrl = propertyService.url + '/'
@@ -463,21 +473,25 @@ describe('Property Service: ', function() {
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then(() => {
-          return testUtils.logInTestUser()
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          return testUtils.addTestUser(true, adminUser)
         })
-        .then((result) => {
-          user = result.user
-          token = 'Bearer ' + result.token
-          testUserId = user.id
-          return testUtils.addTestProperty(user.id)
+        .then((data) => {
+          admin = data.user
+          adminToken = data.token
+          return testUtils.addTestProperty(admin.id)
         })
         .then((property) => {
           property = property
           getUrl += property.id.toString()
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -497,7 +511,7 @@ describe('Property Service: ', function() {
     it('should fail with bad propertyid', (done) => {
       requester
         .get(invalidGetUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -510,7 +524,7 @@ describe('Property Service: ', function() {
     it('should fail if it cannot find property', (done) => {
       requester
         .get(missingGetUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .expect(404)
         .expect('Content-Type', /json/)
         .end((err, res) => {
@@ -523,7 +537,7 @@ describe('Property Service: ', function() {
     it('should return a property', (done) => {
       requester
         .get(getUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .expect(200)
         .expect('Content-Type', /json/)
         .end((err, res) => {

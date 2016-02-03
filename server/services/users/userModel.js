@@ -64,7 +64,8 @@ userSchema.methods = {
       },
       notifications: {
         viaEmail: this.notifications.viaEmail
-      }
+      },
+      scopes: this.scopes
     }
   }
 

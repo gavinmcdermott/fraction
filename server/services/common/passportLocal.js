@@ -21,7 +21,6 @@ import User from './../users/userModel'
 const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
 const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
-
 /**
  * Generate a signed jwt for a user
  *
@@ -39,7 +38,6 @@ let generateToken = function(user) {
   }
   return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
-
 
 /**
  * Passport middleware implementation for passport-local
@@ -90,7 +88,6 @@ passport.use(new Strategy({
       })
   })
 )
-
 
 /**
  * Express middleware function that wraps a passport-local middleware implementation

@@ -169,7 +169,7 @@ function createDocument(req, res) {
       console.log(err.error.message)
 
       // HANDLES SOME INVALID DOCS
-      if (_.contains(err, 'invalid')) {
+      if (_.includes(err, 'invalid')) {
         throw new fractionErrors.Invalid(err)
       }
 

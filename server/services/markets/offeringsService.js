@@ -13,13 +13,15 @@ import request from 'request'
 import validator from 'validator'
 
 // Locals
-import fractionErrors from './../../utils/fractionErrors'
 import { wrap } from './../../middleware/errorHandler'
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
 import ensureAuth from './../common/passportJwt'
 
 // DB Models
 import Offering from './offeringModel'
+
 
 // Use Q promises
 mongoose.Promise = require('q').Promise
@@ -441,16 +443,15 @@ function deleteBacker(req, res) {
 }
 
 
-
 // Routes
 
-router.post(ROUTE_CREATE_OFFERING, ensureAuth, wrap(createOffering))
+router.post(ROUTE_CREATE_OFFERING, ensureAuth, ensureFractionAdmin, wrap(createOffering))
 router.get(ROUTE_GET_OFFERINGS, ensureAuth, wrap(getOfferings))
 router.get(ROUTE_GET_OFFERING, ensureAuth, wrap(getOffering))
 router.post(ROUTE_ADD_BACKER, ensureAuth, wrap(addBacker))
 
 router.put(ROUTE_UPDATE_BACKER, ensureAuth, wrap(updateBacker))
-router.delete(ROUTE_DELETE_BACKER, ensureAuth, wrap(deleteBacker))
+router.delete(ROUTE_DELETE_BACKER, ensureAuth, ensureFractionAdmin, wrap(deleteBacker))
 
 
 // Exports
