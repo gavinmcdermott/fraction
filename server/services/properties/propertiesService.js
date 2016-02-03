@@ -426,7 +426,7 @@ function getProperty(req, res) {
 router.post(ROUTE_CREATE_PROPERTY, ensureAuth, wrap(createProperty))
 router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
 
-// router.put(ROUTE_UPDATE_PROPERTY, requireAuth, wrap(updateProperty))
+// router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))
 
 // Exports
 module.exports = {
