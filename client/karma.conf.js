@@ -11,7 +11,6 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    // frameworks: ['mocha', 'chai'],
     frameworks: ['jasmine'],
 
 
@@ -39,8 +38,6 @@ module.exports = function(config) {
 
     plugins: [
       'karma-jasmine',
-      // 'karma-mocha',
-      // 'karma-chai',
       'karma-webpack',
       'karma-chrome-launcher',
       'karma-babel-preprocessor'
