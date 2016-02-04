@@ -16,6 +16,9 @@ import validator from 'validator'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
 import { wrap } from './../../middleware/errorHandler'
+
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+
 import authUser from './../common/passportLocal'
 import ensureAuth from './../common/passportJwt'
 
@@ -71,6 +74,10 @@ function createUser(req, res) {
   let hashedPassword
   let firstName
   let lastName
+
+  if (req.error) {
+    throw req.error
+  }
 
   // validate email
   try {
@@ -336,7 +343,9 @@ function logOutUser(req, res) {
 // Routes
 
 router.post(ROUTE_CREATE_USER, wrap(createUser))
+// remove the ensureAuth
 router.post(ROUTE_LOG_IN_USER, authUser, wrap(logInUser))
+
 router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
 router.put(ROUTE_UPDATE_USER, ensureAuth, wrap(updateUser))
 router.get(ROUTE_GET_USER, ensureAuth, wrap(getUser))

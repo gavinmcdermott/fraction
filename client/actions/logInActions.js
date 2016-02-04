@@ -13,7 +13,7 @@ import {
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'
-import { fJSON, fPost } from './../utils/api'
+import { fJSON, fPost, handleUnauthorized } from './../utils/api'
 
 
 // LOG_IN Action Creators
@@ -52,13 +52,14 @@ export function logIn(pendingUser) {
 
     return fPost(ENDPOINTS.LOG_IN, body)
       .then(fJSON)
-      .then((currentUser) => {
-        dispatch(logInSuccess(currentUser))
+      .then((data) => {
+        dispatch(logInSuccess(data.payload))
         history.push('/dashboard')
       })
+      .catch(handleUnauthorized(dispatch))
       .catch((err) => {
-        dispatch(logInError(err))
-        dispatch(setAppError(err, ERRORS.LOG_IN))
+        dispatch(logInError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.LOG_IN))
       })
   }
 }

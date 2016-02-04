@@ -13,7 +13,7 @@ import {
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'
-import { fJSON, fGet } from './../utils/api'
+import { fJSON, fGet, handleUnauthorized } from './../utils/api'
 
 
 // CURRENT_USER_FETCH Action Creators
@@ -51,6 +51,7 @@ export function currentUserFetch() {
       .then((user) => {
         dispatch(currentUserFetchSuccess(user))
       })
+      .catch(handleUnauthorized(dispatch))
       .catch((err) => {
         dispatch(currentUserFetchError(err))
         dispatch(setAppError(err, ERRORS.CURRENT_USER_FETCH))

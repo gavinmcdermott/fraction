@@ -12,20 +12,20 @@ import url from 'url'
 
 // Local Dependencies
 // Note: always bring the config in first
-import config from './server/config/config'
-import dbUtils from './server/utils/dbUtils'
-import serviceRegistry from './server/services/serviceRegistry'
+import config from './config/config'
+import dbUtils from './utils/dbUtils'
+import serviceRegistry from './services/serviceRegistry'
+import ensureFractionAdmin from './middleware/ensureFractionAdmin'
 
-import webpackConfig from './webpack.config'
+import webpackConfig from './../webpack.config'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import webpackHotMiddleware from 'webpack-hot-middleware'
-import webpackMiddlewareConfig from './webpackMiddleware.config'
+import webpackMiddlewareConfig from './../webpackMiddleware.config'
 
 
 // Route normalization
-const DIST_PATH = path.join(__dirname + '/dist')
-const PUBLIC_PATH = path.join(__dirname + '/client')
-const SERVICES_PATH = path.join(__dirname + '/server/services')
+const DIST_PATH = path.join(__dirname + './../dist')
+const PUBLIC_PATH = path.join(__dirname + './../client')
 
 
 // Create DB Connections
@@ -64,6 +64,13 @@ app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT))
 serviceRegistry.loadServices(app)
 
 
+
+
+
+
+// CLEAN THIS UP!!!
+// CLEAN THIS UP!!!
+// CLEAN THIS UP!!!
 // Handle static files
 app.use('/public', express.static(PUBLIC_PATH))
 app.use('/dist', express.static(DIST_PATH))
@@ -78,6 +85,17 @@ app.get('/', (req, res) => { sendClient(res) })
 app.get('/signup', (req, res) => { sendClient(res) })
 app.get('/login', (req, res) => { sendClient(res) })
 app.get('/dashboard*', (req, res) => { sendClient(res) })
+
+app.get('/admin*', ensureFractionAdmin, (req, res) => { 
+  console.log(req.error)
+  res.redirect('/')
+})
+
+
+// CLEAN THIS UP!!!
+// CLEAN THIS UP!!!
+// CLEAN THIS UP!!!
+
 
 
 // Export our app instance to start from the appropriate point

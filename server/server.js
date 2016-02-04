@@ -1,7 +1,7 @@
 'use strict';
 
 // Local Dependencies
-import app from '../app';
+import app from './app';
 
 
 /**

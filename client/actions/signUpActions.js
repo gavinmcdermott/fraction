@@ -51,14 +51,14 @@ export function signUp(newUser) {
     dispatch(unsetAppError(ERRORS.SIGN_UP))
 
     return fPost(ENDPOINTS.SIGN_UP, body)
-    .then(fJSON)
-    .then((newUser) => {
-      dispatch(signUpSuccess(newUser))
-      history.push('/login')
-    })
-    .catch((err) => {
-      dispatch(signUpError(err))
-      dispatch(setAppError(err, ERRORS.SIGN_UP))
-    })
+      .then(fJSON)
+      .then((newUser) => {
+        dispatch(signUpSuccess(newUser))
+        history.push('/login')
+      })
+      .catch((err) => {
+        dispatch(signUpError(err))
+        dispatch(setAppError(err, ERRORS.SIGN_UP))
+      })
   }
 }
