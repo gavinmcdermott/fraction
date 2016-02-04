@@ -2,12 +2,10 @@
 
 
 // Globals
-
 import _ from 'lodash'
 import assert from 'assert'
 import bodyParser from 'body-parser'
 import express from 'express'
-import jwt from 'jsonwebtoken'
 import moment from 'moment'
 import mongoose from 'mongoose'
 import q from 'q'
@@ -15,14 +13,17 @@ import validator from 'validator'
 
 
 // Locals
-
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
-import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
+
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+
+import authUser from './../common/passportLocal'
+import ensureAuth from './../common/passportJwt'
+
 // DB Models
 import User from './userModel'
-
 
 // Use Q promises
 mongoose.Promise = require('q').Promise
@@ -31,7 +32,7 @@ mongoose.Promise = require('q').Promise
 // Constants
 
 // naming
-const SVC_NAME = 'user'
+const SVC_NAME = 'users'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
@@ -40,9 +41,6 @@ const ROUTE_UPDATE_USER = '/:userId'
 const ROUTE_GET_USER = '/:userId'
 const ROUTE_LOG_IN_USER = '/login'
 const ROUTE_LOG_OUT_USER = '/logout'
-
-const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
-const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
 
 // Router
@@ -58,26 +56,6 @@ let router = express.Router()
 router.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 router.use(bodyParser.json())
-
-
-// Private Helpers
-
-/**
- * Generate a signed jwt for a user
- *
- * @returns {token} string New signed web token
- */
-let generateToken = function(userId) {
-  assert(userId)
-  let now = moment.utc()
-  let payload = {
-    iss: FRACTION_TOKEN_ISSUER,
-    exp: moment(now).add(1, 'day').utc().valueOf(),
-    iat: now.valueOf(),
-    sub: userId
-  }
-  return jwt.sign(payload, FRACTION_TOKEN_SECRET)
-}
 
 
 // Public API Functions
@@ -96,6 +74,10 @@ function createUser(req, res) {
   let hashedPassword
   let firstName
   let lastName
+
+  if (req.error) {
+    throw req.error
+  }
 
   // validate email
   try {
@@ -148,7 +130,7 @@ function createUser(req, res) {
       password: hashedPassword
     },
     isActive: true,
-    fractionEmployee: false
+    scopes: User.scopes.fraction.user
   }
 
   return User.findOne({ 'email.email': email })
@@ -182,9 +164,13 @@ function updateUser(req, res) {
 
   let userId
 
+  // Will be a Fraction Error instance
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.body.user)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -287,35 +273,29 @@ function updateUser(req, res) {
 function getUser(req, res) {
 
   const FETCH_ME = 'me'
-  let idToFetch
+  let idToFetch = req.params.userId
+
+  // Will be a Fraction Error instance
+  if (req.error) {
+    throw req.error
+  }
 
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.user)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
 
-  if (req.params.userId === 'me') {
-    idToFetch = req.body.userId
-  } else {
-    idToFetch = req.params.userId
+  if (req.params.userId === FETCH_ME) {
+    return res.json({ user: req.user })
   }
 
-  if (!idToFetch) {
-    throw new fractionErrors.Invalid('invalid userid')
-  }
-
-  return User.findById({_id: idToFetch})
+  return User.findById({ _id: idToFetch })
     .then((user) => {
       if (!user) {
         throw new fractionErrors.NotFound('user not found')
       }
-      // If the request is for the app's current user, send full details
-      if (req.params.userId === FETCH_ME) {
-        return res.json({ user: user.toPublicObject() })      
-      }
-      // otherwise sanitize the details
+      // sanitize any user's details down to the id for now
       let sanitizedUser = {
         id: user.id
       }
@@ -338,49 +318,12 @@ function getUser(req, res) {
  * @returns {promise}
  */
 function logInUser(req, res) {
-
-  let email
-  let hashedPassword
-
-  // validate email
-  try {
-    assert(_.isString(req.body.email))
-    email = validator.toString(req.body.email).toLowerCase()
-    assert(validator.isEmail(email))
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid email')    
+  if (req.error) {
+    throw req.error
   }
-
-  // password
-  try {
-    assert(_.isString(req.body.password))
-    hashedPassword = validator.toString(req.body.password)
-    assert(hashedPassword.length)
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid password')
+  if (req.token && req.user) {
+    return res.json({ token: req.token, user: req.user })
   }
-
-  return User.findOne({ 'email.email': email, 'local.password': hashedPassword })
-    .then((user) => {
-      if (!user) {
-        throw new fractionErrors.NotFound('user not found')
-      }      
-      let token
-
-      try {
-        token = generateToken(user._id.toString())
-      } catch (err) {
-        throw new Error('error generating user token')
-      }
-      return res.json({ token: token, user: user.toPublicObject() })
-    })
-    .catch((err) => {
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
-      console.log(err.message)
-      throw new fractionErrors.NotFound('user not found')
-    })
 }
 
 
@@ -399,12 +342,13 @@ function logOutUser(req, res) {
 
 // Routes
 
-router.post(ROUTE_LOG_IN_USER, wrap(logInUser))
-router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
-
 router.post(ROUTE_CREATE_USER, wrap(createUser))
-router.put(ROUTE_UPDATE_USER, requireAuth, wrap(updateUser))
-router.get(ROUTE_GET_USER, requireAuth, wrap(getUser))
+// remove the ensureAuth
+router.post(ROUTE_LOG_IN_USER, authUser, wrap(logInUser))
+
+router.post(ROUTE_LOG_OUT_USER, wrap(logOutUser))
+router.put(ROUTE_UPDATE_USER, ensureAuth, wrap(updateUser))
+router.get(ROUTE_GET_USER, ensureAuth, wrap(getUser))
 
 
 // Exports
@@ -413,13 +357,13 @@ module.exports = {
   name: SVC_NAME,
   url: SVC_BASE_URL,
   router: router,
-  endpoints: [
-    { protocol: 'HTTP', method: 'POST', name: 'CREATE_USER', url: ROUTE_CREATE_USER },
-    { protocol: 'HTTP', method: 'PUT', name: 'UPDATE_USER', url: ROUTE_UPDATE_USER },
-    { protocol: 'HTTP', method: 'GET', name: 'GET_USER', url: ROUTE_GET_USER },
-    { protocol: 'HTTP', method: 'POST', name: 'LOG_IN_USER', url: ROUTE_LOG_IN_USER },
-    { protocol: 'HTTP', method: 'POST', name: 'LOG_OUT_USER', url: ROUTE_LOG_OUT_USER }
-  ]
+  endpoints: {
+    createUser: { protocol: 'HTTP', method: 'POST', name: 'createUser', url: ROUTE_CREATE_USER },
+    logInUser: { protocol: 'HTTP', method: 'POST', name: 'logInUser', url: ROUTE_LOG_IN_USER },
+    logOutUser: { protocol: 'HTTP', method: 'POST', name: 'logOutUser', url: ROUTE_LOG_OUT_USER },
+    updateUser: { protocol: 'HTTP', method: 'PUT', name: 'updateUser', url: ROUTE_UPDATE_USER },
+    getUser: { protocol: 'HTTP', method: 'GET', name: 'getUser', url: ROUTE_GET_USER }
+  }
 }
 
 

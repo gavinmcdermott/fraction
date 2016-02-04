@@ -40,7 +40,6 @@ export function logOutError(err) {
 
 export function logOut() {
   return (dispatch) => {
-    console.log('triggered!')
     dispatch(logOutStart())
     dispatch(unsetAppError(ERRORS.LOG_OUT))
 

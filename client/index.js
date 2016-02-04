@@ -5,35 +5,20 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Router } from 'react-router'
 import { Provider } from 'react-redux'
-import { syncReduxAndRouter, routeReducer } from 'redux-simple-router'
-import thunkMiddleware from 'redux-thunk'
-import { reducer as formReducer } from 'redux-form';
-import { combineReducers, createStore, applyMiddleware } from 'redux'
+import { syncReduxAndRouter } from 'redux-simple-router'
 
+// Locals
 import { history } from './config/history'
 import getRoutes from './config/routes'
-import currentUserReducer from './reducers/currentUserReducers'
-import appErrorReducer from './reducers/appErrorReducers'
+import store from './stores/store'
 
-const appReducer = combineReducers({
-  form: formReducer,
-  appErrors: appErrorReducer,
-  currentUser: currentUserReducer,
-  routing: routeReducer
-})
 
-const createStoreWithMiddleware = applyMiddleware(
-  thunkMiddleware
-)(createStore)
-
-const appStore = createStoreWithMiddleware(appReducer)
-
-syncReduxAndRouter(history, appStore)
+syncReduxAndRouter(history, store)
 
 ReactDOM.render(
-  <Provider store={ appStore }>
+  <Provider store={ store }>
     <Router history={ history }>
-      { getRoutes(appStore) }
+      { getRoutes(store) }
     </Router>
   </Provider>, 
   document.getElementById('root')

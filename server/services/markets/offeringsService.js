@@ -13,13 +13,15 @@ import request from 'request'
 import validator from 'validator'
 
 // Locals
-import fractionErrors from './../../utils/fractionErrors'
-import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
+import ensureAuth from './../common/passportJwt'
 
 // DB Models
 import Offering from './offeringModel'
+
 
 // Use Q promises
 mongoose.Promise = require('q').Promise
@@ -80,13 +82,17 @@ function createOffering(req, res) {
   let token
   let userId
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.token)
-    assert(req.body.userId)
-    token = req.body.token
-    userId = req.body.userId
+    assert(req.user)
+    assert(req.token)
+    token = req.token
+    userId = req.user.id
   } catch(e) {
-    throw new fractionErrors.Unauthorized('invalid token')
+    new fractionErrors.Unauthorized('invalid token')
   }
 
   try {
@@ -119,7 +125,7 @@ function createOffering(req, res) {
   // 1
   // Check if it's a real property  
   let getPropertyRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/properties/' + propertyId
-  let getPropertyToken = 'Bearer ' + token
+  let getPropertyToken = token
   let getPropertyOptions = {
     method: 'GET',
     uri: getPropertyRoute,
@@ -215,9 +221,13 @@ function getOfferings(req, res) {
   let propertyId
   let query = {}
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.user)
+    assert(req.token)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -272,9 +282,13 @@ function getOffering(req, res) {
   let offeringId
   let query
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.user)
+    assert(req.token)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -322,9 +336,13 @@ function addBacker(req, res) {
   let offeringId
   let shares
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.user)
+    assert(req.token)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -425,16 +443,15 @@ function deleteBacker(req, res) {
 }
 
 
-
 // Routes
 
-router.post(ROUTE_CREATE_OFFERING, requireAuth, wrap(createOffering))
-router.get(ROUTE_GET_OFFERINGS, requireAuth, wrap(getOfferings))
-router.get(ROUTE_GET_OFFERING, requireAuth, wrap(getOffering))
+router.post(ROUTE_CREATE_OFFERING, ensureAuth, ensureFractionAdmin, wrap(createOffering))
+router.get(ROUTE_GET_OFFERINGS, ensureAuth, wrap(getOfferings))
+router.get(ROUTE_GET_OFFERING, ensureAuth, wrap(getOffering))
+router.post(ROUTE_ADD_BACKER, ensureAuth, wrap(addBacker))
 
-router.post(ROUTE_ADD_BACKER, requireAuth, wrap(addBacker))
-router.put(ROUTE_UPDATE_BACKER, requireAuth, wrap(updateBacker))
-router.delete(ROUTE_DELETE_BACKER, requireAuth, wrap(deleteBacker))
+router.put(ROUTE_UPDATE_BACKER, ensureAuth, wrap(updateBacker))
+router.delete(ROUTE_DELETE_BACKER, ensureAuth, ensureFractionAdmin, wrap(deleteBacker))
 
 
 // Exports

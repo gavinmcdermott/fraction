@@ -6,11 +6,12 @@ import testUtils from './../../../utils/testUtils'
 
 let app = testUtils.app
 let requester = testUtils.requester
+let adminUser = testUtils.adminUser
 let testUser = testUtils.testUser
 let serviceRegistry = testUtils.serviceRegistry
 
 // grab an instance of the document service
-let documentService = serviceRegistry.registry.services['document']
+let documentsService = serviceRegistry.registry.services['documents']
 
 
 // Service Tests
@@ -19,7 +20,7 @@ describe('Document Service: ', () => {
   
   beforeAll(() => {
     // Todo: have test utils init this line! pull it from each test
-    testUtils.initSuite(documentService.name)
+    testUtils.initSuite(documentsService.name)
   })
 
   afterAll((done) => {
@@ -32,22 +33,29 @@ describe('Document Service: ', () => {
   describe('Create New Documents: ', () => {
     
     let user
-    let token
+    let userToken
+    let admin
+    let adminToken
 
-    let postUrl = documentService.url + '/'
+    let postUrl = documentsService.url + '/'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then(() => {
-          return testUtils.logInTestUser()
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          return testUtils.addTestUser(true, adminUser)
         })
-        .then((result) => {
-          user = result.user
-          token = 'Bearer ' + result.token
+        .then((data) => {
+          admin = data.user
+          adminToken = data.token
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -58,7 +66,7 @@ describe('Document Service: ', () => {
         .expect(401)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid token')
+          expect(res.body.message).toBe('No auth token')
           expect(res.body.status).toBe(401)
           done()
         })
@@ -67,7 +75,7 @@ describe('Document Service: ', () => {
     it('fails to create without document', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({})
         .expect(400)
         .expect('Content-Type', /json/)
@@ -81,7 +89,7 @@ describe('Document Service: ', () => {
     it('fails to create with an invalid type', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
           document: 'some document',
           type: 'some bad type'
@@ -98,7 +106,7 @@ describe('Document Service: ', () => {
     it('fails to create with an invalid description', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
           document: 'some document',
           type: 'deed',
@@ -135,7 +143,7 @@ describe('Document Service: ', () => {
     it('successfully creates new documents', (done) => {
       requester
         .post(postUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({
           document: 'some document text here!',
           email: user.id,
@@ -158,7 +166,7 @@ describe('Document Service: ', () => {
   //   let token
   //   let doc
 
-  //   let getUrl = documentService.url + '/'
+  //   let getUrl = documentsService.url + '/'
 
   //   let testDoc1 = {
   //     document: 'This is a test document 1',

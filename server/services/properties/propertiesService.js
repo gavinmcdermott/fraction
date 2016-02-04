@@ -14,10 +14,11 @@ import request from 'request'
 import validator from 'validator'
 
 // Locals
-import fractionErrors from './../../utils/fractionErrors'
-import { requireAuth } from './../../middleware/tokenAuth'
 import { wrap } from './../../middleware/errorHandler'
+import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
+import ensureAuth from './../common/passportJwt'
 
 // // DB Models
 import Property from './propertyModel'
@@ -80,12 +81,16 @@ function createProperty(req, res) {
   // TODO (Gavin): Enforce the specific keys on each object
   // TODO (Gavin): Export these validators to a utility function
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.token)
-    assert(req.body.userId)
-    token = req.body.token
+    assert(req.user)
+    assert(req.token)
+    token = req.token
   } catch(e) {
-    throw new fractionErrors.Unauthorized('invalid token')
+    new fractionErrors.Unauthorized('invalid token')
   }
 
 	// validate that there is a property
@@ -196,8 +201,8 @@ function createProperty(req, res) {
     // 2
     // Ensure that the primary contact is a Fraction user
     .then((valid) => {
-      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user/' + primaryContact
-      let getContactToken = 'Bearer ' + token
+      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + primaryContact
+      let getContactToken = token
       let getContactOptions = {
         method: 'GET',
         uri: getContactRoute,
@@ -209,6 +214,7 @@ function createProperty(req, res) {
       return true
     })
     .catch((err) => {
+      console.log('err with validating main user', err.message)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
@@ -244,6 +250,7 @@ function createProperty(req, res) {
       return true
     })
     .catch((err) => {  
+      console.log('err with validating address', err.message)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
@@ -285,9 +292,13 @@ function getProperty(req, res) {
 
   let propertyId
 
+  if (req.error) {
+    throw req.error
+  }
+
   try {
-    assert(req.body.userId)
-    assert(req.body.token)
+    assert(req.user)
+    assert(req.token)
   } catch(e) {
     new fractionErrors.Unauthorized('invalid token')
   }
@@ -413,9 +424,10 @@ function getProperty(req, res) {
 
 // Routes
 
-router.post(ROUTE_CREATE_PROPERTY, requireAuth, wrap(createProperty))
-// router.put(ROUTE_UPDATE_PROPERTY, requireAuth, wrap(updateProperty))
-router.get(ROUTE_GET_PROPERTY, requireAuth, wrap(getProperty))
+router.post(ROUTE_CREATE_PROPERTY, ensureAuth, ensureFractionAdmin, wrap(createProperty))
+router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
+
+// router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))
 
 // Exports
 module.exports = {

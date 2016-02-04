@@ -13,15 +13,16 @@ const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
 let app = testUtils.app
 let requester = testUtils.requester
 let testUser = testUtils.testUser
+let testAdmin = testUtils.testAdmin
 let serviceRegistry = testUtils.serviceRegistry
 
 // grab an instance of the user service
-let userService = serviceRegistry.registry.services['user']
+let usersService = serviceRegistry.registry.services['users']
 
 
 // Service Tests
 
-describe('User Service: ', function() {
+describe('Users Service: ', function() {
 
   let validPassword = testUser.password
   let invalidPassword = ''
@@ -34,9 +35,8 @@ describe('User Service: ', function() {
   let firstName = testUser.firstName
   let lastName = testUser.lastName
 
-
   beforeAll(() => {
-    testUtils.initSuite(userService.name)
+    testUtils.initSuite(usersService.name)
   })
 
   afterAll((done) => {
@@ -51,7 +51,7 @@ describe('User Service: ', function() {
 
   describe('Create User: ', () => {
 
-    let postUrl = userService.url + '/'
+    let postUrl = usersService.url + '/'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
@@ -191,15 +191,23 @@ describe('User Service: ', function() {
 
   describe('Login User: ', () => {
 
-    let loginUrl = userService.url + '/login'
+    let user
+    let userToken
+
+    let loginUrl = usersService.url + '/login'
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then((user) => {
+        .then((data) => {
+          user = data.user
+          userToken = data.token
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -218,10 +226,10 @@ describe('User Service: ', function() {
       requester
         .post(loginUrl)
         .send({ password: validPassword })
-        .expect(400)
+        // .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid email')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -247,7 +255,7 @@ describe('User Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid password')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -260,7 +268,7 @@ describe('User Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid password')
+          expect(res.body.message).toBe('Missing credentials')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -319,27 +327,27 @@ describe('User Service: ', function() {
   describe('Get User: ', () => {
     
     let user
-    let token
+    let userToken
 
     let getUrl
-    let badGetUrl = userService.url + '/5689a9f38b7512cf1b0e497f'
-    let noUserUrl = userService.url + '/ssss'
-    let meUrl = userService.url + '/me'
+    let badGetUrl = usersService.url + '/5689a9f38b7512cf1b0e497f'
+    let noUserUrl = usersService.url + '/ssss'
+    let meUrl = usersService.url + '/me'
 
 
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then(() => {
-          return testUtils.logInTestUser()
-        })
-        .then((result) => {
-          user = result.user
-          token = 'Bearer ' + result.token
-          getUrl = userService.url + '/' + user.id
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          getUrl = usersService.url + '/' + user.id
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -358,7 +366,7 @@ describe('User Service: ', function() {
         .expect(401)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid token')
+          expect(res.body.message).toBe('No auth token')
           expect(res.body.status).toBe(401)
           done()
         })
@@ -367,7 +375,7 @@ describe('User Service: ', function() {
     it('fails with a bad userid in the url', (done) => {
       requester
         .get(noUserUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send()
         .expect(404)
         .expect('Content-Type', /json/)
@@ -381,7 +389,7 @@ describe('User Service: ', function() {
     it('fails without an existing user', (done) => {
       requester
         .get(badGetUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send()
         .expect(404)
         .expect('Content-Type', /json/)
@@ -395,7 +403,7 @@ describe('User Service: ', function() {
     it('returns the full user at /me', (done) => {
       requester
         .get(meUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send()
         .expect(404)
         .expect('Content-Type', /json/)
@@ -422,7 +430,7 @@ describe('User Service: ', function() {
     it('does not return a full user if fetching a general user', (done) => {
       requester
         .get(getUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send()
         .expect(404)
         .expect('Content-Type', /json/)
@@ -440,10 +448,10 @@ describe('User Service: ', function() {
   describe('Update User: ', () => {
     
     let user
-    let token
+    let userToken
 
     let updateUrl
-    let badUpdateUrl = userService.url + '/5689a9f38b7512cf1b0e497f'
+    let badUpdateUrl = usersService.url + '/5689a9f38b7512cf1b0e497f'
 
     let newFirstName = 'Gavin'
     let newLastName = 'McD'
@@ -454,16 +462,16 @@ describe('User Service: ', function() {
     beforeAll((done) => {
       testUtils.clearLocalTestDatabase()
         .then(() => {
-          return testUtils.addTestUser()
+          return testUtils.addTestUser(false, testUser)
         })
-        .then(() => {
-          return testUtils.logInTestUser()
-        })
-        .then((result) => {
-          user = result.user
-          token = 'Bearer ' + result.token
-          updateUrl = userService.url + '/' + user.id
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          updateUrl = usersService.url + '/' + user.id
           done()
+        })
+        .catch((err) => {
+          console.log(err)
         })
     })
 
@@ -482,7 +490,7 @@ describe('User Service: ', function() {
         .expect(401)
         .expect('Content-Type', /json/)
         .end((err, res) => {
-          expect(res.body.message).toBe('invalid token')
+          expect(res.body.message).toBe('No auth token')
           expect(res.body.status).toBe(401)
           done()
         })
@@ -491,7 +499,7 @@ describe('User Service: ', function() {
     it('fails without an existing user', (done) => {
       requester
         .put(badUpdateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send()
         .expect(404)
         .expect('Content-Type', /json/)
@@ -505,7 +513,7 @@ describe('User Service: ', function() {
     it('fails when trying to update to an invalid email', (done) => {
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ user: { email: { email: invalidEmail } } })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -519,7 +527,7 @@ describe('User Service: ', function() {
     it('fails when trying to update to an invalid first name', (done) => {
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ user: { name: { first: '', last: 'McD' } } })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -533,7 +541,7 @@ describe('User Service: ', function() {
     it('fails when trying to update to an invalid last name', (done) => {
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ user: { name: { first: 'Gavin', last: '' } } })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -547,7 +555,7 @@ describe('User Service: ', function() {
     it('fails when trying to update with an invalid notification bool', (done) => {
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ user: { notifications: { viaEmail: 'notAbool' } } })
         .expect(400)
         .expect('Content-Type', /json/)
@@ -561,7 +569,7 @@ describe('User Service: ', function() {
     it('updates valid settings: all new settings', (done) => {
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ 
           user: { 
             name: { first: newFirstName, last: newLastName },
@@ -588,7 +596,7 @@ describe('User Service: ', function() {
 
       requester
         .put(updateUrl)
-        .set('Authorization', token)
+        .set('Authorization', userToken)
         .send({ 
           user: { 
             name: { first: first, last: last },
@@ -613,10 +621,7 @@ describe('User Service: ', function() {
 
   describe('Log Out User: ', () => {
     
-    let user
-    let token
-
-    let logoutUrl = userService.url + '/logout'
+    let logoutUrl = usersService.url + '/logout'
     
     it('returns a null user and token', (done) => {
       requester

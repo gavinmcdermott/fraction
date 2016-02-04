@@ -1,7 +1,6 @@
 'use strict'
 
 // Globals
-
 import _ from 'lodash'
 import assert from 'assert'
 import bodyParser from 'body-parser'
@@ -13,11 +12,11 @@ import requestP from 'request-promise'
 import validator from 'validator'
 
 // Locals
-
+import { wrap } from './../../middleware/errorHandler'
 import serviceRegistry  from './../serviceRegistry'
 import fractionErrors from './../../utils/fractionErrors'
-import { requireAuth } from './../../middleware/tokenAuth'
-import { wrap } from './../../middleware/errorHandler'
+import ensureAuth from './../common/passportJwt'
+
 // DB Models
 import Document from './documentModel'
 
@@ -31,7 +30,7 @@ let registry = serviceRegistry.registry
 // Constants
 
 // naming
-const SVC_NAME = 'document'
+const SVC_NAME = 'documents'
 const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
@@ -73,15 +72,18 @@ function createDocument(req, res) {
   let userId
   let token
 
-  try {
-    assert(req.body.token)
-    assert(req.body.userId)
-  } catch(e) {
-    throw new fractionErrors.Unauthorized('invalid token')
+  if (req.error) {
+    throw req.error
   }
 
-  userId = req.body.userId
-  token = req.body.token
+  try {
+    assert(req.user)
+    assert(req.token)
+    token = req.token
+    userId = req.user.id
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }  
  
   // validate document
   // TODO: FORMAT this pdf into something string-able
@@ -120,8 +122,8 @@ function createDocument(req, res) {
   // TODO: infer the state based on specific document types?
   docState = 'done'
 
-  let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/user/' + userId
-  let getUserToken = 'Bearer ' + token
+  let getUserRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + userId
+  let getUserToken = token
 
   let options = {
     method: 'GET',
@@ -167,7 +169,7 @@ function createDocument(req, res) {
       console.log(err.error.message)
 
       // HANDLES SOME INVALID DOCS
-      if (_.contains(err, 'invalid')) {
+      if (_.includes(err, 'invalid')) {
         throw new fractionErrors.Invalid(err)
       }
 
@@ -188,13 +190,13 @@ function createDocument(req, res) {
  * @returns {promise}
  */
 function getDocuments(req, res) {  
-  console.log('aksdnaskj')
+  // console.log('aksdnaskj')
 }
 
 
 
-router.post(ROUTE_CREATE_DOC, requireAuth, wrap(createDocument))
-router.get(ROUTE_GET_DOCS, requireAuth, wrap(getDocuments))
+router.post(ROUTE_CREATE_DOC, ensureAuth, wrap(createDocument))
+router.get(ROUTE_GET_DOCS, ensureAuth, wrap(getDocuments))
 
 
 // Exports

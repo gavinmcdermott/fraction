@@ -23,9 +23,11 @@ import serviceRegistry from './../services/serviceRegistry'
 
 const SERVICE_DB = process.config.serviceDb
 const FRACTION_TOKEN_SECRET = process.config.fraction.tokenSecret
+const FRACTION_TOKEN_ISSUER = process.config.fraction.clientId
 
 // Models to be used later in the helper functions
 let Offering
+let User
 
 
 // DB Connections
@@ -43,32 +45,43 @@ serviceRegistry.loadServices(app)
 
 // Exports
 
+// App basics
 exports.app = app
 exports.requester = requester
 exports.serviceRegistry = serviceRegistry
 
+// test users
+exports.adminUser = {
+  email: 'adminUser@foo.com',
+  password: 's0m3Passw0rd',
+  firstName: 'AdminFirst',
+  lastName: 'AdminLast'
+}
 exports.testUser = {
   email: 'testUser@foo.com',
   password: 's0m3Passw0rd',
-  firstName: 'Terrence',
-  lastName: 'Wundermidst'
+  firstName: 'RegularFirst',
+  lastName: 'RegularLast'
 }
 
-// Log the beginning of a test suite for developer debugging and readability
+// Test suite initialization
 exports.initSuite = (suiteName) => {
   console.log('')
   console.log('')
-  console.log('================================================')
+  console.log('================================================================')
   console.log('Running ' + suiteName + ' service specs')
-  console.log('================================================')
+  console.log('================================================================')
   console.log('')
 }
 
-// Generate a JWT attached to no user
+
+// Tokens
+
+// Generate tokens associated with no user
 exports.generateUserNotExistToken = function() {
   let now = moment.utc()
   let payload = {
-    iss: 'some issuer',
+    iss: FRACTION_TOKEN_ISSUER,
     exp: moment(now).add(1, 'day').utc().valueOf(),
     iat: now.valueOf(),
     sub: '56995219797feefe7770659g'
@@ -76,7 +89,23 @@ exports.generateUserNotExistToken = function() {
   return jwt.sign(payload, FRACTION_TOKEN_SECRET)
 }
 
-// test house
+// Generate a valid JWT token for a user 
+let generateToken = function(user) {
+  let now = moment.utc()
+  let payload = {
+    iss: FRACTION_TOKEN_ISSUER,
+    exp: moment(now).add(1, 'day').utc().valueOf(),
+    iat: now.valueOf(),
+    sub: user._id.toString(),
+    scopes: user.scopes
+  }
+  return jwt.sign(payload, FRACTION_TOKEN_SECRET)
+}
+
+
+// Properties
+
+// test property objects
 exports.properties = {
 
   validHouses: {
@@ -143,6 +172,9 @@ exports.properties = {
   }
 }
 
+
+// Helper functions
+
 // Helper to blow away the test db between runs
 exports.clearLocalTestDatabase = function() {
   
@@ -176,46 +208,50 @@ exports.clearLocalTestDatabase = function() {
 }
 
 // Helper to add a test user
-exports.addTestUser = function() {
-  return new Promise((resolve, reject) => {  
-    requester
-      .post('/api/v1/user/') // hard coded for now
-      .send(exports.testUser)
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          throw new Error('Error creating test user: ', err)
-        }
-        expect(res.body.user).toBeDefined()
-        return resolve(res.body.user)
-      })
-  })
+exports.addTestUser = (isFractionAdmin=false, user=exports.testUser) => {
+  
+  // import the property model to simply inject the property
+  User = User || require('./../services/users/userModel')
+
+  let scopes = isFractionAdmin ? User.scopes.fraction.admin : User.scopes.fraction.user
+  
+  let pendingUser = {
+    name: {
+      first: user.firstName,
+      last: user.lastName
+    },
+    email: {
+      email: user.email,
+      // TODO(gavin): ENABLE EMAIL VERIFICATION
+      verified: true,
+      verifyCode: '123',
+      verifySentAt: moment.utc().valueOf()
+    },
+    local: {
+      password: user.password
+    },
+    isActive: true,
+    scopes: scopes
+  }
+
+  return User.create(pendingUser)
+    .then((newUser) => {
+      if (!newUser) {
+        throw new Error('Could not create test user!')
+      }
+      let token = 'Bearer ' + generateToken(newUser)
+      return { user: newUser.toPublicObject(), token: token }
+    })
+    .catch((err) => {
+      console.log('Error creating test user: ', err)
+      throw err
+    })
 }
 
-// Helper to log in the test user
-exports.logInTestUser = function() {
-  return new Promise((resolve, reject) => {  
-    let trimmedTestUser = {
-      email: exports.testUser.email,
-      password: exports.testUser.password
-    }
-    requester
-      .post('/api/v1/user/login') // hard coded for now
-      .send(trimmedTestUser)
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          console.log('')
-          throw new Error('Error logging in test user: ' + res.body.message)
-        }
-        expect(res.body.user).toBeDefined()
-        expect(res.body.token).toBeDefined()
-        console.log('logged in user ', res.body.user)
-        return resolve(res.body)
-      })
-  })
-}
 
+
+
+// FIXME: ADD DOCUMENT DIRECT DB UPLOADS
 // Add documents that belong to a user
 exports.addDocumentForUser = (testDoc, token) => {
   assert(_.isObject(testDoc))
@@ -229,7 +265,7 @@ exports.addDocumentForUser = (testDoc, token) => {
       .end((err, res) => {
         if (err) {
           console.log('')
-          throw new Error('Error adding document to user: ' + res.body.message)
+          throw new Error('Error adding document to user: ' + err.message)
         }
         expect(res.body.saved).toBe(true)
         expect(res.body.document).toBeDefined()
@@ -238,6 +274,8 @@ exports.addDocumentForUser = (testDoc, token) => {
       })
   })
 }
+
+
 
 // Add a test property to the db
 exports.addTestProperty = function(userId, houseId='houseA') {
@@ -266,10 +304,7 @@ exports.addTestProperty = function(userId, houseId='houseA') {
     })
 }
 
-
-
-
-
+// add an offering to the platform
 exports.addOffering = function(userId, propertyId, quantity, filled, status) {
   assert(userId)
   assert(propertyId)
@@ -308,7 +343,7 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
     })
 }
 
-
+// remove an offering from the platform
 function removeSingleOffering(offeringId) {
   assert(offeringId)
   return Offering.findById({ _id: offeringId })
@@ -327,6 +362,7 @@ function removeSingleOffering(offeringId) {
     })
 }
 
+// remove all offerings from the platform
 exports.removeOffering = function(offeringId) {
   // import the property model to simply inject the property
   Offering = Offering || require('./../services/markets/offeringModel')
@@ -345,8 +381,7 @@ exports.removeOffering = function(offeringId) {
 }
 
 
-
-
+// Initialization
 
 // Initialize the test server before running any service tests
 beforeAll((done) => {
