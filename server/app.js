@@ -15,6 +15,7 @@ import url from 'url'
 import config from './config/config'
 import dbUtils from './utils/dbUtils'
 import serviceRegistry from './services/serviceRegistry'
+import fractionErrors from './utils/fractionErrors'
 import ensureFractionAdmin from './middleware/ensureFractionAdmin'
 
 import webpackConfig from './../webpack.config'
@@ -77,19 +78,17 @@ app.use('/dist', express.static(DIST_PATH))
 
 
 // Handle client routes
-let sendClient = (res) => {
+let sendClient = (req, res) => {
   return res.sendFile(path.join(PUBLIC_PATH + '/index.html'))
 }
 
-app.get('/', (req, res) => { sendClient(res) })
-app.get('/signup', (req, res) => { sendClient(res) })
-app.get('/login', (req, res) => { sendClient(res) })
-app.get('/dashboard*', (req, res) => { sendClient(res) })
+app.get('/', (req, res) => sendClient(req, res))
+app.get('/signup', (req, res) => sendClient(req, res))
+app.get('/login', (req, res) => sendClient(req, res))
+app.get('/logout', (req, res) => sendClient(req, res))
+app.get('/dashboard*', (req, res) => sendClient(req, res))
 
-app.get('/admin*', ensureFractionAdmin, (req, res) => { 
-  console.log(req.error)
-  res.redirect('/')
-})
+app.get('/admin*', ensureFractionAdmin, (req, res) => res.redirect('/logout'))
 
 
 // CLEAN THIS UP!!!

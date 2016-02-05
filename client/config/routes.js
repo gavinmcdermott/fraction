@@ -12,6 +12,7 @@ import appContainer from './../containers/appContainer'
 import dashboardContainer from './../containers/dashboardContainer'
 import landingContainer from './../containers/landingContainer'
 import logInContainer from './../containers/logInContainer'
+import logOutContainer from './../containers/logOutContainer'
 import signUpContainer from './../containers/signUpContainer'
 import { currentUserFetch } from './../actions/userActions'
 
@@ -51,6 +52,7 @@ module.exports = (store) => {
       <IndexRoute component={ landingContainer } />
       <Route path="signup" component={ signUpContainer } />
       <Route path="login" component={ logInContainer } />
+      <Route path="logout" component={ logOutContainer } />
       
       <Route onEnter={ ensureAuthenticated } >
         <Route path="dashboard" component={ dashboardContainer } />

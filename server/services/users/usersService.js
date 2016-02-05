@@ -16,9 +16,6 @@ import validator from 'validator'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
 import { wrap } from './../../middleware/errorHandler'
-
-import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
-
 import authUser from './../common/passportLocal'
 import ensureAuth from './../common/passportJwt'
 
