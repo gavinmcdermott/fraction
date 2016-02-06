@@ -10,16 +10,35 @@ import userUtils from './../utils/user'
 
 
 class NavbarComponent extends Component {
+  
+  loggedOut() {
+    return (
+      <span>
+        <a href="/">Landing</a> | 
+        <a href="/login">Login</a> |
+        <a href="/signup">Signup</a>
+      </span>
+    )
+  }
+
+  loggedIn() {
+    return (
+      <span>
+        { userUtils.isFractionAdmin(this.props.currentUser) ? <a href="/admin">Admin</a> : false } |
+        <a href="/dashboard">Dashboard</a> |
+        <a href="/logout">Logout</a>
+      </span>
+    )
+  }
+
   render() {
     const { currentUser } = this.props
     return(
       <div>
-        PATH: { this.props.location.pathname }
+        Navbar (cur path: { this.props.location.pathname }) 
         <br/>
-        <a href="/login">Login</a> | 
-        <a href="/logout">Logout</a> |
-        <a href="/dashboard">Dashboard</a> |
-        { userUtils.isFractionAdmin(currentUser) ? <a href="/admin">Admin</a> : false }
+        { this.props.currentUser.isLoggedIn ? this.loggedIn() : this.loggedOut() }
+        <hr/>
       </div>
     )
   }

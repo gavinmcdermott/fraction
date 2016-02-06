@@ -100,6 +100,7 @@ export function currentUser(state=placeholderUser, action) {
       return newState
     
     case CURRENT_USER_FETCH_SUCCESS:
+      newState.isLoggedIn = true
       newState.isFetching = false
       newState.data = action.payload.user
       return newState
