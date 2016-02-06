@@ -18,7 +18,7 @@ import { wrap } from './../../middleware/errorHandler'
 import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
-import ensureAuth from './../common/passportJwt'
+import ensureAuth from './../../middleware/passportJwt'
 
 // // DB Models
 import Property from './propertyModel'

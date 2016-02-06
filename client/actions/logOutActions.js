@@ -46,12 +46,12 @@ export function logOut() {
     return fPost(ENDPOINTS.LOG_OUT)
     .then(fJSON)
     .then((data) => {
-      dispatch(logOutSuccess(data))
+      dispatch(logOutSuccess(data.payload))
       history.push('/')
     })
     .catch((err) => {
-      dispatch(logOutError(err))
-      dispatch(setAppError(err, ERRORS.LOG_OUT))
+      dispatch(logOutError(err.payload))
+      dispatch(setAppError(err.payload, ERRORS.LOG_OUT))
     })
   }
 }

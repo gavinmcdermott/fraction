@@ -52,13 +52,13 @@ export function signUp(newUser) {
 
     return fPost(ENDPOINTS.SIGN_UP, body)
       .then(fJSON)
-      .then((newUser) => {
-        dispatch(signUpSuccess(newUser))
+      .then((data) => {
+        dispatch(signUpSuccess(data.payload))
         history.push('/login')
       })
       .catch((err) => {
-        dispatch(signUpError(err))
-        dispatch(setAppError(err, ERRORS.SIGN_UP))
+        dispatch(signUpError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.SIGN_UP))
       })
   }
 }

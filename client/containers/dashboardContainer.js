@@ -26,6 +26,8 @@ export default class DashboardContainer extends Component {
         <h1>Your Dashboard</h1>
         <h3>This is a protected route</h3>
         The only thing to do is...<a onClick={ this.props.logout }>logout</a>
+        <br/>
+        <a href="/admin">or hit the admin</a>
         <hr/>
       </div>
     )

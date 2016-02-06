@@ -62,7 +62,6 @@ export function handleUnauthorized(dispatch) {
     assert(data.payload)
     assert(data.response)
     let status = data.response.status
-    console.log('401 handler handled it :)')
     // if the status is a 401, the token is invalid or the user
     // is not longer authorized to take some action - log them out
     if (status === STATUS_UNAUTHORIZED) {

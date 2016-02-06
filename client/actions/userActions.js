@@ -48,13 +48,13 @@ export function currentUserFetch() {
 
     return fGet(fetchUrl)
       .then(fJSON)
-      .then((user) => {
-        dispatch(currentUserFetchSuccess(user))
+      .then((data) => {
+        dispatch(currentUserFetchSuccess(data.payload))
       })
       .catch(handleUnauthorized(dispatch))
       .catch((err) => {
-        dispatch(currentUserFetchError(err))
-        dispatch(setAppError(err, ERRORS.CURRENT_USER_FETCH))
+        dispatch(currentUserFetchError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.CURRENT_USER_FETCH))
       })
   }
 }

@@ -5,14 +5,15 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { Link } from 'react-router'
 
+import NavbarContainer from './navbarContainer'
 
 export default class appContainer extends Component {
   render() {
     return(
       <div>
-        == app container rendered ==
+        <NavbarContainer { ...this.props } ></NavbarContainer>
         <br/>
-        {this.props.children}
+        { this.props.children }
       </div>
     )
   }

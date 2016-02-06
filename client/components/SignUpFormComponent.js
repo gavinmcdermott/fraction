@@ -3,7 +3,7 @@
 // Globals
 import _ from 'lodash'
 import validator from 'validator'
-import React, { Component, dispatch, PropTypes } from 'react'
+import React, { Component, PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { reduxForm } from 'redux-form'
 import { Link } from 'react-router'

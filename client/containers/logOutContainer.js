@@ -8,12 +8,27 @@ import { connect } from 'react-redux'
 import * as logOutActions from './../actions/logOutActions'
 
 
+function mapStateToProps(state) {
+  return {
+    currentUser: state.currentUser
+  }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    logOut: () => dispatch(logOutActions.logOut())
+  }
+}
+
 class LogOutContainer extends Component {
+  
+  componentDidMount() {
+    this.props.logOut()
+  }
+
   render() {
-    console.warn('USER SENT TO /logout => WIPING TOKEN => DISPATCH LOGOUT ACTION')
-    this.props.dispatch(logOutActions.logOut())
     return <div></div>
   }
 }
 
-export default connect()(LogOutContainer)
+export default connect(mapStateToProps, mapDispatchToProps)(LogOutContainer)

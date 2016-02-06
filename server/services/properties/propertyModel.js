@@ -91,4 +91,5 @@ propertySchema.methods = {
 
 let Property = mongoose.serviceDb.model('Property', propertySchema)
 
+
 module.exports = Property

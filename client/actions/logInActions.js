@@ -21,7 +21,7 @@ import { fJSON, fPost, handleUnauthorized } from './../utils/api'
 export function logInStart(data) {
   return {
     type: LOG_IN_START,
-    payload: data.email
+    payload: data
   }
 }
 

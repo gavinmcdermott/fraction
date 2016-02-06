@@ -9,30 +9,37 @@ import { createStore, combineReducers } from 'redux'
 import { Router, Route, IndexRoute } from 'react-router'
 
 import appContainer from './../containers/appContainer'
+import adminContainer from './../containers/adminContainer'
 import dashboardContainer from './../containers/dashboardContainer'
 import landingContainer from './../containers/landingContainer'
 import logInContainer from './../containers/logInContainer'
 import logOutContainer from './../containers/logOutContainer'
 import signUpContainer from './../containers/signUpContainer'
+
 import { currentUserFetch } from './../actions/userActions'
+import userUtils from './../utils/user'
 
 
 module.exports = (store) => {
   assert(_.isObject(store))
 
+  function getUser() {
+    return store.getState().currentUser
+  }
+
   // For info on the callback see: 
   // https://github.com/rackt/react-router/blob/master/docs/API.md#onenternextstate-replace-callback
+  // https://github.com/tuxracer/simple-storage
+  // the callback must be invoked if it is passed
   const ensureAuthenticated = (nextState, replaceState, callback) => {
-    const user = store.getState().currentUser
+    const user = getUser()
     const hasToken = user.token
     const loggedIn = user.isLoggedIn
     
-    // https://github.com/tuxracer/simple-storage
     const checkAuth = () => {
-      const { currentUser } = store.getState()
+      const currentUser = getUser()
       if (!currentUser.token) {
-        // TODO: REMOVE when happy with network error handling
-        console.warn('PROTECTED ROUTE! REDIRECTING TO /LOGIN')
+        console.log('NOT LOGGED IN => GO TO LOGIN')
         replaceState(null, '/login')
       }
       callback()
@@ -47,16 +54,30 @@ module.exports = (store) => {
     }
   }
 
+  const ensureFractionAdmin = (nextState, replaceState) => {
+    if (userUtils.isFractionAdmin(getUser())) {
+      return true
+    }
+    console.log('NOT AN ADMIN => GO TO LOGIN')
+    return replaceState(null, '/login')
+  }
+
   return (
     <Route path="/" component={ appContainer }>
+      
       <IndexRoute component={ landingContainer } />
       <Route path="signup" component={ signUpContainer } />
       <Route path="login" component={ logInContainer } />
       <Route path="logout" component={ logOutContainer } />
       
-      <Route onEnter={ ensureAuthenticated } >
+      <Route onEnter={ ensureAuthenticated } >        
         <Route path="dashboard" component={ dashboardContainer } />
+
+        <Route path="admin" onEnter={ ensureFractionAdmin }>
+          <IndexRoute component={ adminContainer } />
+        </Route>
       </Route>
+
     </Route>
   )
 }

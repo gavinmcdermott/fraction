@@ -37,10 +37,10 @@ const placeholderUser = {
 
 export function currentUser(state=placeholderUser, action) {
   let newState = Object.assign({}, state)
+  
   switch (action.type) {
     
     // SIGN_UP
-
     case SIGN_UP_START:
       newState.isFetching = true
       newState.data.email.email = action.payload
@@ -57,21 +57,19 @@ export function currentUser(state=placeholderUser, action) {
 
 
     // LOG_IN
-
     case LOG_IN_START:
       newState.isFetching = true
-      newState.data.email.email = action.payload
+      newState.data.email.email = action.payload.email
       return newState
 
     case LOG_IN_SUCCESS:
-      let { token, user } = action.payload
       // storage the token in localStorage
-      storage.set(AUTH_TOKEN, token)
+      storage.set(AUTH_TOKEN, action.payload.token)
       // Then update the app user
-      newState.token = token
+      newState.token = action.payload.token
       newState.isLoggedIn = true
       newState.isFetching = false
-      newState.data = user
+      newState.data = action.payload.user
       return newState
 
     case LOG_IN_ERROR:
@@ -80,7 +78,6 @@ export function currentUser(state=placeholderUser, action) {
 
       
     // LOG_OUT ()
-
     case LOG_OUT_START:
       // Remove the token in all cases
       storage.remove(AUTH_TOKEN)
@@ -98,14 +95,13 @@ export function currentUser(state=placeholderUser, action) {
 
     
     // CURRENT_USER_FETCH
-
     case CURRENT_USER_FETCH_START:
       newState.isFetching = true
       return newState
     
     case CURRENT_USER_FETCH_SUCCESS:
       newState.isFetching = false
-      newState.data = action.payload
+      newState.data = action.payload.user
       return newState
         
     case CURRENT_USER_FETCH_ERROR:
