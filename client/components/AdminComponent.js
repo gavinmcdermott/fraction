@@ -11,7 +11,8 @@ class AdminComponent extends Component {
   render() {
     return(
       <div>
-        <h2>This is the admin portion</h2>
+        <h2>Important Admin Stuff</h2>
+        <Link to="/admin/properties">Manage Fraction Properties</Link>
       </div>
     )
   }

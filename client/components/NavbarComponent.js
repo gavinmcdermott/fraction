@@ -14,9 +14,9 @@ class NavbarComponent extends Component {
   loggedOut() {
     return (
       <span>
-        <a href="/">Landing</a> | 
-        <a href="/login">Login</a> |
-        <a href="/signup">Signup</a>
+        <Link to="/">Landing</Link> | 
+        <Link to="/login">Login</Link> |
+        <Link to="/signup">Signup</Link>
       </span>
     )
   }
@@ -24,9 +24,9 @@ class NavbarComponent extends Component {
   loggedIn() {
     return (
       <span>
-        { userUtils.isFractionAdmin(this.props.currentUser) ? <a href="/admin">Admin</a> : false } |
-        <a href="/dashboard">Dashboard</a> |
-        <a href="/logout">Logout</a>
+        { userUtils.isFractionAdmin(this.props.currentUser) ? <Link to="/admin">Admin</Link> : false } |
+        <Link to="/dashboard">Dashboard</Link> |
+        <Link to="/logout">Logout</Link>
       </span>
     )
   }

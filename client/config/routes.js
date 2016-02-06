@@ -4,17 +4,16 @@
 import _ from 'lodash'
 import assert from 'assert'
 import React from 'react'
-import { Provider } from 'react-redux'
-import { createStore, combineReducers } from 'redux'
 import { Router, Route, IndexRoute } from 'react-router'
 
 import appContainer from './../containers/appContainer'
-import adminContainer from './../containers/adminContainer'
 import dashboardContainer from './../containers/dashboardContainer'
 import landingContainer from './../containers/landingContainer'
 import logInContainer from './../containers/logInContainer'
 import logOutContainer from './../containers/logOutContainer'
 import signUpContainer from './../containers/signUpContainer'
+
+import adminRoutes from './adminRoutes'
 
 import { currentUserFetch } from './../actions/userActions'
 import userUtils from './../utils/user'
@@ -64,7 +63,6 @@ module.exports = (store) => {
 
   return (
     <Route path="/" component={ appContainer }>
-      
       <IndexRoute component={ landingContainer } />
       <Route path="signup" component={ signUpContainer } />
       <Route path="login" component={ logInContainer } />
@@ -72,12 +70,11 @@ module.exports = (store) => {
       
       <Route onEnter={ ensureAuthenticated } >        
         <Route path="dashboard" component={ dashboardContainer } />
-
+        
         <Route path="admin" onEnter={ ensureFractionAdmin }>
-          <IndexRoute component={ adminContainer } />
+          { adminRoutes }
         </Route>
       </Route>
-
     </Route>
   )
 }
