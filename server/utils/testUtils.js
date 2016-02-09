@@ -116,7 +116,10 @@ exports.properties = {
         address2: '',
         city: 'Lake Oswego',
         state: 'Oregon',
-        zip: '97035'
+        zip: '97035',
+        stateAbbr: 'OR',
+        lat: '1313212',
+        lon: '4564564'
       },
       details: {
         description: "a descrip",
@@ -135,7 +138,10 @@ exports.properties = {
         address2: '',
         city: 'Omaha',
         state: 'Nebraska',
-        zip: '68069'
+        zip: '68069',
+        stateAbbr: 'NE',
+        lat: '1313212',
+        lon: '4564564'
       },
       details: {
         description: "a description",
@@ -285,12 +291,10 @@ exports.addTestProperty = function(userId, houseId='houseA') {
   let Property = require('./../services/properties/propertyModel')
 
   let house = exports.properties.validHouses[houseId]
-  house.primaryContact = userId
 
   let newProperty = {
     location: house.location,
     details: house.details,
-    primaryContact: userId,
     dateAdded: moment.utc().valueOf()
   }
 
@@ -314,9 +318,6 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
 
   // import the property model to simply inject the property
   Offering = Offering || require('./../services/markets/offeringModel')
-
-  // let house = exports.properties.validHouses.houseA
-  // house.primaryContact = userId
 
   let offering = {
     // description?

@@ -170,22 +170,6 @@ describe('Property Service: ', function() {
         })
     }) 
 
-    // it('fails to create without a primary contact', (done) => {
-    //   requester
-    //     .post(postUrl)
-    //     .set('Authorization', adminToken)
-    //     .send({
-    //       property: 'some property'
-    //     })
-    //     .expect(400)
-    //     .expect('Content-Type', /json/)
-    //     .end((err, res) => {
-    //       expect(res.body.message).toBe('invalid primary contact')
-    //       expect(res.body.status).toBe(400)
-    //       done()
-    //     })
-    // }) 
-
     it('fails to create without any location', (done) => {
       requester
         .post(postUrl)
@@ -360,37 +344,10 @@ describe('Property Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
+          console.log(err)
+          console.log(res.body)
           expect(res.body.message).toBe('address validation failed')
           expect(res.body.status).toBe(400)
-          done()
-        })
-    })
-
-    it('fails to create without a primary contact who is a user', (done) => {
-      
-      initGoogleNock(true)
-
-      requester
-        .post(postUrl)
-        .set('Authorization', adminToken)
-        .send({
-          property: {
-            primaryContact: 'fakeID',
-            location: testProperties.validLocation,
-            details: {
-              stats: {
-                bedrooms: '5',
-                bathrooms: '2',
-                sqft: '22'
-              }
-            }
-          }
-        })
-        .expect(404)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('user not found')
-          expect(res.body.status).toBe(404)
           done()
         })
     })

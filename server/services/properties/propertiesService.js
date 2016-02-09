@@ -2,16 +2,17 @@
 
 // Globals
 import _ from 'lodash'
-import addressValidator from 'address-validator'
 import assert from 'assert'
 import bodyParser from 'body-parser'
 import express from 'express'
 import moment from 'moment'
 import mongoose from 'mongoose'
+import nodeGeocoder from "node-geocoder"
 import q from 'q'
 import requestP from 'request-promise'
 import request from 'request'
 import validator from 'validator'
+
 
 // Locals
 import { wrap } from './../../middleware/errorHandler'
@@ -54,6 +55,18 @@ let router = express.Router()
 router.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 router.use(bodyParser.json())
+
+
+// set up the Geocoder api
+// http://nchaulet.github.io/node-geocoder/
+let geocoderProvider = 'google'
+let httpAdapter = 'https'
+// optionnal
+var extra = {
+    apiKey: process.config.google.geocoderKey, // Google api key
+}
+
+let geocoder = nodeGeocoder(geocoderProvider, httpAdapter, extra)
 
 
 // API Routes
@@ -153,7 +166,10 @@ function createProperty(req, res) {
   // this next assert
   try {
     assert(_.has(details.stats, 'bedrooms'))
-    bedrooms = Number(details.stats.bedrooms)
+    let unsafeBeds = details.stats.bedrooms
+    assert(unsafeBeds !== '')
+    
+    bedrooms = Number(unsafeBeds)
     assert((!(_.isNaN(bedrooms)) && _.isNumber(bedrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bedrooms')    
@@ -162,7 +178,10 @@ function createProperty(req, res) {
   // validate bathrooms
   try {
     assert(_.has(details.stats, 'bathrooms'))
-    bathrooms = Number(details.stats.bathrooms)
+    let unsafeBaths = details.stats.bathrooms
+    assert(unsafeBaths !== '')
+
+    bathrooms = Number(unsafeBaths)
     assert((!(_.isNaN(bathrooms)) && _.isNumber(bathrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bathrooms')    
@@ -170,47 +189,43 @@ function createProperty(req, res) {
 
   try {
     assert(_.has(details.stats, 'sqft'))
-    sqft = Number(details.stats.sqft)
+    let unsafeSqft = details.stats.sqft
+    assert(unsafeSqft !== '')
+
+    sqft = Number(unsafeSqft)
     assert((!(_.isNaN(sqft)) && _.isNumber(sqft)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid sqft')    
   }
-
 
   // 1
   // Ensure that the property address is a real address through Google
 
   // Note: Google geocoding does not handle apartment / unit numbers
   // Info: https://developers.google.com/maps/faq#geocoder_queryformat
-  let validate = q.denodeify(addressValidator.validate)
-  let addressToValidate = new addressValidator.Address({
-    street: location.address1,
-    city: location.city,
-    state: location.state,
-    country: 'United States' // hard coded for now
-  })
+  let locationString = location.address1 + ' ' + location.city + ' ' + location.state + ' ' + location.zip
 
-  return validate(addressToValidate, addressValidator.match.streetAddress)
-    .then((addresses) => {
-      // "addresses" is of the form [[{exact}], [{inexact}], {err}]
-      let results = _.first(addresses)
-      let exactMatch = _.map(results, address => address.toString())
+  return geocoder.geocode(locationString)
+    .then((results) => {
       let addressToSave = _.first(results)
+      console.log('RES: ', addressToSave)
+
       
       try {
         // Verify there is an exact match for our property
         assert(_.isObject(addressToSave))
-        assert((location.zip === addressToSave.postalCode))
+        assert((location.zip === addressToSave.zipcode))
         
         sanitizedLocation = {
-          address1: addressToSave.streetNumber + ' ' + addressToSave.street,
+          address1: addressToSave.streetNumber + ' ' + addressToSave.streetName,
           address2: location.address2,
           city: addressToSave.city,
-          state: addressToSave.state,
-          stateAbbr: addressToSave.stateAbbr,
-          zip: addressToSave.postalCode,
-          lat: addressToSave.location.lat,
-          lon: addressToSave.location.lon
+          state: addressToSave.administrativeLevels.level1long,
+          stateAbbr: addressToSave.administrativeLevels.level1short,
+          zip: addressToSave.zipcode,
+          formattedAddress: addressToSave.formattedAddress,
+          lat: addressToSave.latitude,
+          lon: addressToSave.longitude
         }
       } catch (e) {
         console.log(e)
@@ -218,7 +233,8 @@ function createProperty(req, res) {
       }
       return true
     })
-    .catch((err) => {  
+    .catch((err) => { 
+      console.log(err)       
       throw new fractionErrors.Invalid('address validation failed')
     })
 
@@ -232,6 +248,9 @@ function createProperty(req, res) {
       })
     })
     .catch((response) => {
+      if (response instanceof fractionErrors.BaseError) { 
+        throw response
+      }
       let errorMessage = JSON.parse(response.error).message
       throw new fractionErrors.Invalid(errorMessage)
     })
@@ -302,7 +321,7 @@ function getProperty(req, res) {
       return res.json({ property: property.toPublicObject() })
     })
     .catch((err) => {
-      console.log(err)
+      console.log('GET PROPERTY ERR: ', err.message)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
