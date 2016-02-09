@@ -8,8 +8,6 @@ import ReactDOM from 'react-dom'
 import { reduxForm } from 'redux-form'
 import { Link } from 'react-router'
 
-import { CURRENT_USER_ERROR } from './../constants/errorTypes'
-
 
 const validate = (values) => {
   const errors = {}

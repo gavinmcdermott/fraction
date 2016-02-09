@@ -6,9 +6,9 @@ import fetch from 'isomorphic-fetch'
 
 import { ENDPOINTS } from './../constants/endpoints'
 import { 
-  CURRENT_USER_FETCH_START,         
-  CURRENT_USER_FETCH_SUCCESS,
-  CURRENT_USER_FETCH_ERROR 
+  FETCH_CURRENT_USER_START,         
+  FETCH_CURRENT_USER_SUCCESS,
+  FETCH_CURRENT_USER_ERROR 
 } from './../constants/actionTypes'
 import * as ERRORS from './../constants/errorTypes'
 
@@ -16,45 +16,45 @@ import { setAppError, unsetAppError } from './appErrorActions'
 import { fJSON, fGet, handleUnauthorized } from './../utils/api'
 
 
-// CURRENT_USER_FETCH Action Creators
+// FETCH_CURRENT_USER Action Creators
 
-export function currentUserFetchStart() {
+export function fetchCurrentUserStart() {
   return {
-    type: CURRENT_USER_FETCH_START
+    type: FETCH_CURRENT_USER_START
   }
 }
 
-export function currentUserFetchSuccess(data) {
+export function fetchCurrentUserSuccess(data) {
   return {
-    type: CURRENT_USER_FETCH_SUCCESS,
+    type: FETCH_CURRENT_USER_SUCCESS,
     payload: data
   }
 }
 
-export function currentUserFetchError(err) {
+export function fetchCurrentUserError(err) {
   return {
-    type: CURRENT_USER_FETCH_ERROR,
+    type: FETCH_CURRENT_USER_ERROR,
     payload: err,
     error: true
   }
 }
 
-export function currentUserFetch() {
+export function fetchCurrentUser() {
   return (dispatch) => {
-    const fetchUrl = ENDPOINTS.USER_FETCH + '/me'
+    const fetchUrl = ENDPOINTS.USERS + '/me'
 
-    dispatch(currentUserFetchStart())
-    dispatch(unsetAppError(ERRORS.CURRENT_USER_FETCH))
+    dispatch(fetchCurrentUserStart())
+    dispatch(unsetAppError(ERRORS.FETCH_CURRENT_USER))
 
     return fGet(fetchUrl)
       .then(fJSON)
       .then((data) => {
-        dispatch(currentUserFetchSuccess(data.payload))
+        dispatch(fetchCurrentUserSuccess(data.payload))
       })
       .catch(handleUnauthorized(dispatch))
       .catch((err) => {
-        dispatch(currentUserFetchError(err.payload))
-        dispatch(setAppError(err.payload, ERRORS.CURRENT_USER_FETCH))
+        dispatch(fetchCurrentUserError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.FETCH_CURRENT_USER))
       })
   }
 }

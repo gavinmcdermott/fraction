@@ -9,5 +9,7 @@ export const ENDPOINTS = {
   LOG_IN: apiBase + '/api/v1/users/login',
   LOG_OUT: apiBase + '/api/v1/users/logout',
   SIGN_UP: apiBase + '/api/v1/users',
-  USER_FETCH: apiBase + '/api/v1/users',
+  // Resources
+  USERS: apiBase + '/api/v1/users',
+  PROPERTIES: apiBase + '/api/v1/properties',
 }

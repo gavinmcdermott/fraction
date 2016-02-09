@@ -69,8 +69,9 @@ function createProperty(req, res) {
 
 	// New property info to be saved
 	let property
-  let primaryContact
   let location
+  // created after the Google validation
+  let sanitizedLocation
   let details
   let bedrooms
   let bathrooms
@@ -100,14 +101,6 @@ function createProperty(req, res) {
 	} catch(e) {
     throw new fractionErrors.Invalid('invalid property')
 	}  
-
-	// validate that there is a fraction user as the main contact
-  try {
-    assert(_.has(property, 'primaryContact'))
-    primaryContact = property.primaryContact
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid primary contact')
-  }
 
 	// validate the location
   
@@ -183,87 +176,78 @@ function createProperty(req, res) {
     throw new fractionErrors.Invalid('invalid sqft')    
   }
 
+
   // 1
-  // Ensure the property is not a duplicate
-  return Property.findOne({
-      'location.address1': location.address1,
-      'location.address2': location.address2,
-      'location.city': location.city,
-      'location.state': location.state
-    })
-    .then((property) => {
-      if (property) {
-        throw new fractionErrors.Forbidden('property exists')
-      }
-      return true
-    })
+  // Ensure that the property address is a real address through Google
 
-    // 2
-    // Ensure that the primary contact is a Fraction user
-    .then((valid) => {
-      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + primaryContact
-      let getContactToken = token
-      let getContactOptions = {
-        method: 'GET',
-        uri: getContactRoute,
-        headers: { authorization: getContactToken }
-      }
-      return requestP(getContactOptions)
-    })
-    .then((user) => {
-      return true
-    })
-    .catch((err) => {
-      console.log('err with validating main user', err.message)
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
-      let errorMessage = JSON.parse(err.error).message
-      throw new fractionErrors.NotFound(errorMessage)
-    })
+  // Note: Google geocoding does not handle apartment / unit numbers
+  // Info: https://developers.google.com/maps/faq#geocoder_queryformat
+  let validate = q.denodeify(addressValidator.validate)
+  let addressToValidate = new addressValidator.Address({
+    street: location.address1,
+    city: location.city,
+    state: location.state,
+    country: 'United States' // hard coded for now
+  })
 
-    // 3
-    // Ensure that the property address is a real address
-    .then((user) => {
-      // promisify validation function
-      let validate = q.denodeify(addressValidator.validate)
-      let addressToValidate = new addressValidator.Address({
-        street: location.addressLine1 + location.addressLine2,
-        city: location.city,
-        state: location.state,
-        country: 'United States' // hard coded for now
-      })
-      return validate(addressToValidate, addressValidator.match.streetAddress)
-    })
+  return validate(addressToValidate, addressValidator.match.streetAddress)
     .then((addresses) => {
       // "addresses" is of the form [[{exact}], [{inexact}], {err}]
-      let exactMatch = _.map(addresses[0], address => address.toString())
+      let results = _.first(addresses)
+      let exactMatch = _.map(results, address => address.toString())
+      let addressToSave = _.first(results)
       
       try {
-        // just verify there is an exact match
-        assert((exactMatch[0].length > 5))
-        // also check zip code, as a double-check
-        assert((property.location.zip === addresses[0][0].postalCode))
+        // Verify there is an exact match for our property
+        assert(_.isObject(addressToSave))
+        assert((location.zip === addressToSave.postalCode))
+        
+        sanitizedLocation = {
+          address1: addressToSave.streetNumber + ' ' + addressToSave.street,
+          address2: location.address2,
+          city: addressToSave.city,
+          state: addressToSave.state,
+          stateAbbr: addressToSave.stateAbbr,
+          zip: addressToSave.postalCode,
+          lat: addressToSave.location.lat,
+          lon: addressToSave.location.lon
+        }
       } catch (e) {
+        console.log(e)
         throw new fractionErrors.Invalid('address validation failed')
       }
       return true
     })
     .catch((err) => {  
-      console.log('err with validating address', err.message)
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
       throw new fractionErrors.Invalid('address validation failed')
     })
-    
-    // 4
+
+    // 2
+    // Ensure the property isn't a dupe
+    .then((locationWasValid) => {
+      return Property.findOne({
+        'location.address1': sanitizedLocation.address1,
+        'location.city': sanitizedLocation.city,
+        'location.state': sanitizedLocation.state
+      })
+    })
+    .catch((response) => {
+      let errorMessage = JSON.parse(response.error).message
+      throw new fractionErrors.Invalid(errorMessage)
+    })
+    .then((foundProp) => {
+      if (foundProp) {
+        throw new fractionErrors.Forbidden('property exists')
+      }
+      return true
+    })
+
+    // 3
     // create the property
     .then((addressValid) => {
        let newProperty = {
-         location: property.location,
+         location: sanitizedLocation,
          details: property.details,
-         primaryContact: primaryContact,
          dateAdded: moment.utc().valueOf()
        }
        return Property.create(newProperty)
@@ -272,7 +256,7 @@ function createProperty(req, res) {
       return res.json({ property: createdProperty.toPublicObject() })
     })
 
-    // 5
+    // 4
     // Handle all thrown errors in the waterfall
     .catch((error) => {
       // TODO (gavin): Ensure that the final error is an instance that we can manage
@@ -318,7 +302,7 @@ function getProperty(req, res) {
       return res.json({ property: property.toPublicObject() })
     })
     .catch((err) => {
-      // console.log(err)
+      console.log(err)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
@@ -372,7 +356,7 @@ function getProperty(req, res) {
 //       // check location
 //       if (_.has(req.body.property, 'location')) {
 //         try {
-//           assert(_.isString(req.body.property.location.addressLine1))
+//           assert(_.isString(req.body.property.location.address1))
 //           assert(_.isString(req.body.property.location.city))
 //           assert(_.isString(req.body.property.location.state))
 //           assert(_.isString(req.body.property.location.zip))

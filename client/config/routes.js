@@ -15,7 +15,7 @@ import signUpContainer from './../containers/signUpContainer'
 
 import adminRoutes from './adminRoutes'
 
-import { currentUserFetch } from './../actions/userActions'
+import { fetchCurrentUser } from './../actions/userActions'
 import userUtils from './../utils/user'
 
 
@@ -47,7 +47,7 @@ module.exports = (store) => {
     // If there is a token found on the user and they aren't logged in,
     // attempt to fetch their info, otherwise they need to sign in
     if (hasToken && !loggedIn) {
-      store.dispatch(currentUserFetch()).then(checkAuth)
+      store.dispatch(fetchCurrentUser()).then(checkAuth)
     } else {
       checkAuth()
     }

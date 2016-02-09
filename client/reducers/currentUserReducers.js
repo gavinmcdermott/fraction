@@ -17,9 +17,9 @@ import {
   LOG_OUT_SUCCESS,
   LOG_OUT_ERROR,
 
-  CURRENT_USER_FETCH_START, 
-  CURRENT_USER_FETCH_SUCCESS, 
-  CURRENT_USER_FETCH_ERROR 
+  FETCH_CURRENT_USER_START, 
+  FETCH_CURRENT_USER_SUCCESS, 
+  FETCH_CURRENT_USER_ERROR 
 } from './../constants/actionTypes'
 import { AUTH_TOKEN } from './../constants/storageKeys'
 
@@ -27,7 +27,7 @@ import { AUTH_TOKEN } from './../constants/storageKeys'
 const placeholderUser = {
   token: storage.get(AUTH_TOKEN),  // Check the storage for a token
   isLoggedIn: false,
-  isFetching: false,
+  isUpdating: false,
   data: {
     id: null,
     name: { first: '', last: '' },
@@ -42,23 +42,23 @@ export function currentUser(state=placeholderUser, action) {
     
     // SIGN_UP
     case SIGN_UP_START:
-      newState.isFetching = true
+      newState.isUpdating = true
       newState.data.email.email = action.payload
       return newState
     
     case SIGN_UP_SUCCESS:
-      newState.isFetching = false
+      newState.isUpdating = false
       newState.data = action.payload
       return newState
         
     case SIGN_UP_ERROR:
-      newState.isFetching = false
+      newState.isUpdating = false
       return newState
 
 
     // LOG_IN
     case LOG_IN_START:
-      newState.isFetching = true
+      newState.isUpdating = true
       newState.data.email.email = action.payload.email
       return newState
 
@@ -68,12 +68,12 @@ export function currentUser(state=placeholderUser, action) {
       // Then update the app user
       newState.token = action.payload.token
       newState.isLoggedIn = true
-      newState.isFetching = false
+      newState.isUpdating = false
       newState.data = action.payload.user
       return newState
 
     case LOG_IN_ERROR:
-      newState.isFetching = false
+      newState.isUpdating = false
       return newState
 
       
@@ -82,33 +82,33 @@ export function currentUser(state=placeholderUser, action) {
       // Remove the token in all cases
       storage.remove(AUTH_TOKEN)
       newState.token = null
-      newState.isFetching = true
+      newState.isUpdating = true
       return newState
 
     case LOG_OUT_SUCCESS:
-      newState.isFetching = false
+      newState.isUpdating = false
       return newState
     
     case LOG_OUT_ERROR:
-      newState.isFetching = false
+      newState.isUpdating = false
       return newState
 
     
-    // CURRENT_USER_FETCH
-    case CURRENT_USER_FETCH_START:
-      newState.isFetching = true
+    // FETCH_CURRENT_USER
+    case FETCH_CURRENT_USER_START:
+      newState.isUpdating = true
       return newState
     
-    case CURRENT_USER_FETCH_SUCCESS:
+    case FETCH_CURRENT_USER_SUCCESS:
       newState.isLoggedIn = true
-      newState.isFetching = false
+      newState.isUpdating = false
       newState.data = action.payload.user
       return newState
         
-    case CURRENT_USER_FETCH_ERROR:
+    case FETCH_CURRENT_USER_ERROR:
       storage.remove(AUTH_TOKEN)
       newState.token = null
-      newState.isFetching = false
+      newState.isUpdating = false
       return newState
     
     default:

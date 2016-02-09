@@ -170,21 +170,21 @@ describe('Property Service: ', function() {
         })
     }) 
 
-    it('fails to create without a primary contact', (done) => {
-      requester
-        .post(postUrl)
-        .set('Authorization', adminToken)
-        .send({
-          property: 'some property'
-        })
-        .expect(400)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('invalid primary contact')
-          expect(res.body.status).toBe(400)
-          done()
-        })
-    }) 
+    // it('fails to create without a primary contact', (done) => {
+    //   requester
+    //     .post(postUrl)
+    //     .set('Authorization', adminToken)
+    //     .send({
+    //       property: 'some property'
+    //     })
+    //     .expect(400)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('invalid primary contact')
+    //       expect(res.body.status).toBe(400)
+    //       done()
+    //     })
+    // }) 
 
     it('fails to create without any location', (done) => {
       requester
