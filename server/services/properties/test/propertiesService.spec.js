@@ -3,7 +3,6 @@
 // Globals
 
 import nock from 'nock'
-import addressValidator from 'address-validator'
 
 // Locals
 
