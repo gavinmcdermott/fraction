@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 
 import LogInFormComponent from './../components/LogInFormComponent'
-import * as actions from './../actions/logInActions'
+import * as actions from './../../../actions/logInActions'
 
 
 function mapStateToProps(state) {

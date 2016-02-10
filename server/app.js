@@ -66,7 +66,7 @@ function loadApp() {
   app.get('/signup', (req, res) => sendClient(req, res))
   app.get('/login', (req, res) => sendClient(req, res))
   app.get('/logout', (req, res) => sendClient(req, res))
-  app.get('/dashboard*', (req, res) => sendClient(req, res))
+  app.get('/investments*', (req, res) => sendClient(req, res))
   app.get('/admin*', (req, res) => sendClient(req, res))
 }
 

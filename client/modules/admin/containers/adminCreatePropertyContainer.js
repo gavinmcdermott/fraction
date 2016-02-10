@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom'
 
 import CreatePropertyFormComponent from './../components/CreatePropertyFormComponent'
-import * as actions from './../actions/propertyActions'
+import * as actions from './../../../actions/propertyActions'
 
 
 function mapStateToProps(state) {

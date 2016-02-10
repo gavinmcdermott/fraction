@@ -42,6 +42,14 @@ const ROUTE_CREATE_PROPERTY = '/'
 const ROUTE_UPDATE_PROPERTY = '/:propertyId'
 const ROUTE_GET_PROPERTY = '/:propertyId'
 
+// Set up the Geocoder - http://nchaulet.github.io/node-geocoder/
+const HTTP_ADAPTER = 'https'
+const GEOCODER_PROVIDER = 'google'
+const GEOCODER_OPTIONS = {
+  apiKey: process.config.google.geocoderKey, // Google api key
+}
+let geocoder = nodeGeocoder(GEOCODER_PROVIDER, HTTP_ADAPTER, GEOCODER_OPTIONS)
+
 
 // Router 
 
@@ -55,18 +63,6 @@ let router = express.Router()
 router.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json
 router.use(bodyParser.json())
-
-
-// set up the Geocoder api
-// http://nchaulet.github.io/node-geocoder/
-let geocoderProvider = 'google'
-let httpAdapter = 'https'
-// optionnal
-var extra = {
-    apiKey: process.config.google.geocoderKey, // Google api key
-}
-
-let geocoder = nodeGeocoder(geocoderProvider, httpAdapter, extra)
 
 
 // API Routes
@@ -234,7 +230,6 @@ function createProperty(req, res) {
       return true
     })
     .catch((err) => { 
-      console.log(err)       
       throw new fractionErrors.Invalid('address validation failed')
     })
 

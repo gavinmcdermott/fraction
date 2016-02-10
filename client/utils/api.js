@@ -66,7 +66,7 @@ export function handleUnauthorized(dispatch) {
     // is not longer authorized to take some action - log them out
     if (status === STATUS_UNAUTHORIZED) {
       dispatch(logOutActions.logOut())
-      return Promise.resolve(true)
+      return Promise.resolve(data)
     }
     // otherwise just pass the rejected promise through to the 
     // awaiting error handler

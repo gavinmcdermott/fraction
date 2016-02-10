@@ -54,7 +54,7 @@ export function logIn(pendingUser) {
       .then(fJSON)
       .then((data) => {
         dispatch(logInSuccess(data.payload))
-        history.push('/dashboard')
+        history.push('/investments')
       })
       .catch(handleUnauthorized(dispatch))
       .catch((err) => {

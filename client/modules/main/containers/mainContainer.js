@@ -5,9 +5,9 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { Link } from 'react-router'
 
-import NavbarContainer from './navbarContainer'
+import NavbarContainer from './../../common/containers/navbarContainer'
 
-export default class appContainer extends Component {
+export default class mainContainer extends Component {
   render() {
     return(
       <div>

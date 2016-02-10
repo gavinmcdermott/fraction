@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 
-import * as actions from './../actions/logOutActions'
+import * as actions from './../../../actions/logOutActions'
 
 
 function mapStateToProps(state) {
@@ -19,19 +19,19 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-export default class DashboardContainer extends Component {
+export default class InvestmentsContainer extends Component {
   render() {
     return(
       <div>
-        <h1>Your Dashboard</h1>
+        <h1>Your Investments</h1>
         <h3>This is a protected route</h3>
-        The only thing to do is...<a onClick={ this.props.logout }>logout</a>
-        <br/>
-        <Link to="/admin">or hit the admin</Link>
+        Now you can...
+        <h3><a onClick={ this.props.logout }>logout</a></h3>
+        <h3><Link to="/admin">or hit the admin</Link></h3>
         <hr/>
       </div>
     )
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(DashboardContainer)
+export default connect(mapStateToProps, mapDispatchToProps)(InvestmentsContainer)

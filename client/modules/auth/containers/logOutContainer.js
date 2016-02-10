@@ -5,7 +5,7 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 
-import * as logOutActions from './../actions/logOutActions'
+import * as logOutActions from './../../../actions/logOutActions'
 
 
 function mapStateToProps(state) {

@@ -48,7 +48,8 @@ export function createProperty(newProp) {
           address2: newProp.address2, 
           city: newProp.city, 
           state: newProp.state,
-          zip: newProp.zip },
+          zip: newProp.zip 
+        },
         details: {
           stats: { 
             bedrooms: newProp.bedrooms,

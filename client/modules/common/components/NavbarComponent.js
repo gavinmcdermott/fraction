@@ -6,7 +6,7 @@ import React, { Component, PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { Link } from 'react-router'
 
-import userUtils from './../utils/user'
+import userUtils from './../../../utils/user'
 
 
 class NavbarComponent extends Component {
@@ -25,7 +25,7 @@ class NavbarComponent extends Component {
     return (
       <span>
         { userUtils.isFractionAdmin(this.props.currentUser) ? <Link to="/admin">Admin</Link> : false } |
-        <Link to="/dashboard">Dashboard</Link> |
+        <Link to="/investments">Dashboard</Link> |
         <Link to="/logout">Logout</Link>
       </span>
     )
