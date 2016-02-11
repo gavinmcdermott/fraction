@@ -9,6 +9,7 @@ import { Link } from 'react-router'
 
 class AdminPropertiesComponent extends Component {
   render() {
+    console.log('Re rendered', this.props.properties)
     return(
       <div>
         <h2>Admin property management</h2>
@@ -17,16 +18,16 @@ class AdminPropertiesComponent extends Component {
         <Link to="/admin/properties/create">Add new property</Link>
         <br/>
         <hr/>
-        [ TODO: Fetch all properties on container load ]
+        { _.map(this.props.properties.properties, (p) => {
+          return (<h3 key={p.id}><a href="">{ p.location.address1 }</a></h3>)
+        }) }
       </div>
     )
   }
 }
 
-// AdminPropertiesComponent.propTypes = {
-//   submit: PropTypes.func.isRequired,
-//   appErrors: PropTypes.array.isRequired,
-//   currentUser: PropTypes.object.isRequired
-// }
+AdminPropertiesComponent.propTypes = {
+  properties: PropTypes.object.isRequired,
+}
 
 export default AdminPropertiesComponent

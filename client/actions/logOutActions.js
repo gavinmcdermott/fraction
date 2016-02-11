@@ -17,20 +17,20 @@ import { history } from './../config/history'
 
 // LOG_OUT Action Creators
 
-export function logOutStart() {
+function logOutStart() {
   return {
     type: LOG_OUT_START
   }
 }
 
-export function logOutSuccess(data) {
+function logOutSuccess(data) {
   return {
     type: LOG_OUT_SUCCESS,
     payload: data
   }
 }
 
-export function logOutError(err) {
+function logOutError(err) {
   return {
     type: LOG_OUT_ERROR,
     payload: err,

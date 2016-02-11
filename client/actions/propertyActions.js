@@ -8,30 +8,34 @@ import { ENDPOINTS } from './../constants/endpoints'
 import { 
   CREATE_PROPERTY_START,         
   CREATE_PROPERTY_SUCCESS,
-  CREATE_PROPERTY_ERROR 
+  CREATE_PROPERTY_ERROR,
+
+  FETCH_PROPERTIES_START,
+  FETCH_PROPERTIES_SUCCESS,
+  FETCH_PROPERTIES_ERROR,
 } from './../constants/actionTypes'
 import * as ERRORS from './../constants/errorTypes'
 
 import { setAppError, unsetAppError } from './appErrorActions'
-import { fJSON, fPost, handleUnauthorized } from './../utils/api'
+import { fJSON, fPost, fGet, handleUnauthorized } from './../utils/api'
 
 
 // CREATE_PROPERTY Action Creators
 
-export function createPropertyStart() {
+function createPropertyStart() {
   return {
     type: CREATE_PROPERTY_START
   }
 }
 
-export function createPropertySuccess(data) {
+function createPropertySuccess(data) {
   return {
     type: CREATE_PROPERTY_SUCCESS,
     payload: data
   }
 }
 
-export function createPropertyError(err) {
+function createPropertyError(err) {
   return {
     type: CREATE_PROPERTY_ERROR,
     payload: err,
@@ -67,14 +71,73 @@ export function createProperty(newProp) {
     return fPost(createPropertyUrl, postBody)
       .then(fJSON)
       .then((data) => {
-        console.log('DDD: ', data.payload)
-        // dispatch(createPropertySuccess(data.payload))
+        console.log('Created property success: ', data.payload)
+        dispatch(createPropertySuccess(data.payload))
       })
       .catch(handleUnauthorized(dispatch))
       .catch((err) => {
-        console.log('EEE: ', err.payload)
-        // dispatch(createPropertyError(err.payload))
-        // dispatch(setAppError(err.payload, ERRORS.CREATE_PROPERTY))
+        console.log('Created property fail: ', err.payload)
+        dispatch(createPropertyError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.CREATE_PROPERTY))
       })
   }
 }
+
+
+// FETCH_PROPERTIES Action Creators
+
+function fetchPropertiesStart() {
+  return {
+    type: FETCH_PROPERTIES_START
+  }
+}
+
+function fetchPropertiesSuccess(data) {
+  return {
+    type: FETCH_PROPERTIES_SUCCESS,
+    payload: data
+  }
+}
+
+function fetchPropertiesError(err) {
+  return {
+    type: FETCH_PROPERTIES_ERROR,
+    payload: err,
+    error: true
+  }
+}
+
+export function fetchProperties() {
+  return (dispatch) => {
+    const fetchPropertiesUrl = ENDPOINTS.PROPERTIES
+
+    dispatch(fetchPropertiesStart())
+    dispatch(unsetAppError(ERRORS.FETCH_PROPERTIES))
+
+    return fGet(fetchPropertiesUrl)
+      .then(fJSON)
+      .then((data) => {
+        console.log('Success fetch props: ', data.payload)
+        dispatch(fetchPropertiesSuccess(data.payload))
+      })
+      .catch(handleUnauthorized(dispatch))
+      .catch((err) => {
+        console.log('Error fetching props: ', err.payload)
+        dispatch(fetchPropertiesError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.FETCH_PROPERTIES))
+      })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,22 +6,28 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom'
 
 import AdminPropertiesComponent from './../components/AdminPropertiesComponent'
+import * as actions from './../../../actions/propertyActions'
 
 
 function mapStateToProps(state) {
   return {
-    currentUser: state.currentUser
+    properties: state.properties
   }
 }
 
 
 function mapDispatchToProps(dispatch) {
   return {
-    // submit: (newUser) => dispatch(actions.signUp(newUser))
+    fetchProperties: () => dispatch(actions.fetchProperties())
   }
 }
 
 class adminContainer extends Component {
+
+  componentWillMount() {
+    this.props.fetchProperties()
+  }
+
   render() {
     return(
       <AdminPropertiesComponent { ...this.props } ></AdminPropertiesComponent>

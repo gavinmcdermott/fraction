@@ -8,6 +8,6 @@ module.exports = {
   isFractionAdmin:(user) => {
     assert(_.isObject(user))
     const scopes = user.data.scopes
-    return scopes && _.contains(scopes, FRACTION_ADMIN_SCOPE)
+    return scopes && _.includes(scopes, FRACTION_ADMIN_SCOPE)
   }
 }

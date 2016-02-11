@@ -1,13 +1,18 @@
 'use strict'
 
 // Globals
+import _ from 'lodash'
 import { combineReducers } from 'redux'
 import storage from './../vendor/store'
 
 import {
   CREATE_PROPERTY_START, 
   CREATE_PROPERTY_SUCCESS, 
-  CREATE_PROPERTY_ERROR 
+  CREATE_PROPERTY_ERROR,
+
+  FETCH_PROPERTIES_START,
+  FETCH_PROPERTIES_SUCCESS,
+  FETCH_PROPERTIES_ERROR,
 } from './../constants/actionTypes'
 
 const placeholderProperties = {
@@ -18,6 +23,8 @@ const placeholderProperties = {
 
 export function properties(state=placeholderProperties, action) {
   let newState = Object.assign({}, state)
+  let newProperty
+  let newProperties
   
   switch (action.type) {
     
@@ -28,11 +35,39 @@ export function properties(state=placeholderProperties, action) {
     
     case CREATE_PROPERTY_SUCCESS:
       newState.isUpdating = false
-      console.log('HAVE A NEW PROP: ', action.payload)
-      // newState.data = action.payload.user
+      newProperty = action.payload.property
+      newState.propertiesById[newProperty.id] = newProperty
+      newState.properties.push(newProperty)
+      console.log('ADDED A NEWLY CREATED PROP: ', newProperty)
       return newState
         
     case CREATE_PROPERTY_ERROR:
+      newState.isUpdating = false
+      return newState
+
+
+    // FETCH_PROPERTIES
+    case FETCH_PROPERTIES_START:
+      newState.isUpdating = true
+      return newState
+    
+    case FETCH_PROPERTIES_SUCCESS:
+      newState.isUpdating = false
+      newProperties = action.payload.properties
+      // update all properties by key
+      _.forEach(newProperties, (prop) => {
+        newState.propertiesById[prop.id] = prop
+      })
+      // merge the old properties array into the new properties -> this enforces
+      // that the new properties will overwrite the old
+      let updatedProperties = _.unionWith(newProperties, newState.properties, (newProp, oldProp) => {
+        return newProp.id === oldProp.id
+      })
+      newState.properties = updatedProperties
+      console.log('LOADED ALL PROPS INTO STATE: ', newState)
+      return newState
+        
+    case FETCH_PROPERTIES_ERROR:
       newState.isUpdating = false
       return newState
     

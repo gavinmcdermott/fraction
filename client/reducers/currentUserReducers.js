@@ -77,7 +77,7 @@ export function currentUser(state=placeholderUser, action) {
       return newState
 
       
-    // LOG_OUT ()
+    // LOG_OUT
     case LOG_OUT_START:
       // Remove the token in all cases
       storage.remove(AUTH_TOKEN)

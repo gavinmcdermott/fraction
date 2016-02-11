@@ -18,20 +18,20 @@ import { fJSON, fGet, handleUnauthorized } from './../utils/api'
 
 // FETCH_CURRENT_USER Action Creators
 
-export function fetchCurrentUserStart() {
+function fetchCurrentUserStart() {
   return {
     type: FETCH_CURRENT_USER_START
   }
 }
 
-export function fetchCurrentUserSuccess(data) {
+function fetchCurrentUserSuccess(data) {
   return {
     type: FETCH_CURRENT_USER_SUCCESS,
     payload: data
   }
 }
 
-export function fetchCurrentUserError(err) {
+function fetchCurrentUserError(err) {
   return {
     type: FETCH_CURRENT_USER_ERROR,
     payload: err,

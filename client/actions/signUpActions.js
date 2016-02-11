@@ -16,21 +16,21 @@ import { history } from './../config/history'
 
 // SIGN_UP Action Creators
 
-export function signUpStart(data) {
+function signUpStart(data) {
   return {
     type: SIGN_UP_START,
     payload: data.email
   }
 }
 
-export function signUpSuccess(data) {
+function signUpSuccess(data) {
   return {
     type: SIGN_UP_SUCCESS,
     payload: data.user
   }
 }
 
-export function signUpError(err) {
+function signUpError(err) {
   return {
     type: SIGN_UP_ERROR,
     payload: err,
