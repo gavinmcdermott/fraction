@@ -52,7 +52,7 @@ describe('Offerings Service: ', () => {
       .then((data) => {
         admin = data.user
         adminToken = data.token
-        return testUtils.addTestProperty(user.id)
+        return testUtils.addTestProperty('houseA')
       })
       .then((property) => {
         testPropertyA = property
@@ -395,7 +395,7 @@ describe('Offerings Service: ', () => {
     it('fetches ALL OPEN offerings - MULTIPLE properties', (done) => {
 
       // Add test property B
-      testUtils.addTestProperty(admin.id, testPropertyBName)
+      testUtils.addTestProperty(testPropertyBName)
         .then((house) => {
           testPropertyB = house
 

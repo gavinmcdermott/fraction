@@ -11,6 +11,7 @@ let propertySchema = new mongoose.Schema({
     city: { type: String, required: true },
     state: { type: String, required: true },
     stateAbbr: { type: String, required: true },
+    formattedAddress: { type: String, required: true },
     zip: { type: String, required: true },
     lat: { type: String, required: true },
     lon: { type: String, required: true }, 
@@ -79,7 +80,14 @@ propertySchema.methods = {
     // TODO: CLEAN UP THE ID!!!
     // let scrubbedProp = Object.assign({}, this)
     // scrubbedProp.id = this._id.toString()
-    return this 
+    return {
+      id: this._id.toString(),
+      location: this.location,
+      documents: this.documents,
+      details: this.details,
+      financials: this.financials,
+      dateAdded: this.dateAdded
+    }
   }
 
 }

@@ -39,6 +39,7 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_PROPERTY = '/'
+const ROUTE_GET_PROPERTIES = '/'
 const ROUTE_UPDATE_PROPERTY = '/:propertyId'
 const ROUTE_GET_PROPERTY = '/:propertyId'
 
@@ -87,8 +88,6 @@ function createProperty(req, res) {
   let sqft
   let token
 
-
-  // TODO (Gavin): Enforce the specific keys on each object
   // TODO (Gavin): Export these validators to a utility function
 
   if (req.error) {
@@ -166,7 +165,7 @@ function createProperty(req, res) {
     assert(unsafeBeds !== '')
     
     bedrooms = Number(unsafeBeds)
-    assert((!(_.isNaN(bedrooms)) && _.isNumber(bedrooms)))
+    assert((!_.isNaN(bedrooms) && _.isNumber(bedrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bedrooms')    
   }
@@ -178,7 +177,7 @@ function createProperty(req, res) {
     assert(unsafeBaths !== '')
 
     bathrooms = Number(unsafeBaths)
-    assert((!(_.isNaN(bathrooms)) && _.isNumber(bathrooms)))
+    assert((!_.isNaN(bathrooms) && _.isNumber(bathrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bathrooms')    
   }
@@ -189,7 +188,7 @@ function createProperty(req, res) {
     assert(unsafeSqft !== '')
 
     sqft = Number(unsafeSqft)
-    assert((!(_.isNaN(sqft)) && _.isNumber(sqft)))
+    assert((!_.isNaN(sqft) && _.isNumber(sqft)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid sqft')    
   }
@@ -204,9 +203,7 @@ function createProperty(req, res) {
   return geocoder.geocode(locationString)
     .then((results) => {
       let addressToSave = _.first(results)
-      console.log('RES: ', addressToSave)
 
-      
       try {
         // Verify there is an exact match for our property
         assert(_.isObject(addressToSave))
@@ -224,7 +221,6 @@ function createProperty(req, res) {
           lon: addressToSave.longitude
         }
       } catch (e) {
-        console.log(e)
         throw new fractionErrors.Invalid('address validation failed')
       }
       return true
@@ -325,6 +321,45 @@ function getProperty(req, res) {
 }
 
 
+/**
+ * Get all properties
+ * Can scope by query params: 
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function getProperties(req, res) {
+
+  // TODO: Add in: pagination; result limit
+
+  let status
+  let query = {}
+
+  if (req.error) {
+    throw req.error
+  }
+
+  try {
+    assert(req.user)
+    assert(req.token)
+  } catch(e) {
+    new fractionErrors.Unauthorized('invalid token')
+  }
+
+  return Property.find(query)
+    .exec()
+    .then((properies) => {
+      let sanitized = _.map(properies, (property) => {
+        return property.toPublicObject()
+      })
+      return res.json({ properties: sanitized })
+    })
+    .catch((err) => {
+      throw new Error(err.message)
+    })
+}
+
 
 
 
@@ -423,6 +458,7 @@ function getProperty(req, res) {
 // Routes
 
 router.post(ROUTE_CREATE_PROPERTY, ensureAuth, ensureFractionAdmin, wrap(createProperty))
+router.get(ROUTE_GET_PROPERTIES, ensureAuth, wrap(getProperties))
 router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
 
 // router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))
@@ -435,6 +471,7 @@ module.exports = {
   endpoints: {
     createProperty: { protocol: 'HTTP', method: 'POST', name: 'createProperty', url: ROUTE_CREATE_PROPERTY },
     // updateProperty: { protocol: 'HTTP', method: 'PUT', name: 'updateProperty', url: ROUTE_UPDATE_PROPERTY },
+    getProperties: { protocol: 'HTTP', method: 'GET', name: 'getProperties', url: ROUTE_GET_PROPERTIES },
     getProperty: { protocol: 'HTTP', method: 'GET', name: 'getProperty', url: ROUTE_GET_PROPERTY }
   }
 }

@@ -30,7 +30,6 @@ const ensureFractionAdmin = (nextState, replaceState) => {
 module.exports = (
   <Route path="admin" onEnter={ ensureFractionAdmin }>
     <IndexRoute component={ adminContainer } />
-    
     <Route path="properties">
       <IndexRoute component={ adminPropertiesContainer } />
       <Route path="create" component={ adminCreatePropertyContainer } />
