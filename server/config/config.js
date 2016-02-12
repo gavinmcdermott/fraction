@@ -26,6 +26,9 @@ let configDefaults = {
     // TODO(important!): upgrade to keys later
     tokenSecret: 'c1sCtEyAxA75Ecr4FZNK3rbNszaHrx473vsmTMXkzUpEOc0mKzlQPY9OYFj0ZE1',
     internalApiSecret: 'n3UZiR6qdBdlCCk3izYU07tx3vQC8caHEiyLvTd4ErfYZjq7seDQqUcN42FkTBN'
+  },
+  google: {
+    geocoderKey: 'AIzaSyC3sns8I3x2UB9RsaNxpDGHDbrNY98T52w'
   }
 }
 

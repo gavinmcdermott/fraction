@@ -16,21 +16,21 @@ import { history } from './../config/history'
 
 // SIGN_UP Action Creators
 
-export function signUpStart(data) {
+function signUpStart(data) {
   return {
     type: SIGN_UP_START,
     payload: data.email
   }
 }
 
-export function signUpSuccess(data) {
+function signUpSuccess(data) {
   return {
     type: SIGN_UP_SUCCESS,
     payload: data.user
   }
 }
 
-export function signUpError(err) {
+function signUpError(err) {
   return {
     type: SIGN_UP_ERROR,
     payload: err,
@@ -52,13 +52,13 @@ export function signUp(newUser) {
 
     return fPost(ENDPOINTS.SIGN_UP, body)
       .then(fJSON)
-      .then((newUser) => {
-        dispatch(signUpSuccess(newUser))
+      .then((data) => {
+        dispatch(signUpSuccess(data.payload))
         history.push('/login')
       })
       .catch((err) => {
-        dispatch(signUpError(err))
-        dispatch(setAppError(err, ERRORS.SIGN_UP))
+        dispatch(signUpError(err.payload))
+        dispatch(setAppError(err.payload, ERRORS.SIGN_UP))
       })
   }
 }

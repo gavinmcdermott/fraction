@@ -15,9 +15,9 @@ import validator from 'validator'
 // Locals
 import { wrap } from './../../middleware/errorHandler'
 import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
+import ensureAuth from './../../middleware/passportJwt'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
-import ensureAuth from './../common/passportJwt'
 
 // DB Models
 import Offering from './offeringModel'

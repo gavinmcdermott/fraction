@@ -10,10 +10,10 @@ import validator from 'validator'
 
 // Locals
 import { Strategy } from 'passport-jwt'
-import fractionErrors from './../../utils/fractionErrors'
+import fractionErrors from './../utils/fractionErrors'
 
 // DB Models
-import User from './../users/userModel'
+import User from './../services/users/userModel'
 
 
 // Constants
@@ -59,7 +59,7 @@ passport.use(new Strategy(opts, (jwtPayload, done) => {
  * @returns {promise}
  */
 function ensureAuth(req, res, next) {
-
+  
   if (req.user) {
     return next()
   }
