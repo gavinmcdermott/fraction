@@ -9,8 +9,8 @@ import { syncReduxAndRouter } from 'redux-simple-router'
 
 // Locals
 import { history } from './config/history'
-import getRoutes from './config/routes'
-import store from './stores/store'
+import routes from './config/routes'
+import store from './config/store'
 
 
 syncReduxAndRouter(history, store)
@@ -18,7 +18,7 @@ syncReduxAndRouter(history, store)
 ReactDOM.render(
   <Provider store={ store }>
     <Router history={ history }>
-      { getRoutes(store) }
+      { routes }
     </Router>
   </Provider>, 
   document.getElementById('root')

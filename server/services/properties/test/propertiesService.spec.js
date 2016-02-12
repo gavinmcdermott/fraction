@@ -3,7 +3,7 @@
 // Globals
 
 import nock from 'nock'
-import addressValidator from 'address-validator'
+import _ from 'lodash'
 
 // Locals
 
@@ -165,22 +165,6 @@ describe('Property Service: ', function() {
         .expect('Content-Type', /json/)
         .end((err, res) => {
           expect(res.body.message).toBe('invalid property')
-          expect(res.body.status).toBe(400)
-          done()
-        })
-    }) 
-
-    it('fails to create without a primary contact', (done) => {
-      requester
-        .post(postUrl)
-        .set('Authorization', adminToken)
-        .send({
-          property: 'some property'
-        })
-        .expect(400)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('invalid primary contact')
           expect(res.body.status).toBe(400)
           done()
         })
@@ -360,37 +344,10 @@ describe('Property Service: ', function() {
         .expect(400)
         .expect('Content-Type', /json/)
         .end((err, res) => {
+          console.log(err)
+          console.log(res.body)
           expect(res.body.message).toBe('address validation failed')
           expect(res.body.status).toBe(400)
-          done()
-        })
-    })
-
-    it('fails to create without a primary contact who is a user', (done) => {
-      
-      initGoogleNock(true)
-
-      requester
-        .post(postUrl)
-        .set('Authorization', adminToken)
-        .send({
-          property: {
-            primaryContact: 'fakeID',
-            location: testProperties.validLocation,
-            details: {
-              stats: {
-                bedrooms: '5',
-                bathrooms: '2',
-                sqft: '22'
-              }
-            }
-          }
-        })
-        .expect(404)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('user not found')
-          expect(res.body.status).toBe(404)
           done()
         })
     })
@@ -454,7 +411,78 @@ describe('Property Service: ', function() {
   })
 
 
-  // GET
+  // GET ALL
+
+  describe('Get All Properties: ', () => {
+
+    let user
+    let userToken
+
+    let admin
+    let adminToken
+
+    let propertyA
+    let propertyB
+
+    let getAllPropertiesUrl = propertyService.url + '/'
+    
+    beforeAll((done) => {
+      testUtils.clearLocalTestDatabase()
+        .then(() => {
+          return testUtils.addTestUser(false, testUser)
+        })
+        .then((data) => {
+          user = data.user
+          userToken = data.token
+          return testUtils.addTestUser(true, adminUser)
+        })
+        .then((data) => {
+          admin = data.user
+          adminToken = data.token
+          return testUtils.addTestProperty('houseA')
+        })
+        .then((property) => {
+          propertyA = property
+          return testUtils.addTestProperty('houseB')
+        })
+        .then((property) => {
+          propertyB = property
+          done()
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    })
+
+    // it('should fail without a token', (done) => {
+    //   requester
+    //     .get(getAllPropertiesUrl)
+    //     .send({})
+    //     .expect(401)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('No auth token')
+    //       expect(res.body.status).toBe(401)
+    //       done()
+    //     })
+    // })
+
+    it('should return all properties', (done) => {
+      requester
+        .get(getAllPropertiesUrl)
+        .set('Authorization', userToken)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end((err, res) => {
+          expect(res.body.properties).toBeDefined()
+          expect(res.body.properties.length).toEqual(2)
+          done()
+        })
+    })
+  })
+
+
+  // GET ONE
 
   describe('Get Property: ', () => {
 
@@ -483,7 +511,7 @@ describe('Property Service: ', function() {
         .then((data) => {
           admin = data.user
           adminToken = data.token
-          return testUtils.addTestProperty(admin.id)
+          return testUtils.addTestProperty('houseA')
         })
         .then((property) => {
           property = property
@@ -495,18 +523,18 @@ describe('Property Service: ', function() {
         })
     })
 
-    it('should fail without a token', (done) => {
-      requester
-        .get(getUrl)
-        .send({})
-        .expect(401)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('No auth token')
-          expect(res.body.status).toBe(401)
-          done()
-        })
-    })
+    // it('should fail without a token', (done) => {
+    //   requester
+    //     .get(getUrl)
+    //     .send({})
+    //     .expect(401)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('No auth token')
+    //       expect(res.body.status).toBe(401)
+    //       done()
+    //     })
+    // })
 
     it('should fail with bad propertyid', (done) => {
       requester
@@ -578,7 +606,7 @@ describe('Property Service: ', function() {
   //         // console.log('called here!')
   //         user = result.user
   //         token = 'Bearer ' + result.token
-  //         return testUtils.addTestProperty(user.id, token)
+  //         return testUtils.addTestProperty()
   //       })
   //       .then((result) => {
   //         property = result

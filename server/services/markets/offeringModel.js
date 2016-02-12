@@ -54,6 +54,7 @@ offeringSchema.methods = {
 offeringSchema.index({ 'property': 1 })
 offeringSchema.index({ 'addedBy': 1 })
 
+
 let Offering = mongoose.serviceDb.model('Offering', offeringSchema)
 
 module.exports = Offering

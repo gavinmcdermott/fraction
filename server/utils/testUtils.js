@@ -116,7 +116,11 @@ exports.properties = {
         address2: '',
         city: 'Lake Oswego',
         state: 'Oregon',
-        zip: '97035'
+        zip: '97035',
+        stateAbbr: 'OR',
+        lat: '1313212',
+        lon: '4564564',
+        formattedAddress: '4583 Trillium Woods, Lake Oswego, Oregon'
       },
       details: {
         description: "a descrip",
@@ -135,7 +139,11 @@ exports.properties = {
         address2: '',
         city: 'Omaha',
         state: 'Nebraska',
-        zip: '68069'
+        zip: '68069',
+        stateAbbr: 'NE',
+        lat: '1313212',
+        lon: '4564564',
+        formattedAddress: '999 McClean Deluxe Road, Omaha, Nebraska'
       },
       details: {
         description: "a description",
@@ -272,25 +280,32 @@ exports.addDocumentForUser = (testDoc, token) => {
         console.log('added document ', res.body.document.id)
         return resolve(res.body)
       })
+      // .catch((err) => {
+      //   console.log('Error addinf document: ', err)
+      //   throw err
+      // })
   })
 }
 
 
 
 // Add a test property to the db
-exports.addTestProperty = function(userId, houseId='houseA') {
-  assert(userId)
-
+exports.addTestProperty = function(houseId) {
   // import the property model to simply inject the property
   let Property = require('./../services/properties/propertyModel')
 
-  let house = exports.properties.validHouses[houseId]
-  house.primaryContact = userId
+  let house
+  try {
+    house = exports.properties.validHouses[houseId]
+    assert(_.isObject(house))
+  } catch(e) {
+    console.log('Add property failed: ', e.message)
+    throw new Error(e)
+  }
 
   let newProperty = {
     location: house.location,
     details: house.details,
-    primaryContact: userId,
     dateAdded: moment.utc().valueOf()
   }
 
@@ -301,6 +316,10 @@ exports.addTestProperty = function(userId, houseId='houseA') {
       }
       console.log('added property ', property._id)
       return property
+    })
+    .catch((err) => {
+      console.log('Error adding test property: ', err)
+      throw new Error(err)
     })
 }
 
@@ -314,9 +333,6 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
 
   // import the property model to simply inject the property
   Offering = Offering || require('./../services/markets/offeringModel')
-
-  // let house = exports.properties.validHouses.houseA
-  // house.primaryContact = userId
 
   let offering = {
     // description?
@@ -340,6 +356,10 @@ exports.addOffering = function(userId, propertyId, quantity, filled, status) {
       }
       console.log('added offering ', offering._id)
       return offering
+    })
+    .catch((err) => {
+      console.log('Error adding test offering: ', err)
+      throw new Error(err)
     })
 }
 

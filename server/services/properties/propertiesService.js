@@ -2,23 +2,24 @@
 
 // Globals
 import _ from 'lodash'
-import addressValidator from 'address-validator'
 import assert from 'assert'
 import bodyParser from 'body-parser'
 import express from 'express'
 import moment from 'moment'
 import mongoose from 'mongoose'
+import nodeGeocoder from "node-geocoder"
 import q from 'q'
 import requestP from 'request-promise'
 import request from 'request'
 import validator from 'validator'
+
 
 // Locals
 import { wrap } from './../../middleware/errorHandler'
 import ensureFractionAdmin from './../../middleware/ensureFractionAdmin'
 import fractionErrors from './../../utils/fractionErrors'
 import serviceRegistry  from './../serviceRegistry'
-import ensureAuth from './../common/passportJwt'
+import ensureAuth from './../../middleware/passportJwt'
 
 // // DB Models
 import Property from './propertyModel'
@@ -38,8 +39,17 @@ const SVC_BASE_URL = serviceRegistry.registry.apis.baseV1 + '/' + SVC_NAME
 
 // routes
 const ROUTE_CREATE_PROPERTY = '/'
+const ROUTE_GET_PROPERTIES = '/'
 const ROUTE_UPDATE_PROPERTY = '/:propertyId'
 const ROUTE_GET_PROPERTY = '/:propertyId'
+
+// Set up the Geocoder - http://nchaulet.github.io/node-geocoder/
+const HTTP_ADAPTER = 'https'
+const GEOCODER_PROVIDER = 'google'
+const GEOCODER_OPTIONS = {
+  apiKey: process.config.google.geocoderKey, // Google api key
+}
+let geocoder = nodeGeocoder(GEOCODER_PROVIDER, HTTP_ADAPTER, GEOCODER_OPTIONS)
 
 
 // Router 
@@ -69,16 +79,15 @@ function createProperty(req, res) {
 
 	// New property info to be saved
 	let property
-  let primaryContact
   let location
+  // created after the Google validation
+  let sanitizedLocation
   let details
   let bedrooms
   let bathrooms
   let sqft
   let token
 
-
-  // TODO (Gavin): Enforce the specific keys on each object
   // TODO (Gavin): Export these validators to a utility function
 
   if (req.error) {
@@ -100,14 +109,6 @@ function createProperty(req, res) {
 	} catch(e) {
     throw new fractionErrors.Invalid('invalid property')
 	}  
-
-	// validate that there is a fraction user as the main contact
-  try {
-    assert(_.has(property, 'primaryContact'))
-    primaryContact = property.primaryContact
-  } catch(e) {
-    throw new fractionErrors.Invalid('invalid primary contact')
-  }
 
 	// validate the location
   
@@ -160,8 +161,11 @@ function createProperty(req, res) {
   // this next assert
   try {
     assert(_.has(details.stats, 'bedrooms'))
-    bedrooms = Number(details.stats.bedrooms)
-    assert((!(_.isNaN(bedrooms)) && _.isNumber(bedrooms)))
+    let unsafeBeds = details.stats.bedrooms
+    assert(unsafeBeds !== '')
+    
+    bedrooms = Number(unsafeBeds)
+    assert((!_.isNaN(bedrooms) && _.isNumber(bedrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bedrooms')    
   }
@@ -169,101 +173,91 @@ function createProperty(req, res) {
   // validate bathrooms
   try {
     assert(_.has(details.stats, 'bathrooms'))
-    bathrooms = Number(details.stats.bathrooms)
-    assert((!(_.isNaN(bathrooms)) && _.isNumber(bathrooms)))
+    let unsafeBaths = details.stats.bathrooms
+    assert(unsafeBaths !== '')
+
+    bathrooms = Number(unsafeBaths)
+    assert((!_.isNaN(bathrooms) && _.isNumber(bathrooms)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid bathrooms')    
   }
 
   try {
     assert(_.has(details.stats, 'sqft'))
-    sqft = Number(details.stats.sqft)
-    assert((!(_.isNaN(sqft)) && _.isNumber(sqft)))
+    let unsafeSqft = details.stats.sqft
+    assert(unsafeSqft !== '')
+
+    sqft = Number(unsafeSqft)
+    assert((!_.isNaN(sqft) && _.isNumber(sqft)))
   } catch(e) {
     throw new fractionErrors.Invalid('invalid sqft')    
   }
 
   // 1
-  // Ensure the property is not a duplicate
-  return Property.findOne({
-      'location.address1': location.address1,
-      'location.address2': location.address2,
-      'location.city': location.city,
-      'location.state': location.state
-    })
-    .then((property) => {
-      if (property) {
-        throw new fractionErrors.Forbidden('property exists')
-      }
-      return true
-    })
+  // Ensure that the property address is a real address through Google
 
-    // 2
-    // Ensure that the primary contact is a Fraction user
-    .then((valid) => {
-      let getContactRoute = process.config.apiServer + serviceRegistry.registry.apis.baseV1 + '/users/' + primaryContact
-      let getContactToken = token
-      let getContactOptions = {
-        method: 'GET',
-        uri: getContactRoute,
-        headers: { authorization: getContactToken }
-      }
-      return requestP(getContactOptions)
-    })
-    .then((user) => {
-      return true
-    })
-    .catch((err) => {
-      console.log('err with validating main user', err.message)
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
-      let errorMessage = JSON.parse(err.error).message
-      throw new fractionErrors.NotFound(errorMessage)
-    })
+  // Note: Google geocoding does not handle apartment / unit numbers
+  // Info: https://developers.google.com/maps/faq#geocoder_queryformat
+  let locationString = location.address1 + ' ' + location.city + ' ' + location.state + ' ' + location.zip
 
-    // 3
-    // Ensure that the property address is a real address
-    .then((user) => {
-      // promisify validation function
-      let validate = q.denodeify(addressValidator.validate)
-      let addressToValidate = new addressValidator.Address({
-        street: location.addressLine1 + location.addressLine2,
-        city: location.city,
-        state: location.state,
-        country: 'United States' // hard coded for now
-      })
-      return validate(addressToValidate, addressValidator.match.streetAddress)
-    })
-    .then((addresses) => {
-      // "addresses" is of the form [[{exact}], [{inexact}], {err}]
-      let exactMatch = _.map(addresses[0], address => address.toString())
-      
+  return geocoder.geocode(locationString)
+    .then((results) => {
+      let addressToSave = _.first(results)
+
       try {
-        // just verify there is an exact match
-        assert((exactMatch[0].length > 5))
-        // also check zip code, as a double-check
-        assert((property.location.zip === addresses[0][0].postalCode))
+        // Verify there is an exact match for our property
+        assert(_.isObject(addressToSave))
+        assert((location.zip === addressToSave.zipcode))
+        
+        sanitizedLocation = {
+          address1: addressToSave.streetNumber + ' ' + addressToSave.streetName,
+          address2: location.address2,
+          city: addressToSave.city,
+          state: addressToSave.administrativeLevels.level1long,
+          stateAbbr: addressToSave.administrativeLevels.level1short,
+          zip: addressToSave.zipcode,
+          formattedAddress: addressToSave.formattedAddress,
+          lat: addressToSave.latitude,
+          lon: addressToSave.longitude
+        }
       } catch (e) {
         throw new fractionErrors.Invalid('address validation failed')
       }
       return true
     })
-    .catch((err) => {  
-      console.log('err with validating address', err.message)
-      if (err instanceof fractionErrors.BaseError) {
-        throw err
-      }
+    .catch((err) => { 
       throw new fractionErrors.Invalid('address validation failed')
     })
-    
-    // 4
+
+    // 2
+    // Ensure the property isn't a dupe
+    .then((locationWasValid) => {
+      return Property.findOne({
+        'location.address1': sanitizedLocation.address1,
+        'location.city': sanitizedLocation.city,
+        'location.state': sanitizedLocation.state
+      })
+    })
+    .catch((response) => {
+      if (response instanceof fractionErrors.BaseError) { 
+        throw response
+      }
+      let errorMessage = JSON.parse(response.error).message
+      throw new fractionErrors.Invalid(errorMessage)
+    })
+    .then((foundProp) => {
+      if (foundProp) {
+        throw new fractionErrors.Forbidden('property exists')
+      }
+      return true
+    })
+
+    // 3
     // create the property
     .then((addressValid) => {
        let newProperty = {
-         location: property.location,
+         location: sanitizedLocation,
          details: property.details,
-         primaryContact: primaryContact,
          dateAdded: moment.utc().valueOf()
        }
        return Property.create(newProperty)
@@ -272,7 +266,7 @@ function createProperty(req, res) {
       return res.json({ property: createdProperty.toPublicObject() })
     })
 
-    // 5
+    // 4
     // Handle all thrown errors in the waterfall
     .catch((error) => {
       // TODO (gavin): Ensure that the final error is an instance that we can manage
@@ -297,13 +291,6 @@ function getProperty(req, res) {
   }
 
   try {
-    assert(req.user)
-    assert(req.token)
-  } catch(e) {
-    new fractionErrors.Unauthorized('invalid token')
-  }
-
-  try {
     assert(req.params.propertyId)
     propertyId = req.params.propertyId
   } catch (err) {
@@ -318,7 +305,7 @@ function getProperty(req, res) {
       return res.json({ property: property.toPublicObject() })
     })
     .catch((err) => {
-      // console.log(err)
+      console.log('GET PROPERTY ERR: ', err.message)
       if (err instanceof fractionErrors.BaseError) {
         throw err
       }
@@ -326,6 +313,38 @@ function getProperty(req, res) {
     })
 }
 
+
+/**
+ * Get all properties
+ * Can scope by query params: 
+ *
+ * @param {req} obj Express request object
+ * @param {res} obj Express response object
+ * @returns {promise}
+ */
+function getProperties(req, res) {
+
+  // TODO: Add in: pagination; result limit
+
+  let status
+  let query = {}
+
+  if (req.error) {
+    throw req.error
+  }
+
+  return Property.find(query)
+    .exec()
+    .then((properies) => {
+      let sanitized = _.map(properies, (property) => {
+        return property.toPublicObject()
+      })
+      return res.json({ properties: sanitized })
+    })
+    .catch((err) => {
+      throw new Error(err.message)
+    })
+}
 
 
 
@@ -372,7 +391,7 @@ function getProperty(req, res) {
 //       // check location
 //       if (_.has(req.body.property, 'location')) {
 //         try {
-//           assert(_.isString(req.body.property.location.addressLine1))
+//           assert(_.isString(req.body.property.location.address1))
 //           assert(_.isString(req.body.property.location.city))
 //           assert(_.isString(req.body.property.location.state))
 //           assert(_.isString(req.body.property.location.zip))
@@ -425,7 +444,8 @@ function getProperty(req, res) {
 // Routes
 
 router.post(ROUTE_CREATE_PROPERTY, ensureAuth, ensureFractionAdmin, wrap(createProperty))
-router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
+router.get(ROUTE_GET_PROPERTIES, wrap(getProperties))
+router.get(ROUTE_GET_PROPERTY, wrap(getProperty))
 
 // router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))
 
@@ -437,6 +457,7 @@ module.exports = {
   endpoints: {
     createProperty: { protocol: 'HTTP', method: 'POST', name: 'createProperty', url: ROUTE_CREATE_PROPERTY },
     // updateProperty: { protocol: 'HTTP', method: 'PUT', name: 'updateProperty', url: ROUTE_UPDATE_PROPERTY },
+    getProperties: { protocol: 'HTTP', method: 'GET', name: 'getProperties', url: ROUTE_GET_PROPERTIES },
     getProperty: { protocol: 'HTTP', method: 'GET', name: 'getProperty', url: ROUTE_GET_PROPERTY }
   }
 }

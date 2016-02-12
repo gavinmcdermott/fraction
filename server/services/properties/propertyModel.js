@@ -8,14 +8,13 @@ let propertySchema = new mongoose.Schema({
   location: {
     address1: { type: String, required: true },
     address2: { type: String },
-    // neighborhood: { type: String },
     city: { type: String, required: true },
-    // county: { type: String },
     state: { type: String, required: true },
-    zip: { type: String, required: true }
-    // lat: { type: String },
-    // lon: { type: String }, 
-    // someday schools            
+    stateAbbr: { type: String, required: true },
+    formattedAddress: { type: String, required: true },
+    zip: { type: String, required: true },
+    lat: { type: String, required: true },
+    lon: { type: String, required: true }, 
   },
 
   // TODO
@@ -67,7 +66,7 @@ let propertySchema = new mongoose.Schema({
     // TODO pre fraction days is relevant
   },
 
-  primaryContact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  // primaryContact: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
   dateAdded: { type: Date },
 
@@ -81,7 +80,14 @@ propertySchema.methods = {
     // TODO: CLEAN UP THE ID!!!
     // let scrubbedProp = Object.assign({}, this)
     // scrubbedProp.id = this._id.toString()
-    return this 
+    return {
+      id: this._id.toString(),
+      location: this.location,
+      documents: this.documents,
+      details: this.details,
+      financials: this.financials,
+      dateAdded: this.dateAdded
+    }
   }
 
 }
@@ -90,5 +96,6 @@ propertySchema.methods = {
 // index?
 
 let Property = mongoose.serviceDb.model('Property', propertySchema)
+
 
 module.exports = Property

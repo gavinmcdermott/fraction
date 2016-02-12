@@ -10,10 +10,10 @@ import validator from 'validator'
 
 // Locals
 import { Strategy } from 'passport-local'
-import fractionErrors from './../../utils/fractionErrors'
+import fractionErrors from './../utils/fractionErrors'
 
 // DB Models
-import User from './../users/userModel'
+import User from './../services/users/userModel'
 
 
 // Constants

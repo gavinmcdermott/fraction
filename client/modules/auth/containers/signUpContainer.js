@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import ReactDOM from 'react-dom'
 
 import SignUpFormComponent from './../components/SignUpFormComponent'
-import * as actions from './../actions/signUpActions'
+import * as actions from './../../../actions/signUpActions'
 
 
 // Define the parts of Redux global state that our component

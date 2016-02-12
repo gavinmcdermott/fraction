@@ -17,20 +17,20 @@ import { history } from './../config/history'
 
 // LOG_OUT Action Creators
 
-export function logOutStart() {
+function logOutStart() {
   return {
     type: LOG_OUT_START
   }
 }
 
-export function logOutSuccess(data) {
+function logOutSuccess(data) {
   return {
     type: LOG_OUT_SUCCESS,
     payload: data
   }
 }
 
-export function logOutError(err) {
+function logOutError(err) {
   return {
     type: LOG_OUT_ERROR,
     payload: err,
@@ -46,12 +46,12 @@ export function logOut() {
     return fPost(ENDPOINTS.LOG_OUT)
     .then(fJSON)
     .then((data) => {
-      dispatch(logOutSuccess(data))
+      dispatch(logOutSuccess(data.payload))
       history.push('/')
     })
     .catch((err) => {
-      dispatch(logOutError(err))
-      dispatch(setAppError(err, ERRORS.LOG_OUT))
+      dispatch(logOutError(err.payload))
+      dispatch(setAppError(err.payload, ERRORS.LOG_OUT))
     })
   }
 }

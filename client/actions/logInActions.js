@@ -18,21 +18,21 @@ import { fJSON, fPost, handleUnauthorized } from './../utils/api'
 
 // LOG_IN Action Creators
 
-export function logInStart(data) {
+function logInStart(data) {
   return {
     type: LOG_IN_START,
-    payload: data.email
+    payload: data
   }
 }
 
-export function logInSuccess(data) {
+function logInSuccess(data) {
   return {
     type: LOG_IN_SUCCESS,
     payload: data
   }
 }
 
-export function logInError(err) {
+function logInError(err) {
   return {
     type: LOG_IN_ERROR,
     payload: err,
@@ -54,7 +54,7 @@ export function logIn(pendingUser) {
       .then(fJSON)
       .then((data) => {
         dispatch(logInSuccess(data.payload))
-        history.push('/dashboard')
+        history.push('/investments')
       })
       .catch(handleUnauthorized(dispatch))
       .catch((err) => {

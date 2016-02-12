@@ -13,9 +13,9 @@ import validator from 'validator'
 
 // Locals
 import { wrap } from './../../middleware/errorHandler'
+import ensureAuth from './../../middleware/passportJwt'
 import serviceRegistry  from './../serviceRegistry'
 import fractionErrors from './../../utils/fractionErrors'
-import ensureAuth from './../common/passportJwt'
 
 // DB Models
 import Document from './documentModel'
