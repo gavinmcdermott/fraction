@@ -14,7 +14,7 @@ class NavbarComponent extends Component {
   loggedOut() {
     return (
       <span>
-        <Link to="/">Landing</Link> | 
+        <Link to="/">Home</Link> | 
         <Link to="/login">Login</Link> |
         <Link to="/signup">Signup</Link>
       </span>
@@ -35,7 +35,6 @@ class NavbarComponent extends Component {
     const { currentUser } = this.props
     return(
       <div>
-        Navbar (cur path: { this.props.location.pathname }) 
         <br/>
         { this.props.currentUser.isLoggedIn ? this.loggedIn() : this.loggedOut() }
         <hr/>
@@ -49,3 +48,6 @@ NavbarComponent.propTypes = {
 }
 
 export default NavbarComponent
+
+
+// Navbar (cur path: { this.props.location.pathname }) 

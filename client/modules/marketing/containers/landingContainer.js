@@ -24,7 +24,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-export default class LandingContainer extends Component {
+class LandingContainer extends Component {
 
   componentWillMount() {
     let usePropertyCache = useCacheFrom(this.props.properties)

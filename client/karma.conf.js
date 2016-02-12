@@ -58,7 +58,12 @@ module.exports = function(config) {
             test: /\.(js|jsx)$/,
             exclude: /node_modules/,
             loaders: ['babel-loader']
-          }
+          },
+          // Stylesheets
+          {
+            test: /\.css$/,
+            loaders: ['style', 'css']
+          },
         ]
       }
     },

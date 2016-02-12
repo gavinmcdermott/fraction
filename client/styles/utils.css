@@ -1,0 +1,46 @@
+.align--center {
+  text-align: center;
+}
+
+.center--horiz {
+  float: none;
+  margin-left: auto;
+  margin-right: auto
+}
+
+.pad--lr {
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* THROW AWAYS */
+/* THROW AWAYS */
+/* THROW AWAYS */
+/* THROW AWAYS */
+.circle--med {
+  height: 18px;
+  width: 18px;
+  background-color: #ddd;
+  display: block;
+  border-radius: 100px;
+  margin-bottom: 12px;
+}
+
+.box {
+  height: 350px;
+  width: 100%;
+  background-color: #ddd;
+  margin-bottom: 24px;
+}

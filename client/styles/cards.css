@@ -1,0 +1,49 @@
+.card {
+  width: 100%;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.card:hover {
+
+}
+
+.property-card {
+  
+}
+
+.property-card .lead-image {
+  background-color: #efefef;
+  display: block;
+  height: 160px;
+  margin-bottom: 6px;
+}
+
+.property-card .title-container {
+  margin-bottom: 24px; 
+}
+
+.property-card .title {
+  margin-bottom: 6px;
+}
+
+.property-card .data-box {
+  text-align: center;
+}
+
+.property-card .progress-bar-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #ddd;
+  height: 10px;
+  width: 100%;
+}
+
+.property-card .progress-bar-wrap .progress-bar {
+  background: #bbb;
+  position: relative;
+  overflow: hidden;
+  height: inherit;
+  top: -1px;
+  left: -1px;
+}

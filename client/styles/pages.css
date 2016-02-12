@@ -1,0 +1,13 @@
+.hero {
+  min-height: 350px;
+  margin-bottom: 24px;
+  background-color: #eee;
+}
+
+
+
+.callout-wrap {
+  padding-left: 30px;
+  padding-right: 30px;
+  margin-bottom: 24px;
+}
