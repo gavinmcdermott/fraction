@@ -4,12 +4,10 @@
 import _ from 'lodash'
 import validator from 'validator'
 import React, { Component, PropTypes } from 'react'
-import ReactDOM from 'react-dom'
 import { Link } from 'react-router'
 
 class AdminPropertiesComponent extends Component {
   render() {
-    console.log('Re rendered', this.props.properties)
     return(
       <div>
         <h2>Admin property management</h2>
@@ -18,7 +16,7 @@ class AdminPropertiesComponent extends Component {
         <Link to="/admin/properties/create">Add new property</Link>
         <br/>
         <hr/>
-        { _.map(this.props.properties.properties, (p) => {
+        { _.map(this.props.properties.propertiesList, (p) => {
           return (<h3 key={p.id}><a href="">{ p.location.address1 }</a></h3>)
         }) }
       </div>

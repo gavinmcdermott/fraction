@@ -1,13 +1,36 @@
 'use strict'
 
 // Globals
-import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
 import { Link } from 'react-router'
+import moment from 'moment'
 
 import NavbarContainer from './../../common/containers/navbarContainer'
+import * as actions from './../../../actions/propertyActions'
 
-export default class mainContainer extends Component {
+function mapStateToProps(state) {
+  return {
+    properties: state.properties
+  }
+}
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchProperties: () => {
+      dispatch(actions.fetchProperties())
+    }
+  }
+}
+
+class MainContainer extends Component {
+
+  componentWillMount() {
+    // Bootstrap data for the app
+    this.props.fetchProperties()
+  }
+
   render() {
     return(
       <div>
@@ -18,3 +41,9 @@ export default class mainContainer extends Component {
     )
   }
 }
+
+MainContainer.propTypes = {
+  properties: PropTypes.object.isRequired
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainContainer)

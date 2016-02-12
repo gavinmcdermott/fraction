@@ -22,7 +22,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class adminContainer extends Component {
+class AdminContainer extends Component {
 
   componentWillMount() {
     this.props.fetchProperties()
@@ -35,8 +35,8 @@ class adminContainer extends Component {
   }
 }
 
-// AdminPropertiesComponent.propTypes = {
-//   currentUser: PropTypes.object.isRequired
-// }
+AdminContainer.propTypes = {
+  properties: PropTypes.object.isRequired
+}
 
-export default connect(mapStateToProps, mapDispatchToProps)(adminContainer)
+export default connect(mapStateToProps, mapDispatchToProps)(AdminContainer)

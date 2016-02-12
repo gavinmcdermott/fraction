@@ -107,8 +107,17 @@ function fetchPropertiesError(err) {
   }
 }
 
-export function fetchProperties() {
+export function fetchProperties(loadFromCache) {
   return (dispatch) => {
+    // If we don't want to make a round trip to the server,
+    // we can specify that we want to load from the in-memory cache
+    if (loadFromCache) {
+      console.log('loading properties from cache', loadFromCache)
+      dispatch(fetchPropertiesSuccess({ loadFromCache }))
+      return true
+    }
+
+    // Otherwise make the reoundtrip to the server
     const fetchPropertiesUrl = ENDPOINTS.PROPERTIES
 
     dispatch(fetchPropertiesStart())

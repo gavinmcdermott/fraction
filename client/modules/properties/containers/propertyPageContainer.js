@@ -6,9 +6,10 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router'
 
 // Locals
-import LandingComponent from './../components/LandingComponent'
+import PropertyPageComponent from './../components/PropertyPageComponent'
 import * as actions from './../../../actions/propertyActions'
 import { useCacheFrom } from './../../../utils/api'
+
 
 
 function mapStateToProps(state) {
@@ -17,29 +18,28 @@ function mapStateToProps(state) {
   }
 }
 
-
 function mapDispatchToProps(dispatch) {
   return {
     fetchProperties: (loadFromCache) => dispatch(actions.fetchProperties(loadFromCache))
   }
 }
 
-export default class LandingContainer extends Component {
+export default class PropertyPageContainer extends Component {
 
   componentWillMount() {
     let usePropertyCache = useCacheFrom(this.props.properties)
     this.props.fetchProperties(usePropertyCache)
   }
-
+  
   render() {
     return(
-      <LandingComponent {...this.props}></LandingComponent>
+      <PropertyPageComponent {...this.props}></PropertyPageComponent>
     )
   }
 }
 
-LandingContainer.propTypes = {
+PropertyPageContainer.propTypes = {
   properties: PropTypes.object.isRequired
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(LandingContainer)
+export default connect(mapStateToProps, mapDispatchToProps)(PropertyPageContainer)

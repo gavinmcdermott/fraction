@@ -291,13 +291,6 @@ function getProperty(req, res) {
   }
 
   try {
-    assert(req.user)
-    assert(req.token)
-  } catch(e) {
-    new fractionErrors.Unauthorized('invalid token')
-  }
-
-  try {
     assert(req.params.propertyId)
     propertyId = req.params.propertyId
   } catch (err) {
@@ -338,13 +331,6 @@ function getProperties(req, res) {
 
   if (req.error) {
     throw req.error
-  }
-
-  try {
-    assert(req.user)
-    assert(req.token)
-  } catch(e) {
-    new fractionErrors.Unauthorized('invalid token')
   }
 
   return Property.find(query)
@@ -458,8 +444,8 @@ function getProperties(req, res) {
 // Routes
 
 router.post(ROUTE_CREATE_PROPERTY, ensureAuth, ensureFractionAdmin, wrap(createProperty))
-router.get(ROUTE_GET_PROPERTIES, ensureAuth, wrap(getProperties))
-router.get(ROUTE_GET_PROPERTY, ensureAuth, wrap(getProperty))
+router.get(ROUTE_GET_PROPERTIES, wrap(getProperties))
+router.get(ROUTE_GET_PROPERTY, wrap(getProperty))
 
 // router.put(ROUTE_UPDATE_PROPERTY, ensureAuth, wrap(updateProperty))
 

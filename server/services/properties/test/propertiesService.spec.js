@@ -454,18 +454,18 @@ describe('Property Service: ', function() {
         })
     })
 
-    it('should fail without a token', (done) => {
-      requester
-        .get(getAllPropertiesUrl)
-        .send({})
-        .expect(401)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('No auth token')
-          expect(res.body.status).toBe(401)
-          done()
-        })
-    })
+    // it('should fail without a token', (done) => {
+    //   requester
+    //     .get(getAllPropertiesUrl)
+    //     .send({})
+    //     .expect(401)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('No auth token')
+    //       expect(res.body.status).toBe(401)
+    //       done()
+    //     })
+    // })
 
     it('should return all properties', (done) => {
       requester
@@ -523,18 +523,18 @@ describe('Property Service: ', function() {
         })
     })
 
-    it('should fail without a token', (done) => {
-      requester
-        .get(getUrl)
-        .send({})
-        .expect(401)
-        .expect('Content-Type', /json/)
-        .end((err, res) => {
-          expect(res.body.message).toBe('No auth token')
-          expect(res.body.status).toBe(401)
-          done()
-        })
-    })
+    // it('should fail without a token', (done) => {
+    //   requester
+    //     .get(getUrl)
+    //     .send({})
+    //     .expect(401)
+    //     .expect('Content-Type', /json/)
+    //     .end((err, res) => {
+    //       expect(res.body.message).toBe('No auth token')
+    //       expect(res.body.status).toBe(401)
+    //       done()
+    //     })
+    // })
 
     it('should fail with bad propertyid', (done) => {
       requester

@@ -1,6 +1,7 @@
 'use strict'
 
 import assert from 'assert'
+import moment from 'moment'
 import _ from 'lodash'
 
 import storage from './../vendor/store'
@@ -72,4 +73,15 @@ export function handleUnauthorized(dispatch) {
     // awaiting error handler
     return Promise.reject(data)
   }
+}
+
+export function useCacheFrom(dataStore) {
+  assert(_.isObject(dataStore))
+  let now = moment()
+  let interval = dataStore.cacheInvalidationInterval
+  let lastUpdated = dataStore.lastUpdated
+  if (!lastUpdated || !interval) {
+    return false
+  }
+  return now.diff(lastUpdated) < interval
 }

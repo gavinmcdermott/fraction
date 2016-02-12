@@ -49,7 +49,12 @@ app.use(webpackDevMiddleware(webpackCompiler, webpackMiddlewareConfig.DEV))
 app.use(webpackHotMiddleware(webpackCompiler, webpackMiddlewareConfig.HOT))
 
 
-function loadApp() {
+function loadApp(err) {
+  if (err) {
+    console.error('Database connect error: ', err)
+    return process.exit(-1)
+  }
+
   // Handle client routes
   let sendClient = (req, res) => {
     return res.sendFile(path.join(PUBLIC_PATH + '/index.html'))
@@ -67,6 +72,7 @@ function loadApp() {
   app.get('/login', (req, res) => sendClient(req, res))
   app.get('/logout', (req, res) => sendClient(req, res))
   app.get('/investments*', (req, res) => sendClient(req, res))
+  app.get('/properties*', (req, res) => sendClient(req, res))
   app.get('/admin*', (req, res) => sendClient(req, res))
 }
 

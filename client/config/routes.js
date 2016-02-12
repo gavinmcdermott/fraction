@@ -16,6 +16,7 @@ import authRoutes from './../modules/auth/routes'
 import adminRoutes from './../modules/admin/routes'
 import marketingRoutes from './../modules/marketing/routes'
 import investmentsRoutes from './../modules/investments/routes'
+import propertiesRoutes from './../modules/properties/routes'
 
 import { fetchCurrentUser } from './../actions/userActions'
 
@@ -55,6 +56,7 @@ const ensureAuthenticated = (nextState, replaceState, callback) => {
 
 module.exports = (
   <Route path="/" component={ mainContainer }>
+    { propertiesRoutes }
     { marketingRoutes }
     { authRoutes }
     <Route onEnter={ ensureAuthenticated }>
